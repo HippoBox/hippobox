@@ -1,4 +1,3 @@
-import logging
 from datetime import datetime, timezone
 
 from pydantic import BaseModel, Field
@@ -6,8 +5,6 @@ from sqlalchemy import JSON, Text, select
 from sqlalchemy.orm import Mapped, mapped_column
 
 from hippobox.core.database import Base, get_db
-
-log = logging.getLogger("knowledge")
 
 
 class Knowledge(Base):
@@ -65,151 +62,93 @@ class KnowledgeUpdate(BaseModel):
 
 
 class KnowledgeTable:
-
-    async def create(self, form: KnowledgeForm) -> KnowledgeModel | None:
-        try:
-            async with get_db() as db:
-                knowledge = Knowledge(
-                    **form.model_dump(),
-                    created_at=datetime.now(timezone.utc),
-                    updated_at=datetime.now(timezone.utc),
-                )
-                db.add(knowledge)
-                await db.commit()
-                await db.refresh(knowledge)
-                return KnowledgeModel.model_validate(knowledge)
-
-        except Exception as e:
-            log.exception(f"Knowledge create failed: {e}")
-            return None
+    async def create(self, form: KnowledgeForm) -> KnowledgeModel:
+        async with get_db() as db:
+            knowledge = Knowledge(
+                **form.model_dump(),
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc),
+            )
+            db.add(knowledge)
+            await db.commit()
+            await db.refresh(knowledge)
+            return KnowledgeModel.model_validate(knowledge)
 
     async def get(self, knowledge_id: int) -> KnowledgeModel | None:
-        try:
-            async with get_db() as db:
-                result = await db.execute(select(Knowledge).where(Knowledge.id == knowledge_id))
-                knowledge = result.scalar_one_or_none()
-                return KnowledgeModel.model_validate(knowledge) if knowledge else None
-
-        except Exception as e:
-            log.exception(f"Knowledge get failed: {e}")
-            return None
-
-    async def get_list(self) -> list[KnowledgeModel] | None:
-        try:
-            async with get_db() as db:
-                result = await db.execute(select(Knowledge))
-                knowledges = result.scalars().all()
-                return [KnowledgeModel.model_validate(k) for k in knowledges]
-
-        except Exception as e:
-            log.exception(f"Knowledge get failed: {e}")
-            return None
-
-    # async def get_by_user_id(self, user_id: str) -> list[KnowledgeModel]:
-    #     try:
-    #         async with get_db() as db:
-    #             result = await db.execute(select(Knowledge).where(Knowledge.user_id == user_id))
-    #             knowledges = result.scalars().all()
-    #             return [KnowledgeModel.model_validate(k) for k in knowledges]
-
-    #     except Exception as e:
-    #         log.exception(f"Knowledge get_by_user_id failed: {e}")
-    #         return []
-
-    async def get_by_topic(self, topic: str) -> list[KnowledgeModel]:
-        try:
-            async with get_db() as db:
-                result = await db.execute(select(Knowledge).where(Knowledge.topic == topic))
-                knowledges = result.scalars().all()
-                return [KnowledgeModel.model_validate(k) for k in knowledges]
-
-        except Exception as e:
-            log.exception(f"Knowledge get_by_topic failed: {e}")
-            return []
-
-    async def get_by_tag(self, tag: str) -> list[KnowledgeModel]:
-        try:
-            async with get_db() as db:
-                result = await db.execute(select(Knowledge).where(Knowledge.tags.contains([tag])))
-                knowledges = result.scalars().all()
-                return [KnowledgeModel.model_validate(k) for k in knowledges]
-
-        except Exception as e:
-            log.exception(f"Knowledge get_by_tag failed: {e}")
-            return []
+        async with get_db() as db:
+            result = await db.execute(select(Knowledge).where(Knowledge.id == knowledge_id))
+            knowledge = result.scalar_one_or_none()
+            return KnowledgeModel.model_validate(knowledge) if knowledge else None
 
     async def get_by_title(self, title: str) -> KnowledgeModel | None:
-        try:
-            async with get_db() as db:
-                result = await db.execute(select(Knowledge).where(Knowledge.title == title))
-                knowledge = result.scalar_one_or_none()
-                return KnowledgeModel.model_validate(knowledge) if knowledge else None
+        async with get_db() as db:
+            result = await db.execute(select(Knowledge).where(Knowledge.title == title))
+            knowledge = result.scalar_one_or_none()
+            return KnowledgeModel.model_validate(knowledge) if knowledge else None
 
-        except Exception as e:
-            log.exception(f"Knowledge get_by_title failed: {e}")
-            return None
+    async def get_list(self) -> list[KnowledgeModel]:
+        async with get_db() as db:
+            result = await db.execute(select(Knowledge))
+            knowledges = result.scalars().all()
+            return [KnowledgeModel.model_validate(k) for k in knowledges]
+
+    async def get_by_topic(self, topic: str) -> list[KnowledgeModel]:
+        async with get_db() as db:
+            result = await db.execute(select(Knowledge).where(Knowledge.topic == topic))
+            knowledges = result.scalars().all()
+            return [KnowledgeModel.model_validate(k) for k in knowledges]
+
+    async def get_by_tag(self, tag: str) -> list[KnowledgeModel]:
+        async with get_db() as db:
+            result = await db.execute(select(Knowledge).where(Knowledge.tags.contains([tag])))
+            knowledges = result.scalars().all()
+            return [KnowledgeModel.model_validate(k) for k in knowledges]
 
     async def update(self, knowledge_id: int, form: KnowledgeUpdate) -> KnowledgeModel | None:
-        try:
-            async with get_db() as db:
-                result = await db.execute(select(Knowledge).where(Knowledge.id == knowledge_id))
-                knowledge = result.scalar_one_or_none()
+        async with get_db() as db:
+            result = await db.execute(select(Knowledge).where(Knowledge.id == knowledge_id))
+            knowledge = result.scalar_one_or_none()
 
-                if knowledge is None:
-                    return None
+            if knowledge is None:
+                return None
 
-                update_data = form.model_dump(exclude_unset=True)
-                for key, value in update_data.items():
-                    setattr(knowledge, key, value)
+            update_data = form.model_dump(exclude_unset=True)
+            for key, value in update_data.items():
+                setattr(knowledge, key, value)
 
-                knowledge.updated_at = datetime.now(timezone.utc)
+            knowledge.updated_at = datetime.now(timezone.utc)
 
-                await db.commit()
-                await db.refresh(knowledge)
-                return KnowledgeModel.model_validate(knowledge)
-
-        except Exception as e:
-            log.exception(f"Knowledge update failed: {e}")
-            return None
+            await db.commit()
+            await db.refresh(knowledge)
+            return KnowledgeModel.model_validate(knowledge)
 
     async def delete(self, knowledge_id: int) -> bool:
-        try:
-            async with get_db() as db:
-                result = await db.execute(select(Knowledge).where(Knowledge.id == knowledge_id))
-                knowledge = result.scalar_one_or_none()
+        async with get_db() as db:
+            result = await db.execute(select(Knowledge).where(Knowledge.id == knowledge_id))
+            knowledge = result.scalar_one_or_none()
 
-                if knowledge is None:
-                    return False
+            if knowledge is None:
+                return False
 
-                await db.delete(knowledge)
-                await db.commit()
-                return True
+            await db.delete(knowledge)
+            await db.commit()
+            return True
 
-        except Exception as e:
-            log.exception(f"Knowledge delete failed: {e}")
-            return False
+    async def restore(self, knowledge: KnowledgeModel) -> KnowledgeModel:
+        async with get_db() as db:
+            restored = Knowledge(
+                id=knowledge.id,
+                topic=knowledge.topic,
+                tags=knowledge.tags,
+                title=knowledge.title,
+                content=knowledge.content,
+                created_at=knowledge.created_at,
+                updated_at=knowledge.updated_at,
+            )
 
-    async def restore(self, knowledge: KnowledgeModel) -> KnowledgeModel | None:
-        try:
-            async with get_db() as db:
-                restored = Knowledge(
-                    id=knowledge.id,
-                    # user_id=knowledge.user_id,
-                    topic=knowledge.topic,
-                    tags=knowledge.tags,
-                    title=knowledge.title,
-                    content=knowledge.content,
-                    created_at=knowledge.created_at,
-                    updated_at=knowledge.updated_at,
-                )
-
-                db.add(restored)
-                await db.commit()
-                return KnowledgeModel.model_validate(restored)
-
-        except Exception as e:
-            log.exception(f"Knowledge restore failed: {e}")
-            return None
+            db.add(restored)
+            await db.commit()
+            return KnowledgeModel.model_validate(restored)
 
 
 Knowledges = KnowledgeTable()

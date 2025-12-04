@@ -1,7 +1,9 @@
 from enum import Enum
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Request
 
+from hippobox.errors.knowledge import KnowledgeException
+from hippobox.errors.service import exceptions_to_http
 from hippobox.models.knowledge import KnowledgeForm, KnowledgeResponse, KnowledgeUpdate
 from hippobox.services.knowledge import KnowledgeService, get_knowledge_service
 
@@ -52,11 +54,8 @@ async def search_knowledge(
             tag=tag,
             limit=limit,
         )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Knowledge search failed: {e}",
-        )
+    except KnowledgeException as e:
+        raise exceptions_to_http(e)
 
 
 # -----------------------------
@@ -86,11 +85,8 @@ async def create_knowledge(
     """
     try:
         return await service.create_knowledge(form)
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Knowledge creation failed: {e}",
-        )
+    except KnowledgeException as e:
+        raise exceptions_to_http(e)
 
 
 # -----------------------------
@@ -110,18 +106,9 @@ async def get_knowledge_list(
     Useful for browsing or building UI item lists.
     """
     try:
-        knowledges = await service.get_knowledge_list()
-        if knowledges is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Knowledge not found",
-            )
-        return knowledges
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Knowledge fetch failed: {e}",
-        )
+        return await service.get_knowledge_list()
+    except KnowledgeException as e:
+        raise exceptions_to_http(e)
 
 
 # -----------------------------
@@ -145,18 +132,9 @@ async def get_knowledge(
     - MCP tool consumption by ID
     """
     try:
-        knowledge = await service.get_knowledge(knowledge_id)
-        if knowledge is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Knowledge not found",
-            )
-        return knowledge
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Knowledge fetch failed: {e}",
-        )
+        return await service.get_knowledge(knowledge_id)
+    except KnowledgeException as e:
+        raise exceptions_to_http(e)
 
 
 # -----------------------------
@@ -175,19 +153,9 @@ async def get_knowledge_by_title(
     - MCP invokes tool with natural language title
     """
     try:
-        knowledge = await service.get_by_title(title)
-        if knowledge is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Knowledge not found",
-            )
-        return knowledge
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Knowledge fetch by title failed: {e}",
-        )
+        return await service.get_by_title(title)
+    except KnowledgeException as e:
+        raise exceptions_to_http(e)
 
 
 # -----------------------------
@@ -208,13 +176,9 @@ async def get_by_topic(
     - 'database'
     """
     try:
-        knowledges = await service.get_by_topic(topic)
-        return knowledges
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Knowledge fetch by topic failed: {e}",
-        )
+        return await service.get_by_topic(topic)
+    except KnowledgeException as e:
+        raise exceptions_to_http(e)
 
 
 # -----------------------------
@@ -236,11 +200,8 @@ async def get_by_tag(
     """
     try:
         return await service.get_by_tag(tag)
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Knowledge fetch by tag failed: {e}",
-        )
+    except KnowledgeException as e:
+        raise exceptions_to_http(e)
 
 
 # -----------------------------
@@ -265,19 +226,9 @@ async def update_knowledge(
     and re-indexed into Qdrant.
     """
     try:
-        updated = await service.update_knowledge(knowledge_id, form)
-        if updated is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Knowledge not found",
-            )
-        return updated
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Knowledge update failed: {e}",
-        )
+        return await service.update_knowledge(knowledge_id, form)
+    except KnowledgeException as e:
+        raise exceptions_to_http(e)
 
 
 # -----------------------------
@@ -296,17 +247,7 @@ async def delete_knowledge(
     - Embedding vector from Qdrant index
     """
     try:
-        success = await service.delete_knowledge(knowledge_id)
-        if not success:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Knowledge not found",
-            )
-
+        await service.delete_knowledge(knowledge_id)
         return {"status": "success", "id": knowledge_id}
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Knowledge deletion failed: {e}",
-        )
+    except KnowledgeException as e:
+        raise exceptions_to_http(e)
