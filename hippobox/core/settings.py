@@ -16,6 +16,14 @@ class Settings(BaseModel):
     EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
 
     # ----------------------------------------
+    # Auth
+    # ----------------------------------------
+    # TODO: development-only option
+    SECRET_KEY: str = "HIPPOBOX_DEV_SECRET"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
+
+    # ----------------------------------------
     # SQL Database (raw env)
     # ----------------------------------------
     DB_DRIVER: str = os.getenv("DB_DRIVER", "sqlite+aiosqlite")
