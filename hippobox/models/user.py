@@ -20,6 +20,12 @@ class User(Base):
     password_hash: Mapped[str | None] = mapped_column(nullable=True)
     name: Mapped[str] = mapped_column(nullable=False)
 
+    is_active: Mapped[bool] = mapped_column(default=True, nullable=False)
+    is_verified: Mapped[bool] = mapped_column(default=False, nullable=False)
+
+    last_login_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    password_changed_at: Mapped[datetime | None] = mapped_column(nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
 
@@ -28,6 +34,12 @@ class UserModel(BaseModel):
     id: int = Field(..., description="Unique identifier of the user entry")
     email: str = Field(..., description="User's unique email address, used for authentication and identification")
     name: str = Field(..., description="Display name of the user")
+
+    is_active: bool = Field(..., description="Indicates whether the user account is active")
+    is_verified: bool = Field(..., description="Indicates whether the user's email has been verified successfully")
+
+    last_login_at: datetime | None = Field(..., description="Timestamp of the user's most recent successful login")
+    password_changed_at: datetime | None = Field(..., description="Timestamp last updated their account password")
 
     created_at: datetime = Field(..., description="Timestamp indicating when the user account was created")
     updated_at: datetime = Field(..., description="Timestamp indicating the most recent update to the user record")
@@ -49,9 +61,7 @@ class LoginForm(BaseModel):
 
 class UserUpdate(BaseModel):
     email: str | None = Field(None, description="Updated email address, if the user wishes to change it")
-    password: str | None = Field(
-        None, description="New raw password to replace the existing one, hashed before storage"
-    )
+    password: str | None = Field(None, description="New password to replace the existing one, hashed before storage")
     name: str | None = Field(None, description="Updated display name for the user")
 
 

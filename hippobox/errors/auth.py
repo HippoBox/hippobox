@@ -1,4 +1,5 @@
 from enum import Enum
+
 from fastapi import status
 
 from hippobox.errors.service import ServiceErrorCode, ServiceException

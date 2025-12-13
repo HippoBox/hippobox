@@ -40,8 +40,16 @@ class Settings(BaseModel):
     QDRANT_MODE: str = os.getenv("QDRANT_MODE", "local")
     QDRANT_PATH: str = os.getenv("QDRANT_PATH", "qdrant_storage")
     QDRANT_URL: str = os.getenv("QDRANT_URL", "http://localhost:6333")
-
     QDRANT_LOCAL_PATH: Path | None = None
+
+    # ----------------------------------------
+    # Redis
+    # ----------------------------------------
+    REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
+    REDIS_PORT: int = int(os.getenv("REDIS_PORT", "6379"))
+    REDIS_DB: int = int(os.getenv("REDIS_DB", "0"))
+    REDIS_PASSWORD: str | None = os.getenv("REDIS_PASSWORD", None)
+    REDIS_URL: str | None = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -65,6 +73,12 @@ class Settings(BaseModel):
                 "QDRANT_LOCAL_PATH",
                 (self.ROOT_DIR / self.QDRANT_PATH).resolve(),
             )
+
+        if self.REDIS_PASSWORD:
+            redis_url = f"redis://:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
+        else:
+            redis_url = f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
+        object.__setattr__(self, "REDIS_URL", redis_url)
 
 
 SETTINGS = Settings()

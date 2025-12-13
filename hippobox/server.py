@@ -7,6 +7,7 @@ from fastapi_mcp import FastApiMCP
 
 from hippobox.core.database import dispose_db, init_db
 from hippobox.core.logging_config import setup_logger
+from hippobox.core.redis import RedisManager
 from hippobox.core.settings import SETTINGS
 from hippobox.rag.embedding import Embedding
 from hippobox.rag.qdrant import Qdrant
@@ -60,6 +61,7 @@ async def lifespan(app: FastAPI):
         yield
     finally:
         await dispose_db()
+        await RedisManager.close()
         log.info("HippoBox Server Lifespan Shutdown")
 
 
