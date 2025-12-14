@@ -1,4 +1,5 @@
 import logging
+from enum import Enum
 
 from fastapi import HTTPException
 
@@ -15,7 +16,7 @@ class ServiceErrorCode:
 class ServiceException(Exception):
     def __init__(self, code: ServiceErrorCode, message: str | None = None):
         self.code = code
-        self.message = message or code.default_message
+        self.message = str(message) if message else code.default_message
         super().__init__(self.message)
 
 
@@ -29,7 +30,10 @@ def exceptions_to_http(exc: ServiceException) -> HTTPException:
     )
 
 
-def raise_exception_with_log(code: ServiceErrorCode, e: Exception):
+def raise_exception_with_log(code: ServiceErrorCode | Enum, e: Exception):
+    if isinstance(code, Enum):
+        code = code.value
+
     if e:
         log.exception(f"{code.default_message}: {e}")
     else:

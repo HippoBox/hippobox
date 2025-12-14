@@ -7,10 +7,11 @@ from fastapi_mcp import FastApiMCP
 
 from hippobox.core.database import dispose_db, init_db
 from hippobox.core.logging_config import setup_logger
+from hippobox.core.redis import RedisManager
 from hippobox.core.settings import SETTINGS
 from hippobox.rag.embedding import Embedding
 from hippobox.rag.qdrant import Qdrant
-from hippobox.routers.v1 import knowledge
+from hippobox.routers.v1 import auth, knowledge
 from hippobox.routers.v1.knowledge import OperationID
 
 log = logging.getLogger("hippobox")
@@ -60,6 +61,7 @@ async def lifespan(app: FastAPI):
         yield
     finally:
         await dispose_db()
+        await RedisManager.close()
         log.info("HippoBox Server Lifespan Shutdown")
 
 
@@ -85,6 +87,12 @@ def create_app() -> FastAPI:
         knowledge.router,
         prefix="/api/v1/knowledge",
         tags=["Knowledge"],
+    )
+
+    app.include_router(
+        auth.router,
+        prefix="/api/v1/auth",
+        tags=["Auth"],
     )
 
     @app.get("/ping", operation_id="ping_tool")

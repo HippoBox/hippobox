@@ -1,12 +1,13 @@
 import logging
 from datetime import datetime, timezone
 
-from passlib.hash import bcrypt
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import DateTime, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped, mapped_column
 
 from hippobox.core.database import Base, get_db
+from hippobox.errors.auth import AuthErrorCode, AuthException
 
 log = logging.getLogger("user")
 
@@ -18,16 +19,32 @@ class User(Base):
 
     email: Mapped[str] = mapped_column(unique=True, nullable=False)
     password_hash: Mapped[str | None] = mapped_column(nullable=True)
-    name: Mapped[str] = mapped_column(nullable=False)
+    name: Mapped[str] = mapped_column(unique=True, nullable=False)
 
-    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
-    updated_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+    is_active: Mapped[bool] = mapped_column(default=True, nullable=False)
+    is_verified: Mapped[bool] = mapped_column(default=False, nullable=False)
+
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    password_changed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
 
 
 class UserModel(BaseModel):
     id: int = Field(..., description="Unique identifier of the user entry")
     email: str = Field(..., description="User's unique email address, used for authentication and identification")
     name: str = Field(..., description="Display name of the user")
+
+    is_active: bool = Field(..., description="Indicates whether the user account is active")
+    is_verified: bool = Field(..., description="Indicates whether the user's email has been verified successfully")
+
+    last_login_at: datetime | None = Field(..., description="Timestamp of the user's most recent successful login")
+    password_changed_at: datetime | None = Field(..., description="Timestamp last updated their account password")
 
     created_at: datetime = Field(..., description="Timestamp indicating when the user account was created")
     updated_at: datetime = Field(..., description="Timestamp indicating the most recent update to the user record")
@@ -47,14 +64,6 @@ class LoginForm(BaseModel):
     password: str = Field(..., description="Raw password for login")
 
 
-class UserUpdate(BaseModel):
-    email: str | None = Field(None, description="Updated email address, if the user wishes to change it")
-    password: str | None = Field(
-        None, description="New raw password to replace the existing one, hashed before storage"
-    )
-    name: str | None = Field(None, description="Updated display name for the user")
-
-
 class UserResponse(BaseModel):
     id: int = Field(..., description="Unique identifier of the user")
     email: str = Field(..., description="User's registered email address")
@@ -62,18 +71,37 @@ class UserResponse(BaseModel):
     created_at: datetime = Field(..., description="Timestamp when the user account was created")
 
 
+class TokenResponse(BaseModel):
+    access_token: str = Field(..., description="JWT access token used for authentication")
+    token_type: str = Field("bearer", description="Type of the token (e.g., 'bearer')")
+    user: UserResponse = Field(..., description="Authenticated user information associated with the token")
+
+
 class UserTable:
-    async def create(self, form: SignupForm) -> UserModel:
+    async def create(self, form: dict) -> UserModel:
         async with get_db() as db:
-            user = User(
-                email=form.email,
-                name=form.name,
-                password_hash=bcrypt.hash(form.password),
-            )
-            db.add(user)
-            await db.commit()
-            await db.refresh(user)
-            return UserModel.model_validate(user)
+            try:
+                user = User(
+                    email=form["email"],
+                    name=form["name"],
+                    password_hash=form["password_hash"],
+                )
+                db.add(user)
+                await db.commit()
+                await db.refresh(user)
+                return UserModel.model_validate(user)
+
+            except IntegrityError as e:
+                await db.rollback()
+                msg = str(e.orig)
+
+                if "user_email_key" in msg:
+                    raise AuthException(AuthErrorCode.EMAIL_ALREADY_EXISTS)
+
+                if "user_name_key" in msg:
+                    raise AuthException(AuthErrorCode.NAME_ALREADY_EXISTS)
+
+                raise AuthException(AuthErrorCode.CREATE_FAILED, str(e))
 
     async def get(self, user_id: int) -> UserModel | None:
         async with get_db() as db:
@@ -99,7 +127,7 @@ class UserTable:
             users = result.scalars().all()
             return [UserModel.model_validate(u) for u in users]
 
-    async def update(self, user_id: int, form: UserUpdate) -> UserModel | None:
+    async def update(self, user_id: int, form: dict) -> UserModel | None:
         async with get_db() as db:
             result = await db.execute(select(User).where(User.id == user_id))
             user = result.scalar_one_or_none()
@@ -107,12 +135,9 @@ class UserTable:
             if user is None:
                 return None
 
-            update_data = form.model_dump(exclude_unset=True)
-            if "password" in update_data:
-                update_data["password_hash"] = bcrypt.hash(update_data.pop("password"))
-
-            for key, value in update_data.items():
-                setattr(user, key, value)
+            for key, value in form.items():
+                if hasattr(user, key):
+                    setattr(user, key, value)
 
             user.updated_at = datetime.now(timezone.utc)
 

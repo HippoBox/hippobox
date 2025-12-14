@@ -23,6 +23,9 @@ dependencies = [
     "passlib>=1.7.4",
     "pyjwt>=2.10.1",
     "python-jose>=3.5.0",
+    "redis[hiredis]>=5.0",
+    "bcrypt>=5.0.0",
+    "argon2-cffi>=25.1.0",
 ]
 
 [tool.black]
