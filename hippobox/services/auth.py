@@ -5,25 +5,29 @@ from datetime import datetime, timedelta, timezone
 from functools import partial
 
 from fastapi import Request
-from jose import jwt
 
 from hippobox.core.redis import RedisManager
-from hippobox.core.security import get_password_hash, verify_password
 from hippobox.core.settings import SETTINGS
 from hippobox.errors.auth import AuthErrorCode, AuthException
 from hippobox.errors.service import raise_exception_with_log
 from hippobox.models.user import LoginForm, SignupForm, UserResponse, Users
+from hippobox.utils.security import get_password_hash, verify_password
+from hippobox.utils.token import (
+    create_access_token,
+    create_refresh_token,
+    delete_refresh_token,
+    store_refresh_token,
+    verify_refresh_token,
+)
 
 log = logging.getLogger("auth")
 
 
 class AuthService:
     def __init__(self):
-        self.SECRET_KEY = SETTINGS.SECRET_KEY
-        self.ALGORITHM = SETTINGS.ALGORITHM
-        self.ACCESS_TOKEN_EXPIRE_MINUTES = SETTINGS.ACCESS_TOKEN_EXPIRE_MINUTES
         self.LOGIN_FAILED_LIMIT = SETTINGS.LOGIN_FAILED_LIMIT
         self.LOGIN_LOCKED_MINUTES = SETTINGS.LOGIN_LOCKED_MINUTES
+        self.ACCESS_TOKEN_EXPIRE_MINUTES = SETTINGS.ACCESS_TOKEN_EXPIRE_MINUTES
 
     async def _hash_password(self, password: str) -> str:
         loop = asyncio.get_running_loop()
@@ -65,15 +69,17 @@ class AuthService:
             user = await Users.get_entity_by_email(form.email)
         except Exception as e:
             raise_exception_with_log(AuthErrorCode.LOGIN_FAILED, e)
+
         if user is None:
-            raise AuthException(AuthErrorCode.USER_NOT_FOUND)
+            raise AuthException(AuthErrorCode.INVALID_CREDENTIALS)
 
         await self._check_login_limit(user.id)
 
         is_valid = await self._verify_password(form.password, user.password_hash)
+
         if not is_valid:
             await self._increase_login_fail_count(user.id)
-            raise AuthException(AuthErrorCode.PASSWORD_MISMATCH)
+            raise AuthException(AuthErrorCode.INVALID_CREDENTIALS)
 
         await self._reset_login_fail_count(user.id)
 
@@ -83,20 +89,52 @@ class AuthService:
             log.warning(f"Failed to update last_login_at for user {user.id}: {e}")
             raise_exception_with_log(AuthErrorCode.LOGIN_FAILED, e)
 
-        expire = datetime.now(timezone.utc) + timedelta(minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": str(user.id), "email": user.email},
+            expires_delta=timedelta(minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES),
+        )
+        refresh_token = create_refresh_token()
 
-        payload = {
-            "sub": str(user.id),
-            "email": user.email,
-            "exp": int(expire.timestamp()),
-        }
-
-        token = jwt.encode(payload, self.SECRET_KEY, algorithm=self.ALGORITHM)
+        await store_refresh_token(user.id, refresh_token)
 
         return {
-            "access_token": token,
+            "access_token": access_token,
+            "refresh_token": refresh_token,
             "token_type": "bearer",
             "user": UserResponse.model_validate(user.model_dump()),
+        }
+
+    # -------------------------------------------
+    # Logout
+    # -------------------------------------------
+    async def logout(self, user_id: int):
+        await delete_refresh_token(user_id)
+
+    # -------------------------------------------
+    # Refresh Token Logic
+    # -------------------------------------------
+    async def refresh_access_token(self, refresh_token: str, user_id: int) -> dict:
+        is_valid = await verify_refresh_token(user_id, refresh_token)
+
+        if not is_valid:
+            raise AuthException(AuthErrorCode.INVALID__AUTH_TOKEN)
+
+        user = await Users.get(user_id)
+        if not user:
+            raise AuthException(AuthErrorCode.USER_NOT_FOUND)
+
+        new_access_token = create_access_token(
+            data={"sub": str(user.id), "email": user.email},
+            expires_delta=timedelta(minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES),
+        )
+        new_refresh_token = create_refresh_token()
+
+        await store_refresh_token(user.id, new_refresh_token)
+
+        return {
+            "access_token": new_access_token,
+            "refresh_token": new_refresh_token,
+            "token_type": "bearer",
         }
 
     # -------------------------------------------
@@ -137,6 +175,7 @@ class AuthService:
             user = await Users.get_entity_by_email(email)
         except Exception as e:
             raise_exception_with_log(AuthErrorCode.UNKNOWN_ERROR, e)
+
         if user is None:
             raise AuthException(AuthErrorCode.USER_NOT_FOUND)
 

@@ -4,8 +4,14 @@ from hippobox.errors.auth import AuthException
 from hippobox.errors.service import exceptions_to_http
 from hippobox.models.user import LoginForm, SignupForm, TokenResponse, UserResponse
 from hippobox.services.auth import AuthService, get_auth_service
+from hippobox.utils.auth import get_current_user
 
 router = APIRouter()
+
+
+@router.get("/me", response_model=UserResponse)
+async def read_users_me(current_user: UserResponse = Depends(get_current_user)):
+    return current_user
 
 
 # -----------------------------
@@ -63,6 +69,65 @@ async def login(
     """
     try:
         return await service.login(form)
+    except AuthException as e:
+        raise exceptions_to_http(e)
+
+
+# -----------------------------
+# Logout
+# -----------------------------
+@router.post("/logout")
+async def logout(
+    current_user: UserResponse = Depends(get_current_user),
+    service: AuthService = Depends(get_auth_service),
+):
+    """
+    Log out the current user by invalidating their refresh token.
+
+    ### Requirements:
+
+        Authentication header (Bearer Token) is required.
+
+    ### Returns:
+
+        dict: Success message.
+
+    This removes the refresh token from Redis, effectively preventing
+    future access token renewals without re-login.
+    """
+    try:
+        await service.logout(current_user.id)
+        return {"message": "Successfully logged out"}
+    except AuthException as e:
+        raise exceptions_to_http(e)
+
+
+# -----------------------------
+# Refresh Token
+# -----------------------------
+@router.post("/refresh", response_model=TokenResponse)
+async def refresh_token(
+    refresh_token: str = Body(..., embed=True),
+    user_id: int = Body(..., embed=True),
+    service: AuthService = Depends(get_auth_service),
+):
+    """
+    Renew access token using a valid refresh token.
+
+    ### Args:
+
+        refresh_token (str): The refresh token issued during login.
+        user_id (int): The ID of the user owning the token.
+
+    ### Returns:
+
+        token (TokenResponse): A new pair of Access and Refresh tokens.
+
+    This endpoint implements **Refresh Token Rotation**.
+    The old refresh token is invalidated, and a completely new pair is issued.
+    """
+    try:
+        return await service.refresh_access_token(refresh_token, user_id)
     except AuthException as e:
         raise exceptions_to_http(e)
 

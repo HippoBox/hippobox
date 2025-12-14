@@ -12,14 +12,8 @@ class AuthErrorCode(Enum):
         status.HTTP_500_INTERNAL_SERVER_ERROR,
     )
 
-    USER_NOT_FOUND = ServiceErrorCode(
-        "USER_NOT_FOUND",
-        "User not found",
-        status.HTTP_404_NOT_FOUND,
-    )
-
-    USER_ALREADY_EXISTS = ServiceErrorCode(
-        "USER_ALREADY_EXISTS",
+    EMAIL_ALREADY_EXISTS = ServiceErrorCode(
+        "EMAIL_ALREADY_EXISTS",
         "User with this email already exists",
         status.HTTP_409_CONFLICT,
     )
@@ -30,28 +24,16 @@ class AuthErrorCode(Enum):
         status.HTTP_409_CONFLICT,
     )
 
-    EMAIL_ALREADY_EXISTS = ServiceErrorCode(
-        "EMAIL_ALREADY_EXISTS",
-        "User with this email already exists",
-        status.HTTP_409_CONFLICT,
-    )
-
-    PASSWORD_MISMATCH = ServiceErrorCode(
-        "PASSWORD_MISMATCH",
-        "Incorrect password",
-        status.HTTP_401_UNAUTHORIZED,
-    )
-
     CREATE_FAILED = ServiceErrorCode(
         "CREATE_FAILED",
         "Failed to create user",
         status.HTTP_500_INTERNAL_SERVER_ERROR,
     )
 
-    LOGIN_FAILED = ServiceErrorCode(
-        "LOGIN_FAILED",
-        "Failed to login user",
-        status.HTTP_500_INTERNAL_SERVER_ERROR,
+    INVALID_CREDENTIALS = ServiceErrorCode(
+        "INVALID_CREDENTIALS",
+        "Incorrect email or password",
+        status.HTTP_401_UNAUTHORIZED,
     )
 
     ACCOUNT_LOCKED = ServiceErrorCode(
@@ -70,6 +52,24 @@ class AuthErrorCode(Enum):
         "INVALID_RESET_PASSWORD_TOKEN",
         "Invalid password reset token",
         status.HTTP_400_BAD_REQUEST,
+    )
+
+    INVALID__AUTH_TOKEN = ServiceErrorCode(
+        "INVALID_TOKEN",
+        "Invalid authentication token",
+        status.HTTP_401_UNAUTHORIZED,
+    )
+
+    USER_NOT_FOUND = ServiceErrorCode(
+        "USER_NOT_FOUND",
+        "User not found",
+        status.HTTP_404_NOT_FOUND,
+    )
+
+    LOGIN_FAILED = ServiceErrorCode(
+        "LOGIN_FAILED",
+        "Failed to process login",
+        status.HTTP_500_INTERNAL_SERVER_ERROR,
     )
 
     @property
