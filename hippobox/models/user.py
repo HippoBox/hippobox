@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime, timezone
+from enum import Enum
 
 from pydantic import BaseModel, Field
 from sqlalchemy import DateTime, select
@@ -12,20 +13,22 @@ from hippobox.errors.auth import AuthErrorCode, AuthException
 log = logging.getLogger("user")
 
 
+class UserRole(str, Enum):
+    ADMIN = "admin"
+    USER = "user"
+
+
 class User(Base):
     __tablename__ = "user"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
     email: Mapped[str] = mapped_column(unique=True, nullable=False)
-    password_hash: Mapped[str | None] = mapped_column(nullable=True)
     name: Mapped[str] = mapped_column(unique=True, nullable=False)
+    role: Mapped[UserRole] = mapped_column(default=UserRole.USER, nullable=False)
 
     is_active: Mapped[bool] = mapped_column(default=True, nullable=False)
     is_verified: Mapped[bool] = mapped_column(default=False, nullable=False)
-
-    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    password_changed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(
@@ -37,14 +40,13 @@ class User(Base):
 
 class UserModel(BaseModel):
     id: int = Field(..., description="Unique identifier of the user entry")
+
     email: str = Field(..., description="User's unique email address, used for authentication and identification")
     name: str = Field(..., description="Display name of the user")
+    role: UserRole = Field(..., description="Role assigned to the user")
 
     is_active: bool = Field(..., description="Indicates whether the user account is active")
     is_verified: bool = Field(..., description="Indicates whether the user's email has been verified successfully")
-
-    last_login_at: datetime | None = Field(..., description="Timestamp of the user's most recent successful login")
-    password_changed_at: datetime | None = Field(..., description="Timestamp last updated their account password")
 
     created_at: datetime = Field(..., description="Timestamp indicating when the user account was created")
     updated_at: datetime = Field(..., description="Timestamp indicating the most recent update to the user record")
@@ -68,13 +70,24 @@ class UserResponse(BaseModel):
     id: int = Field(..., description="Unique identifier of the user")
     email: str = Field(..., description="User's registered email address")
     name: str = Field(..., description="Display name of the user")
+    role: UserRole = Field(..., description="Role assigned to the user")
     created_at: datetime = Field(..., description="Timestamp when the user account was created")
 
+    class Config:
+        from_attributes = True
 
-class TokenResponse(BaseModel):
+
+class LoginTokenResponse(BaseModel):
     access_token: str = Field(..., description="JWT access token used for authentication")
+    refresh_token: str = Field(..., description="Refresh token used to renew access tokens")
     token_type: str = Field("bearer", description="Type of the token (e.g., 'bearer')")
     user: UserResponse = Field(..., description="Authenticated user information associated with the token")
+
+
+class TokenRefreshResponse(BaseModel):
+    access_token: str = Field(..., description="JWT access token used for authentication")
+    refresh_token: str = Field(..., description="Refresh token used to renew access tokens")
+    token_type: str = Field("bearer", description="Type of the token (e.g., 'bearer')")
 
 
 class UserTable:
@@ -84,7 +97,6 @@ class UserTable:
                 user = User(
                     email=form["email"],
                     name=form["name"],
-                    password_hash=form["password_hash"],
                 )
                 db.add(user)
                 await db.commit()

@@ -10,7 +10,9 @@ from hippobox.core.redis import RedisManager
 from hippobox.core.settings import SETTINGS
 from hippobox.errors.auth import AuthErrorCode, AuthException
 from hippobox.errors.service import raise_exception_with_log
-from hippobox.models.user import LoginForm, SignupForm, UserResponse, Users
+from hippobox.models.auth import Auths
+from hippobox.models.credential import Credentials
+from hippobox.models.user import LoginForm, LoginTokenResponse, SignupForm, TokenRefreshResponse, UserResponse, Users
 from hippobox.utils.security import get_password_hash, verify_password
 from hippobox.utils.token import (
     create_access_token,
@@ -47,9 +49,10 @@ class AuthService:
 
             if "password" in user_data:
                 del user_data["password"]
-            user_data["password_hash"] = hashed_password
 
             user = await Users.create(user_data)
+            await Credentials.create(user.id, hashed_password)
+            await Auths.create(user.id, "email", user.email)
 
         except AuthException as e:
             raise e
@@ -64,7 +67,7 @@ class AuthService:
     # -------------------------------------------
     # Login
     # -------------------------------------------
-    async def login(self, form: LoginForm) -> dict:
+    async def login(self, form: LoginForm, request: Request) -> LoginTokenResponse:
         try:
             user = await Users.get_entity_by_email(form.email)
         except Exception as e:
@@ -75,7 +78,11 @@ class AuthService:
 
         await self._check_login_limit(user.id)
 
-        is_valid = await self._verify_password(form.password, user.password_hash)
+        credential = await Credentials.get_by_user_id(user.id)
+        if credential is None or not credential.is_active:
+            raise AuthException(AuthErrorCode.INVALID_CREDENTIALS)
+
+        is_valid = await self._verify_password(form.password, credential.password_hash)
 
         if not is_valid:
             await self._increase_login_fail_count(user.id)
@@ -84,25 +91,27 @@ class AuthService:
         await self._reset_login_fail_count(user.id)
 
         try:
-            user = await Users.update(user.id, {"last_login_at": datetime.now(timezone.utc)})
+            client_host = request.client.host if request.client else None
+            user_agent = request.headers.get("user-agent")
+            await Auths.update_last_login(user.id, datetime.now(timezone.utc), client_host, user_agent)
         except Exception as e:
             log.warning(f"Failed to update last_login_at for user {user.id}: {e}")
             raise_exception_with_log(AuthErrorCode.LOGIN_FAILED, e)
 
         access_token = create_access_token(
-            data={"sub": str(user.id), "email": user.email},
+            data={"sub": str(user.id), "email": user.email, "role": user.role},
             expires_delta=timedelta(minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES),
         )
         refresh_token = create_refresh_token()
 
         await store_refresh_token(user.id, refresh_token)
 
-        return {
-            "access_token": access_token,
-            "refresh_token": refresh_token,
-            "token_type": "bearer",
-            "user": UserResponse.model_validate(user.model_dump()),
-        }
+        return LoginTokenResponse(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            token_type="bearer",
+            user=UserResponse.model_validate(user),
+        )
 
     # -------------------------------------------
     # Logout
@@ -111,9 +120,9 @@ class AuthService:
         await delete_refresh_token(user_id)
 
     # -------------------------------------------
-    # Refresh Token Logic
+    # Refresh Token
     # -------------------------------------------
-    async def refresh_access_token(self, refresh_token: str, user_id: int) -> dict:
+    async def refresh_access_token(self, refresh_token: str, user_id: int) -> TokenRefreshResponse:
         is_valid = await verify_refresh_token(user_id, refresh_token)
 
         if not is_valid:
@@ -124,18 +133,18 @@ class AuthService:
             raise AuthException(AuthErrorCode.USER_NOT_FOUND)
 
         new_access_token = create_access_token(
-            data={"sub": str(user.id), "email": user.email},
+            data={"sub": str(user.id), "email": user.email, "role": user.role},
             expires_delta=timedelta(minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES),
         )
         new_refresh_token = create_refresh_token()
 
         await store_refresh_token(user.id, new_refresh_token)
 
-        return {
-            "access_token": new_access_token,
-            "refresh_token": new_refresh_token,
-            "token_type": "bearer",
-        }
+        return TokenRefreshResponse(
+            access_token=new_access_token,
+            refresh_token=new_refresh_token,
+            token_type="bearer",
+        )
 
     # -------------------------------------------
     # Email Verification
@@ -196,7 +205,10 @@ class AuthService:
 
         hashed_password = await self._hash_password(new_password)
         try:
-            await Users.update(int(user_id), {"password_hash": hashed_password})
+            await Credentials.update(
+                int(user_id),
+                {"password_hash": hashed_password, "password_changed_at": datetime.now(timezone.utc)},
+            )
         except Exception as e:
             raise_exception_with_log(AuthErrorCode.UNKNOWN_ERROR, e)
 

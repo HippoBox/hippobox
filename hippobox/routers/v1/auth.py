@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Body, Depends, Request
 
 from hippobox.errors.auth import AuthException
 from hippobox.errors.service import exceptions_to_http
-from hippobox.models.user import LoginForm, SignupForm, TokenResponse, UserResponse
+from hippobox.models.user import LoginForm, LoginTokenResponse, SignupForm, TokenRefreshResponse, UserResponse
 from hippobox.services.auth import AuthService, get_auth_service
 from hippobox.utils.auth import get_current_user
 
@@ -46,8 +46,9 @@ async def signup(
 # -----------------------------
 # Login
 # -----------------------------
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login", response_model=LoginTokenResponse)
 async def login(
+    request: Request,
     form: LoginForm,
     service: AuthService = Depends(get_auth_service),
 ):
@@ -60,7 +61,7 @@ async def login(
 
     ### Returns:
 
-        token (TokenResponse): Access token, type, and user info.
+        token (LoginTokenResponse): Access token, refresh token, type, and user info.
 
     This endpoint:
     - Verifies credentials against the database.
@@ -68,7 +69,7 @@ async def login(
     - Updates last login timestamp.
     """
     try:
-        return await service.login(form)
+        return await service.login(form, request)
     except AuthException as e:
         raise exceptions_to_http(e)
 
@@ -105,7 +106,7 @@ async def logout(
 # -----------------------------
 # Refresh Token
 # -----------------------------
-@router.post("/refresh", response_model=TokenResponse)
+@router.post("/refresh", response_model=TokenRefreshResponse)
 async def refresh_token(
     refresh_token: str = Body(..., embed=True),
     user_id: int = Body(..., embed=True),
@@ -121,7 +122,7 @@ async def refresh_token(
 
     ### Returns:
 
-        token (TokenResponse): A new pair of Access and Refresh tokens.
+        token (TokenRefreshResponse): A new pair of Access and Refresh tokens.
 
     This endpoint implements **Refresh Token Rotation**.
     The old refresh token is invalidated, and a completely new pair is issued.

@@ -7,7 +7,7 @@ from pydantic import ValidationError
 
 from hippobox.core.settings import SETTINGS
 from hippobox.models.api_key import APIKeys
-from hippobox.models.user import UserResponse, Users
+from hippobox.models.user import UserResponse, UserRole, Users
 from hippobox.utils.security import hash_api_key
 
 security = HTTPBearer()
@@ -61,3 +61,12 @@ async def get_current_user(
             raise credentials_exception
 
     return UserResponse.model_validate(user.model_dump())
+
+
+async def require_admin(current_user: UserResponse = Depends(get_current_user)) -> UserResponse:
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required",
+        )
+    return current_user
