@@ -35,28 +35,42 @@ def _create_engine():
     return engine
 
 
-ENGINE = _create_engine()
+_ENGINE = None
+_SESSION_FACTORY = None
 
-SESSION_FACTORY = async_sessionmaker(
-    ENGINE,
-    autoflush=False,
-    expire_on_commit=False,
-)
+
+def get_engine():
+    global _ENGINE
+    if _ENGINE is None:
+        _ENGINE = _create_engine()
+    return _ENGINE
+
+
+def get_session_factory():
+    global _SESSION_FACTORY
+    if _SESSION_FACTORY is None:
+        _SESSION_FACTORY = async_sessionmaker(
+            get_engine(),
+            autoflush=False,
+            expire_on_commit=False,
+        )
+    return _SESSION_FACTORY
 
 
 async def init_db():
-    async with ENGINE.begin() as conn:
+    async with get_engine().begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     log.info("Database tables created")
 
 
 async def dispose_db():
-    await ENGINE.dispose()
+    engine = get_engine()
+    await engine.dispose()
     log.info("Database engine disposed")
 
 
 async def _get_session():
-    db: AsyncSession = SESSION_FACTORY()
+    db: AsyncSession = get_session_factory()()
     try:
         yield db
     finally:
