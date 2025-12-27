@@ -1,8 +1,8 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, status
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, status
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi_mcp import FastApiMCP
 
 from hippobox.core.database import dispose_db, init_db
@@ -118,6 +118,24 @@ def create_app() -> FastAPI:
     mcp.mount_http()
     log.info("MCP tools registered.")
     log.info("registered tools: ", mcp.tools)
+
+    frontend_dist = (SETTINGS.ROOT_DIR.parent / "frontend" / "dist").resolve()
+    if frontend_dist.exists():
+
+        @app.get("/{full_path:path}", include_in_schema=False)
+        async def serve_frontend(full_path: str):
+            file_path = (frontend_dist / full_path).resolve()
+            try:
+                file_path.relative_to(frontend_dist)
+            except ValueError:
+                raise HTTPException(status_code=404, detail="Not Found")
+
+            if file_path.is_file():
+                return FileResponse(file_path)
+            return FileResponse(frontend_dist / "index.html")
+
+    else:
+        log.info("Frontend dist not found. Run npm install && npm run build in ./src/frontend.")
 
     return app
 

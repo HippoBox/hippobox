@@ -14,6 +14,7 @@ venv/
 uv.lock
 
 .vscode/
+.codex/
 .idea/
 *.swp
 .DS_Store
@@ -25,3 +26,6 @@ uv.lock
 
 qdrant_storage/
 hippobox.db
+
+src/frontend/node_modules/
+src/frontend/dist/

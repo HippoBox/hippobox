@@ -24,6 +24,7 @@ irm https://astral.sh/uv/install.ps1 | iex
 ## 2. Setup Project
 
 ```bash
+cd src/backend
 uv sync
 ```
 
@@ -33,12 +34,14 @@ uv sync
 ### macOS / Linux
 
 ```bash
+cd src/backend
 uv run uvicorn hippobox.server:app --reload
 ```
 
 ### Windows (PowerShell)
 
 ```powershell
+cd src/backend
 uv run uvicorn hippobox.server:app --reload
 ```
 
@@ -104,9 +107,9 @@ Add the following to your `claude_desktop_config.json`:
             ],
             "jinja": true,
             "console": "integratedTerminal",
-            "envFile": "${workspaceFolder}/.env",
+            "envFile": "${workspaceFolder}/src/backend/.env",
             "env": {
-                "PYTHONPATH": "${workspaceFolder}"
+                "PYTHONPATH": "${workspaceFolder}/src/backend"
             },
             "justMyCode": false,
             "subProcess": true
@@ -119,7 +122,7 @@ Add the following to your `claude_desktop_config.json`:
 
 ```json
 {
-    "python.defaultInterpreterPath": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+    "python.defaultInterpreterPath": "${workspaceFolder}\\\\src\\\\backend\\\\.venv\\\\Scripts\\\\python.exe",
     "editor.formatOnSave": true,
     "[python]": {
         "editor.defaultFormatter": "ms-python.black-formatter",
