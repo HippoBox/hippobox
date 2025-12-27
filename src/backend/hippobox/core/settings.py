@@ -16,6 +16,11 @@ class Settings(BaseModel):
     SWAGGER_ENABLED: bool = os.getenv("SWAGGER_ENABLED", "true").lower() == "true"
 
     # ----------------------------------------
+    # Frontend
+    # ----------------------------------------
+    FRONTEND_BASE_PATH: str = os.getenv("FRONTEND_BASE_PATH", "")
+
+    # ----------------------------------------
     # LLM / Embedding
     # ----------------------------------------
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")

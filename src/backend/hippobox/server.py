@@ -1,8 +1,9 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, status
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi_mcp import FastApiMCP
 
 from hippobox.core.database import dispose_db, init_db
@@ -119,20 +120,36 @@ def create_app() -> FastAPI:
     log.info("MCP tools registered.")
     log.info("registered tools: ", mcp.tools)
 
+    def normalize_base_path(value: str) -> str:
+        path = value.strip()
+        if not path:
+            return "/"
+        if not path.startswith("/"):
+            path = f"/{path}"
+        path = path.rstrip("/")
+        return path or "/"
+
+    frontend_base_path = normalize_base_path(SETTINGS.FRONTEND_BASE_PATH)
     frontend_dist = (SETTINGS.ROOT_DIR.parent / "frontend" / "dist").resolve()
     if frontend_dist.exists():
+        app.mount(
+            frontend_base_path,
+            StaticFiles(directory=frontend_dist, html=True),
+            name="frontend",
+        )
 
-        @app.get("/{full_path:path}", include_in_schema=False)
-        async def serve_frontend(full_path: str):
-            file_path = (frontend_dist / full_path).resolve()
-            try:
-                file_path.relative_to(frontend_dist)
-            except ValueError:
-                raise HTTPException(status_code=404, detail="Not Found")
+        @app.exception_handler(404)
+        async def spa_fallback(request, exc):
+            if request.method not in {"GET", "HEAD"}:
+                return JSONResponse(status_code=404, content={"detail": "Not Found"})
 
-            if file_path.is_file():
-                return FileResponse(file_path)
-            return FileResponse(frontend_dist / "index.html")
+            if frontend_base_path != "/" and not request.url.path.startswith(frontend_base_path):
+                return JSONResponse(status_code=404, content={"detail": "Not Found"})
+
+            index_path = frontend_dist / "index.html"
+            if index_path.exists():
+                return FileResponse(index_path)
+            return JSONResponse(status_code=404, content={"detail": "Not Found"})
 
     else:
         log.info("Frontend dist not found. Run npm install && npm run build in ./src/frontend.")

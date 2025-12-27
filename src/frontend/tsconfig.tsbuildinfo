@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts"],"version":"5.9.3"}
+{"root":["./src/app.tsx","./src/config-constants.ts","./src/i18n.ts","./src/main.tsx","./src/routes.tsx","./src/vite-env.d.ts","./src/components/authheader.tsx","./src/components/button.tsx","./src/components/card.tsx","./src/components/container.tsx","./src/components/input.tsx","./src/pages/forgotpasswordpage.tsx","./src/pages/loadingpage.tsx","./src/pages/loginpage.tsx","./src/pages/signuppage.tsx"],"version":"5.9.3"}
