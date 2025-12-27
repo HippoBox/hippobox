@@ -71,6 +71,9 @@ def create_app() -> FastAPI:
         version="0.1.0",
         description="Unified FastAPI + MCP server for Knowledge Store & RAG",
         lifespan=lifespan,
+        docs_url="/docs" if SETTINGS.SWAGGER_ENABLED else None,
+        redoc_url="/redoc" if SETTINGS.SWAGGER_ENABLED else None,
+        openapi_url="/openapi.json" if SETTINGS.SWAGGER_ENABLED else None,
     )
 
     @app.exception_handler(Exception)

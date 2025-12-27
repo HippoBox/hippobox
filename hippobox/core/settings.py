@@ -11,6 +11,11 @@ class Settings(BaseModel):
     ROOT_DIR: Path = Path(__file__).resolve().parents[2]
 
     # ----------------------------------------
+    # API Docs (Swagger/OpenAPI)
+    # ----------------------------------------
+    SWAGGER_ENABLED: bool = os.getenv("SWAGGER_ENABLED", "true").lower() == "true"
+
+    # ----------------------------------------
     # LLM / Embedding
     # ----------------------------------------
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
