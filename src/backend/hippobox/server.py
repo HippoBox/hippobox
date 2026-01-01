@@ -14,6 +14,7 @@ from hippobox.rag.embedding import Embedding
 from hippobox.rag.qdrant import Qdrant
 from hippobox.routers.v1 import api_key, auth, knowledge
 from hippobox.routers.v1.knowledge import OperationID
+from hippobox.services.bootstrap_admin import ensure_default_admin_from_settings
 
 log = logging.getLogger("hippobox")
 
@@ -38,6 +39,7 @@ async def lifespan(app: FastAPI):
 
     await init_db()
     log.info("Database initialized")
+    await ensure_default_admin_from_settings()
 
     try:
         qdrant = Qdrant()

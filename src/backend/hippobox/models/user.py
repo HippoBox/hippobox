@@ -73,7 +73,7 @@ class SignupForm(BaseModel):
     )
     password: str = Field(
         ...,
-        description="Raw password that will be hashed and stored securely (8-64 chars, uppercase+digit+symbol, no spaces)",
+        description="Raw password that will be hashed (8-64 chars, uppercase+digit+symbol, no spaces)",
         min_length=PASSWORD_MIN_LENGTH,
         max_length=PASSWORD_MAX_LENGTH,
         pattern=PASSWORD_REGEX,
@@ -90,7 +90,9 @@ class SignupForm(BaseModel):
     @classmethod
     def validate_password(cls, value: str) -> str:
         if not is_password_strong(value):
-            raise ValueError("Password must be 8-64 characters and include an uppercase letter, a number, and a symbol.")
+            raise ValueError(
+                "Password must be 8-64 characters and include an uppercase letter, a number, and a symbol."
+            )
         return value
 
 
@@ -112,7 +114,9 @@ class LoginForm(BaseModel):
     @classmethod
     def validate_password(cls, value: str) -> str:
         if not is_password_strong(value):
-            raise ValueError("Password must be 8-64 characters and include an uppercase letter, a number, and a symbol.")
+            raise ValueError(
+                "Password must be 8-64 characters and include an uppercase letter, a number, and a symbol."
+            )
         return value
 
 
@@ -138,7 +142,9 @@ class PasswordResetConfirm(BaseModel):
     @classmethod
     def validate_new_password(cls, value: str) -> str:
         if not is_password_strong(value):
-            raise ValueError("Password must be 8-64 characters and include an uppercase letter, a number, and a symbol.")
+            raise ValueError(
+                "Password must be 8-64 characters and include an uppercase letter, a number, and a symbol."
+            )
         return value
 
 
@@ -191,6 +197,32 @@ class UserTable:
 
                 raise AuthException(AuthErrorCode.CREATE_FAILED, str(e))
 
+    async def create_with_role(self, form: dict, role: UserRole, is_verified: bool = False) -> UserModel:
+        async with get_db() as db:
+            try:
+                user = User(
+                    email=form["email"],
+                    name=form["name"],
+                    role=role,
+                    is_verified=is_verified,
+                )
+                db.add(user)
+                await db.commit()
+                await db.refresh(user)
+                return UserModel.model_validate(user)
+
+            except IntegrityError as e:
+                await db.rollback()
+                msg = str(e.orig)
+
+                if "user_email_key" in msg:
+                    raise AuthException(AuthErrorCode.EMAIL_ALREADY_EXISTS)
+
+                if "user_name_key" in msg:
+                    raise AuthException(AuthErrorCode.NAME_ALREADY_EXISTS)
+
+                raise AuthException(AuthErrorCode.CREATE_FAILED, str(e))
+
     async def get(self, user_id: int) -> UserModel | None:
         async with get_db() as db:
             result = await db.execute(select(User).where(User.id == user_id))
@@ -202,6 +234,11 @@ class UserTable:
             result = await db.execute(select(User).where(User.email == email))
             user = result.scalar_one_or_none()
             return UserModel.model_validate(user) if user else None
+
+    async def admin_exists(self) -> bool:
+        async with get_db() as db:
+            result = await db.execute(select(User.id).where(User.role == UserRole.ADMIN).limit(1))
+            return result.first() is not None
 
     # Used only in the service layer (never expose raw ORM entities to routers)
     async def get_entity_by_email(self, email: str) -> User | None:
