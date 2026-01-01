@@ -39,6 +39,15 @@ class Settings(BaseModel):
     LOGIN_LOCKED_MINUTES: int = 15
 
     # ----------------------------------------
+    # Admin user
+    # ----------------------------------------
+    ADMIN_BOOTSTRAP: bool = os.getenv("ADMIN_BOOTSTRAP", "false").lower() == "true"
+    ADMIN_EMAIL: str = os.getenv("ADMIN_EMAIL", "")
+    ADMIN_PASSWORD: str = os.getenv("ADMIN_PASSWORD", "")
+    ADMIN_NAME: str = os.getenv("ADMIN_NAME", "admin")
+    ADMIN_VERIFY_EMAIL: bool = os.getenv("ADMIN_VERIFY_EMAIL", "true").lower() == "true"
+
+    # ----------------------------------------
     # SQL Database (raw env)
     # ----------------------------------------
     DB_DRIVER: str = os.getenv("DB_DRIVER", "sqlite+aiosqlite")
