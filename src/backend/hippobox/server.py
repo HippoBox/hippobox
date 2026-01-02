@@ -14,7 +14,7 @@ from hippobox.rag.embedding import Embedding
 from hippobox.rag.qdrant import Qdrant
 from hippobox.routers.v1 import admin, api_key, auth, knowledge
 from hippobox.routers.v1.knowledge import OperationID
-from hippobox.services.bootstrap_admin import ensure_default_admin_from_settings
+from hippobox.core.bootstrap_admin import ensure_default_admin_from_settings
 
 log = logging.getLogger("hippobox")
 
