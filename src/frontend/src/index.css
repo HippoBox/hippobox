@@ -196,6 +196,14 @@
         background: var(--color-surface);
     }
 
+    .auth-header-icon {
+        background: rgba(255, 255, 255, 0.7);
+    }
+
+    html.dark .auth-header-icon {
+        background: var(--btn-primary-gradient);
+    }
+
     .text-link {
         color: var(--color-text);
         font-weight: 600;
