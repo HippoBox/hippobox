@@ -12,10 +12,6 @@ const getInitialTheme = (): Theme => {
     if (typeof window === 'undefined') {
         return 'light';
     }
-    const stored = localStorage.getItem('theme');
-    if (stored === 'light' || stored === 'dark') {
-        return stored;
-    }
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 };
 
@@ -24,12 +20,26 @@ function App() {
     const [language, setLanguage] = useState<Language>(() =>
         supportedLanguages.includes(i18n.language as Language) ? (i18n.language as Language) : 'en',
     );
-    const [theme] = useState<Theme>(getInitialTheme);
+    const [theme, setTheme] = useState<Theme>(getInitialTheme);
 
     useEffect(() => {
         document.documentElement.classList.toggle('dark', theme === 'dark');
-        localStorage.setItem('theme', theme);
     }, [theme]);
+
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handleChange = (event: MediaQueryListEvent) => {
+            setTheme(event.matches ? 'dark' : 'light');
+        };
+        // Initialize in case the preference changed before effect ran.
+        setTheme(mediaQuery.matches ? 'dark' : 'light');
+        if (mediaQuery.addEventListener) {
+            mediaQuery.addEventListener('change', handleChange);
+            return () => mediaQuery.removeEventListener('change', handleChange);
+        }
+        mediaQuery.addListener(handleChange);
+        return () => mediaQuery.removeListener(handleChange);
+    }, []);
 
     useEffect(() => {
         document.documentElement.lang = language;

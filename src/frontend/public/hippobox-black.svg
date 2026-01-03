@@ -2,10 +2,9 @@
      width="100%" viewBox="0 0 816 816" enable-background="new 0 0 816 816" xml:space="preserve">
     <defs>
     <linearGradient id="hippoboxGradient" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="816" y2="816">
-        <stop offset="0%" stop-color="#0a1222" />
-        <stop offset="40%" stop-color="#132742" />
-        <stop offset="70%" stop-color="#1b3f66" />
-        <stop offset="100%" stop-color="#0f2536" />
+        <stop offset="0%" stop-color="#000000" />
+        <stop offset="50%" stop-color="#000000" />
+        <stop offset="100%" stop-color="#000000" />
     </linearGradient>
 </defs>
 <path fill="url(#hippoboxGradient)" opacity="1.000000" stroke="none"
@@ -150,6 +149,7 @@ M350.506561,105.294502
     C341.818054,102.626526 346.048218,102.163025 350.506561,105.294502 
 z"/>
 </svg>
+
 
 
 

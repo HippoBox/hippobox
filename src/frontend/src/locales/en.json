@@ -1,4 +1,8 @@
 {
+    "meta": {
+        "appName": "HippoBox",
+        "titleTemplate": "{{page}} | {{app}}"
+    },
     "common": {
         "fields": {
             "nameLabel": "Name",

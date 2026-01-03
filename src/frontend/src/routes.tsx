@@ -2,6 +2,7 @@ import { lazy } from 'react';
 import { createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom';
 
 import { BASENAME } from './config-constants';
+import { RootLayout } from './layouts/RootLayout';
 
 const LoginPage = lazy(() =>
     import('./pages/LoginPage').then((mod) => ({ default: mod.LoginPage })),
@@ -12,17 +13,19 @@ const SignupPage = lazy(() =>
 const ForgotPasswordPage = lazy(() =>
     import('./pages/ForgotPasswordPage').then((mod) => ({ default: mod.ForgotPasswordPage })),
 );
-const MainPage = lazy(() =>
-    import('./pages/MainPage').then((mod) => ({ default: mod.MainPage })),
-);
+const MainPage = lazy(() => import('./pages/MainPage').then((mod) => ({ default: mod.MainPage })));
 const SignupSuccessPage = lazy(() =>
     import('./pages/SignupSuccessPage').then((mod) => ({ default: mod.SignupSuccessPage })),
 );
 const VerifyEmailSuccessPage = lazy(() =>
-    import('./pages/VerifyEmailSuccessPage').then((mod) => ({ default: mod.VerifyEmailSuccessPage })),
+    import('./pages/VerifyEmailSuccessPage').then((mod) => ({
+        default: mod.VerifyEmailSuccessPage,
+    })),
 );
 const VerifyEmailFailurePage = lazy(() =>
-    import('./pages/VerifyEmailFailurePage').then((mod) => ({ default: mod.VerifyEmailFailurePage })),
+    import('./pages/VerifyEmailFailurePage').then((mod) => ({
+        default: mod.VerifyEmailFailurePage,
+    })),
 );
 const ResetPasswordPage = lazy(() =>
     import('./pages/ResetPasswordPage').then((mod) => ({ default: mod.ResetPasswordPage })),
@@ -40,14 +43,40 @@ const normalizeRouterBasename = (value: string): string => {
 const router = createBrowserRouter(
     createRoutesFromElements(
         <>
-            <Route path="/" element={<LoginPage />} />
-            <Route path="/app" element={<MainPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/signup/success" element={<SignupSuccessPage />} />
-            <Route path="/forgot" element={<ForgotPasswordPage />} />
-            <Route path="/verify-email/success" element={<VerifyEmailSuccessPage />} />
-            <Route path="/verify-email/failure" element={<VerifyEmailFailurePage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route element={<RootLayout />}>
+                <Route index element={<LoginPage />} handle={{ titleKey: 'login.title' }} />
+                <Route path="app" element={<MainPage />} handle={{ titleKey: 'main.title' }} />
+                <Route
+                    path="signup"
+                    element={<SignupPage />}
+                    handle={{ titleKey: 'signup.title' }}
+                />
+                <Route
+                    path="signup/success"
+                    element={<SignupSuccessPage />}
+                    handle={{ titleKey: 'signupSuccess.title' }}
+                />
+                <Route
+                    path="forgot"
+                    element={<ForgotPasswordPage />}
+                    handle={{ titleKey: 'forgot.title' }}
+                />
+                <Route
+                    path="verify-email/success"
+                    element={<VerifyEmailSuccessPage />}
+                    handle={{ titleKey: 'verifyEmail.successTitle' }}
+                />
+                <Route
+                    path="verify-email/failure"
+                    element={<VerifyEmailFailurePage />}
+                    handle={{ titleKey: 'verifyEmail.failureTitle' }}
+                />
+                <Route
+                    path="reset-password"
+                    element={<ResetPasswordPage />}
+                    handle={{ titleKey: 'resetPassword.title' }}
+                />
+            </Route>
         </>,
     ),
     { basename: normalizeRouterBasename(BASENAME) },
