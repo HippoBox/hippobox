@@ -19,6 +19,16 @@ class Settings(BaseModel):
     # Frontend
     # ----------------------------------------
     FRONTEND_BASE_PATH: str = os.getenv("FRONTEND_BASE_PATH", "")
+    PUBLIC_APP_URL: str = os.getenv("PUBLIC_APP_URL", "")
+    PUBLIC_API_URL: str = os.getenv("PUBLIC_API_URL", "")
+
+    # ----------------------------------------
+    # Email (Resend)
+    # ----------------------------------------
+    RESEND_API_KEY: str = os.getenv("RESEND_API_KEY", "")
+    RESEND_API_BASE_URL: str = os.getenv("RESEND_API_BASE_URL", "https://api.resend.com")
+    EMAIL_FROM: str = os.getenv("EMAIL_FROM", "")
+    EMAIL_REPLY_TO: str = os.getenv("EMAIL_REPLY_TO", "")
 
     # ----------------------------------------
     # LLM / Embedding

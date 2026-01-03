@@ -1,4 +1,5 @@
 import logging
+from sqlalchemy import event
 from contextlib import asynccontextmanager
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -22,6 +23,11 @@ def _create_engine():
             echo=False,
             future=True,
         )
+        @event.listens_for(engine.sync_engine, "connect")
+        def _set_sqlite_pragma(dbapi_connection, _connection_record):
+            cursor = dbapi_connection.cursor()
+            cursor.execute("PRAGMA foreign_keys=ON")
+            cursor.close()
         log.info(f"Using database: {db_url}")
         return engine
 

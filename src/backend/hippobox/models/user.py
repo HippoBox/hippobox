@@ -128,6 +128,14 @@ class PasswordResetRequest(BaseModel):
     )
 
 
+class EmailVerificationResend(BaseModel):
+    email: str = Field(
+        ...,
+        description="Email address used to resend a verification link",
+        pattern=EMAIL_REGEX,
+    )
+
+
 class PasswordResetConfirm(BaseModel):
     token: str = Field(..., description="Valid password reset token")
     new_password: str = Field(

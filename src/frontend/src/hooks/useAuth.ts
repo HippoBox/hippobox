@@ -12,6 +12,7 @@ type SignupForm = { email: string; password: string; name: string };
 type RefreshTokenPayload = { refresh_token: string; user_id: number };
 type PasswordResetRequestPayload = { email: string };
 type PasswordResetConfirmPayload = { token: string; new_password: string };
+type EmailVerificationResendPayload = { email: string };
 
 const withAuth = (token?: string) =>
     token
@@ -85,6 +86,15 @@ export const useVerifyEmailQuery = (token: string, options?: UseQueryOptions<unk
                 }),
             ),
         enabled: !!token,
+        ...options,
+    });
+
+export const useResendVerificationEmailMutation = (
+    options?: UseMutationOptions<unknown, unknown, EmailVerificationResendPayload>,
+) =>
+    useMutation({
+        mutationFn: (body) =>
+            unwrap(apiClient.POST('/api/v1/auth/verify-email/resend', { body })),
         ...options,
     });
 

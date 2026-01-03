@@ -103,6 +103,13 @@ export interface paths {
      */
     get: operations["verify_email_api_v1_auth_verify_email__token__get"];
   };
+  "/api/v1/auth/verify-email/resend": {
+    /**
+     * Resend Verification Email
+     * @description Resend a verification email if the user exists and is not verified.
+     */
+    post: operations["resend_verification_email_api_v1_auth_verify_email_resend_post"];
+  };
   "/api/v1/auth/password-reset/request": {
     /**
      * Request Password Reset
@@ -297,6 +304,20 @@ export interface paths {
      */
     get: operations["get_knowledge_by_tag"];
   };
+  "/api/v1/admin/users": {
+    /**
+     * List Users
+     * @description Retrieve all users (admin-only).
+     */
+    get: operations["list_users_api_v1_admin_users_get"];
+  };
+  "/api/v1/admin/users/{user_id}": {
+    /**
+     * Delete User
+     * @description Permanently delete a user and related data.
+     */
+    delete: operations["delete_user_api_v1_admin_users__user_id__delete"];
+  };
   "/ping": {
     /** Ping */
     get: operations["ping_tool"];
@@ -386,6 +407,14 @@ export interface components {
       refresh_token: string;
       /** User Id */
       user_id: number;
+    };
+    /** EmailVerificationResend */
+    EmailVerificationResend: {
+      /**
+       * Email
+       * @description Email address used to resend a verification link
+       */
+      email: string;
     };
     /** HTTPValidationError */
     HTTPValidationError: {
@@ -562,6 +591,48 @@ export interface components {
        * @default bearer
        */
       token_type?: string;
+    };
+    /** UserModel */
+    UserModel: {
+      /**
+       * Id
+       * @description Unique identifier of the user entry
+       */
+      id: number;
+      /**
+       * Email
+       * @description User's unique email address, used for authentication and identification
+       */
+      email: string;
+      /**
+       * Name
+       * @description Display name of the user
+       */
+      name: string;
+      /** @description Role assigned to the user */
+      role: components["schemas"]["UserRole"];
+      /**
+       * Is Active
+       * @description Indicates whether the user account is active
+       */
+      is_active: boolean;
+      /**
+       * Is Verified
+       * @description Indicates whether the user's email has been verified successfully
+       */
+      is_verified: boolean;
+      /**
+       * Created At
+       * Format: date-time
+       * @description Timestamp indicating when the user account was created
+       */
+      created_at: string;
+      /**
+       * Updated At
+       * Format: date-time
+       * @description Timestamp indicating the most recent update to the user record
+       */
+      updated_at: string;
     };
     /** UserResponse */
     UserResponse: {
@@ -782,6 +853,9 @@ export interface operations {
    */
   verify_email_api_v1_auth_verify_email__token__get: {
     parameters: {
+      query?: {
+        redirect?: boolean;
+      };
       path: {
         token: string;
       };
@@ -791,6 +865,31 @@ export interface operations {
       200: {
         content: {
           "application/json": components["schemas"]["UserResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Resend Verification Email
+   * @description Resend a verification email if the user exists and is not verified.
+   */
+  resend_verification_email_api_v1_auth_verify_email_resend_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["EmailVerificationResend"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
         };
       };
       /** @description Validation Error */
@@ -1256,6 +1355,46 @@ export interface operations {
       200: {
         content: {
           "application/json": components["schemas"]["KnowledgeResponse"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * List Users
+   * @description Retrieve all users (admin-only).
+   */
+  list_users_api_v1_admin_users_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["UserModel"][];
+        };
+      };
+    };
+  };
+  /**
+   * Delete User
+   * @description Permanently delete a user and related data.
+   */
+  delete_user_api_v1_admin_users__user_id__delete: {
+    parameters: {
+      path: {
+        /** @description ID of the user to delete */
+        user_id: number;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
         };
       };
       /** @description Validation Error */

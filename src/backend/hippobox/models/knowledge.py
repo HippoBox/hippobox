@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from pydantic import BaseModel, Field
-from sqlalchemy import JSON, DateTime, Text, select
+from sqlalchemy import JSON, DateTime, ForeignKey, Text, select
 from sqlalchemy.orm import Mapped, mapped_column
 
 from hippobox.core.database import Base, get_db
@@ -12,7 +12,11 @@ class Knowledge(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
-    user_id: Mapped[int] = mapped_column(nullable=False, index=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("user.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     topic: Mapped[str] = mapped_column(nullable=False)
     tags: Mapped[list[str]] = mapped_column(JSON, default=list)
     title: Mapped[str] = mapped_column(nullable=False, unique=True)

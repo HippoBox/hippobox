@@ -8,7 +8,7 @@ import { Container } from '../components/Container';
 import { ErrorMessage } from '../components/ErrorMessage';
 import { Input } from '../components/Input';
 import { AuthHeader } from '../components/AuthHeader';
-import { useLoginMutation } from '../hooks/useAuth';
+import { useLoginMutation, useResendVerificationEmailMutation } from '../hooks/useAuth';
 import { isValidEmail, isValidPassword } from '../utils/validation';
 
 type FormErrorKey = '' | 'requiredEmail' | 'invalidEmail' | 'requiredPassword' | 'invalidPassword';
@@ -20,6 +20,7 @@ export function LoginPage() {
     const [email, setEmail] = useState(() => searchParams.get('email') ?? '');
     const [password, setPassword] = useState('');
     const [formErrorKey, setFormErrorKey] = useState<FormErrorKey>('');
+    const [resendComplete, setResendComplete] = useState(false);
 
     const loginMutation = useLoginMutation({
         onSuccess: () => {
@@ -27,13 +28,52 @@ export function LoginPage() {
         },
     });
 
+    const resendMutation = useResendVerificationEmailMutation({
+        onSuccess: () => {
+            setResendComplete(true);
+        },
+    });
+
+    const emailNotVerified = useMemo(() => {
+        const error = loginMutation.error;
+        if (!error || typeof error !== 'object') return false;
+        const detail = (error as { detail?: unknown }).detail;
+        if (!detail || typeof detail !== 'object') return false;
+        return (detail as { error?: unknown }).error === 'EMAIL_NOT_VERIFIED';
+    }, [loginMutation.error]);
+
     const apiErrorMessage = useMemo(() => {
-        if (!loginMutation.error) return '';
-        if (loginMutation.error instanceof Error && loginMutation.error.message) {
-            return loginMutation.error.message;
+        const error = loginMutation.error;
+        if (!error) return '';
+
+        if (typeof error === 'string') {
+            return error;
         }
+
+        if (error instanceof Error && error.message) {
+            return error.message;
+        }
+
+        if (typeof error === 'object') {
+            const detail = (error as { detail?: unknown }).detail;
+            if (detail && typeof detail === 'object') {
+                const code = (detail as { error?: unknown }).error;
+                const message = (detail as { message?: unknown }).message;
+                if (code === 'EMAIL_NOT_VERIFIED') return t('login.verifyRequired');
+                if (typeof message === 'string' && message) return message;
+            }
+        }
+
         return t('login.errorFallback');
     }, [loginMutation.error, t]);
+
+    const resendErrorMessage = useMemo(() => {
+        const error = resendMutation.error;
+        if (!error) return '';
+        if (typeof error === 'string') return error;
+        if (error instanceof Error && error.message) return error.message;
+        return t('login.resendError');
+    }, [resendMutation.error, t]);
 
     const formErrorMessage = formErrorKey ? t(`common.errors.${formErrorKey}`) : '';
     const errorMessage = formErrorMessage || apiErrorMessage;
@@ -57,6 +97,7 @@ export function LoginPage() {
             return;
         }
         setFormErrorKey('');
+        setResendComplete(false);
         loginMutation.mutate({ email, password });
     };
 
@@ -99,7 +140,10 @@ export function LoginPage() {
                                 setPassword(next);
                                 if (formErrorKey === 'requiredPassword' && next.trim()) {
                                     setFormErrorKey('');
-                                } else if (formErrorKey === 'invalidPassword' && isValidPassword(next)) {
+                                } else if (
+                                    formErrorKey === 'invalidPassword' &&
+                                    isValidPassword(next)
+                                ) {
                                     setFormErrorKey('');
                                 }
                             }}
@@ -124,6 +168,37 @@ export function LoginPage() {
                         </div>
 
                         <ErrorMessage message={errorMessage} />
+
+                        {emailNotVerified ? (
+                            <div className="rounded-xl border border-slate-200/70 bg-white/60 px-3 py-3 text-xs text-slate-700 dark:border-slate-700/60 dark:bg-slate-900/40 dark:text-slate-200">
+                                <div className="font-semibold">{t('login.verifyPrompt')}</div>
+                                <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                                    {t('login.verifyPromptHint')}
+                                </p>
+                                <div className="mt-3 flex flex-col gap-2">
+                                    <Button
+                                        type="button"
+                                        onClick={() => resendMutation.mutate({ email })}
+                                        disabled={resendMutation.isPending}
+                                        fullWidth
+                                    >
+                                        {resendMutation.isPending
+                                            ? t('login.resending')
+                                            : t('login.resendButton')}
+                                    </Button>
+                                    {resendComplete ? (
+                                        <div className="text-[11px] text-emerald-600">
+                                            {t('login.resendSuccess')}
+                                        </div>
+                                    ) : null}
+                                    {!resendComplete && resendErrorMessage ? (
+                                        <div className="text-[11px] text-rose-500">
+                                            {resendErrorMessage}
+                                        </div>
+                                    ) : null}
+                                </div>
+                            </div>
+                        ) : null}
 
                         <Button type="submit" fullWidth disabled={loginMutation.isPending}>
                             {loginMutation.isPending ? t('login.signingIn') : t('login.signIn')}

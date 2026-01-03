@@ -1,8 +1,11 @@
 from fastapi import APIRouter, Body, Depends, Request
+from fastapi.responses import RedirectResponse
 
+from hippobox.core.email_links import build_verify_email_redirect_url
 from hippobox.errors.auth import AuthException
 from hippobox.errors.service import exceptions_to_http
 from hippobox.models.user import (
+    EmailVerificationResend,
     LoginForm,
     LoginTokenResponse,
     PasswordResetConfirm,
@@ -147,6 +150,7 @@ async def refresh_token(
 @router.get("/verify-email/{token}", response_model=UserResponse)
 async def verify_email(
     token: str,
+    redirect: bool = False,
     service: AuthService = Depends(get_auth_service),
 ):
     """
@@ -164,7 +168,28 @@ async def verify_email(
     it updates the user status in SQL and invalidates the token.
     """
     try:
-        return await service.verify_email(token)
+        user = await service.verify_email(token)
+    except AuthException as e:
+        if redirect:
+            return RedirectResponse(url=build_verify_email_redirect_url(False), status_code=302)
+        raise exceptions_to_http(e)
+
+    if redirect:
+        return RedirectResponse(url=build_verify_email_redirect_url(True), status_code=302)
+    return user
+
+
+@router.post("/verify-email/resend")
+async def resend_verification_email(
+    form: EmailVerificationResend,
+    service: AuthService = Depends(get_auth_service),
+):
+    """
+    Resend a verification email if the user exists and is not verified.
+    """
+    try:
+        await service.resend_verification_email(form.email)
+        return {"message": "If the email exists, a verification link has been sent."}
     except AuthException as e:
         raise exceptions_to_http(e)
 

@@ -29,6 +29,13 @@
         "remember": "Remember me",
         "forgot": "Forgot password?",
         "signingIn": "Signing in...",
+        "verifyRequired": "Please verify your email before signing in.",
+        "verifyPrompt": "Your email isn’t verified yet. Resend the verification email?",
+        "verifyPromptHint": "We’ll send a fresh link to the address you used to sign up.",
+        "resendButton": "Resend verification email",
+        "resending": "Sending verification email...",
+        "resendSuccess": "Verification email sent. Check your inbox.",
+        "resendError": "Failed to resend verification email.",
         "errorFallback": "Login failed. Please try again.",
         "signIn": "Sign in",
         "noAccount": "No account yet?",
@@ -68,15 +75,40 @@
     },
     "signupSuccess": {
         "title": "Account created",
-        "subtitle": "Choose how you want to continue.",
-        "prefill": "We can prefill your email: {{email}}",
-        "startNow": "Start now",
+        "emailSent": "We sent a verification email. Open it to finish setup.",
+        "emailSentTo": "We sent a verification email to {{email}}.",
         "goToLogin": "Go to login page"
     },
     "forgot": {
         "title": "Reset your password",
         "subtitle": "We will send a reset link to your email",
+        "sending": "Sending link...",
         "submit": "Send reset link",
+        "errorFallback": "Failed to send reset link. Please try again.",
+        "successTitle": "Check your inbox",
+        "successSubtitle": "If the email exists, we sent a reset link.",
+        "successEmail": "Reset link sent to {{email}}.",
         "backToLogin": "Back to sign in"
+    },
+    "verifyEmail": {
+        "successTitle": "Email verified",
+        "successSubtitle": "You're all set. You can sign in now.",
+        "failureTitle": "Verification failed",
+        "failureSubtitle": "This verification link is invalid or expired.",
+        "goToLogin": "Go to login",
+        "goToSignup": "Create a new account"
+    },
+    "resetPassword": {
+        "title": "Set a new password",
+        "subtitle": "Enter a new password to finish resetting your account.",
+        "submit": "Update password",
+        "submitting": "Updating password...",
+        "successTitle": "Password updated",
+        "successSubtitle": "You can now sign in with your new password.",
+        "invalidTitle": "Reset link invalid",
+        "invalidSubtitle": "This reset link is invalid or expired.",
+        "requestNew": "Request a new link",
+        "backToLogin": "Back to sign in",
+        "errorFallback": "Password reset failed. Please try again."
     }
 }

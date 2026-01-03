@@ -29,6 +29,13 @@
         "remember": "로그인 유지",
         "forgot": "비밀번호 재설정",
         "signingIn": "로그인 중...",
+        "verifyRequired": "이메일 인증 후 로그인할 수 있습니다.",
+        "verifyPrompt": "아직 이메일 인증이 필요해요. 인증 메일을 다시 보낼까요?",
+        "verifyPromptHint": "회원가입에 사용한 이메일로 새 링크를 보내드릴게요.",
+        "resendButton": "인증 메일 다시 보내기",
+        "resending": "인증 메일 전송 중...",
+        "resendSuccess": "인증 메일을 보냈어요. 메일함을 확인해 주세요.",
+        "resendError": "인증 메일 전송에 실패했습니다.",
         "errorFallback": "로그인에 실패했습니다. 다시 시도해 주세요.",
         "signIn": "로그인",
         "noAccount": "계정이 없으신가요?",
@@ -68,15 +75,40 @@
     },
     "signupSuccess": {
         "title": "계정 생성 완료",
-        "subtitle": "다음으로 어떻게 진행할지 선택해 주세요.",
-        "prefill": "이메일을 미리 채워둘게요: {{email}}",
-        "startNow": "바로 시작하기",
+        "emailSent": "인증 이메일을 보냈어요. 메일을 열어 설정을 완료해 주세요.",
+        "emailSentTo": "{{email}}로 인증 이메일을 보냈어요.",
         "goToLogin": "로그인 페이지로 이동"
     },
     "forgot": {
         "title": "비밀번호 재설정",
         "subtitle": "이메일로 재설정 링크를 보내드릴게요",
+        "sending": "링크 보내는 중...",
         "submit": "재설정 링크 보내기",
+        "errorFallback": "재설정 링크 전송에 실패했습니다. 다시 시도해 주세요.",
+        "successTitle": "메일함을 확인해 주세요",
+        "successSubtitle": "해당 이메일이 존재한다면 재설정 링크를 보냈어요.",
+        "successEmail": "{{email}}로 링크를 보냈어요.",
         "backToLogin": "로그인으로 돌아가기"
+    },
+    "verifyEmail": {
+        "successTitle": "이메일 인증 완료",
+        "successSubtitle": "이제 로그인할 수 있습니다.",
+        "failureTitle": "인증 실패",
+        "failureSubtitle": "인증 링크가 유효하지 않거나 만료되었습니다.",
+        "goToLogin": "로그인으로 이동",
+        "goToSignup": "새 계정 만들기"
+    },
+    "resetPassword": {
+        "title": "새 비밀번호 설정",
+        "subtitle": "새 비밀번호를 입력해 재설정을 완료하세요.",
+        "submit": "비밀번호 변경",
+        "submitting": "비밀번호 변경 중...",
+        "successTitle": "비밀번호가 변경되었습니다",
+        "successSubtitle": "새 비밀번호로 로그인할 수 있습니다.",
+        "invalidTitle": "재설정 링크가 유효하지 않음",
+        "invalidSubtitle": "링크가 유효하지 않거나 만료되었습니다.",
+        "requestNew": "새 링크 요청",
+        "backToLogin": "로그인으로 돌아가기",
+        "errorFallback": "비밀번호 재설정에 실패했습니다. 다시 시도해 주세요."
     }
 }

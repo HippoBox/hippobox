@@ -3,7 +3,7 @@ import secrets
 from datetime import datetime, timezone
 
 from pydantic import BaseModel, Field
-from sqlalchemy import DateTime, select
+from sqlalchemy import DateTime, ForeignKey, select
 from sqlalchemy.orm import Mapped, mapped_column
 
 from hippobox.core.database import Base, get_db
@@ -14,7 +14,11 @@ class APIKey(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
-    user_id: Mapped[int] = mapped_column(nullable=False, index=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("user.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     name: Mapped[str] = mapped_column(nullable=False)
 
     access_key: Mapped[str] = mapped_column(nullable=False, index=True)

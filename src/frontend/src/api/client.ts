@@ -19,6 +19,7 @@ const SKIP_REFRESH_PATHS = new Set<string>([
     '/api/v1/auth/password-reset/request',
     '/api/v1/auth/password-reset/confirm',
     '/api/v1/auth/verify-email/{token}',
+    '/api/v1/auth/verify-email/resend',
 ]);
 
 let refreshPromise: Promise<string | null> | null = null;

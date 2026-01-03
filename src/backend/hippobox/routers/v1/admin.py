@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Path
 
 from hippobox.errors.admin import AdminException
 from hippobox.errors.service import exceptions_to_http
@@ -19,5 +19,21 @@ async def list_users(
     """
     try:
         return await service.list_users()
+    except AdminException as e:
+        raise exceptions_to_http(e)
+
+
+@router.delete("/users/{user_id}")
+async def delete_user(
+    user_id: int = Path(..., description="ID of the user to delete"),
+    _: UserResponse = Depends(require_admin),
+    service: AdminService = Depends(get_admin_service),
+):
+    """
+    Permanently delete a user and related data.
+    """
+    try:
+        await service.delete_user(user_id)
+        return {"message": "User deleted successfully."}
     except AdminException as e:
         raise exceptions_to_http(e)

@@ -36,6 +36,12 @@ class AuthErrorCode(Enum):
         status.HTTP_401_UNAUTHORIZED,
     )
 
+    EMAIL_NOT_VERIFIED = ServiceErrorCode(
+        "EMAIL_NOT_VERIFIED",
+        "Email address has not been verified",
+        status.HTTP_403_FORBIDDEN,
+    )
+
     ACCOUNT_LOCKED = ServiceErrorCode(
         "ACCOUNT_LOCKED",
         "Account is locked due to too many failed login attempts",

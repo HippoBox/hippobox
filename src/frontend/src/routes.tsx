@@ -18,6 +18,15 @@ const MainPage = lazy(() =>
 const SignupSuccessPage = lazy(() =>
     import('./pages/SignupSuccessPage').then((mod) => ({ default: mod.SignupSuccessPage })),
 );
+const VerifyEmailSuccessPage = lazy(() =>
+    import('./pages/VerifyEmailSuccessPage').then((mod) => ({ default: mod.VerifyEmailSuccessPage })),
+);
+const VerifyEmailFailurePage = lazy(() =>
+    import('./pages/VerifyEmailFailurePage').then((mod) => ({ default: mod.VerifyEmailFailurePage })),
+);
+const ResetPasswordPage = lazy(() =>
+    import('./pages/ResetPasswordPage').then((mod) => ({ default: mod.ResetPasswordPage })),
+);
 
 const normalizeRouterBasename = (value: string): string => {
     const trimmed = value.trim();
@@ -36,6 +45,9 @@ const router = createBrowserRouter(
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/signup/success" element={<SignupSuccessPage />} />
             <Route path="/forgot" element={<ForgotPasswordPage />} />
+            <Route path="/verify-email/success" element={<VerifyEmailSuccessPage />} />
+            <Route path="/verify-email/failure" element={<VerifyEmailFailurePage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
         </>,
     ),
     { basename: normalizeRouterBasename(BASENAME) },
