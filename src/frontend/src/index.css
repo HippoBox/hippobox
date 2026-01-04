@@ -69,6 +69,10 @@
         --btn-primary-shadow: 0 10px 20px rgba(15, 23, 42, 0.18);
     }
 
+    html {
+        scrollbar-gutter: stable;
+    }
+
     html.dark {
         --color-bg: #0b0f19;
         --color-surface: #0f172a;
@@ -189,15 +193,41 @@
     .badge-chip {
         display: inline-flex;
         align-items: center;
+        min-width: 64px;
+        max-width: 64px;
+        justify-content: center;
         gap: 0.5rem;
         border-radius: 999px;
         border: 1px solid var(--color-border);
-        padding: 0.35rem 0.75rem;
+        padding: 0.35rem;
         font-size: 0.7rem;
         text-transform: uppercase;
-        letter-spacing: 0.2em;
+        letter-spacing: 0.1em;
         color: var(--color-muted);
         background: var(--color-surface);
+    }
+
+    .scrollbar-theme {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(148, 163, 184, 0.5) transparent;
+        scrollbar-gutter: stable;
+    }
+
+    .scrollbar-theme::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .scrollbar-theme::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .scrollbar-theme::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.55);
+        border-radius: 999px;
+    }
+
+    .scrollbar-theme::-webkit-scrollbar-thumb:hover {
+        background: rgba(148, 163, 184, 0.75);
     }
 
     .auth-header-icon {

@@ -12,7 +12,7 @@ from hippobox.core.redis import RedisManager
 from hippobox.core.settings import SETTINGS
 from hippobox.rag.embedding import Embedding
 from hippobox.rag.qdrant import Qdrant
-from hippobox.routers.v1 import admin, api_key, auth, knowledge
+from hippobox.routers.v1 import admin, api_key, auth, knowledge, topic
 from hippobox.routers.v1.knowledge import OperationID
 from hippobox.core.bootstrap_admin import ensure_default_admin_from_settings
 
@@ -105,6 +105,11 @@ def create_app() -> FastAPI:
         knowledge.router,
         prefix="/api/v1/knowledge",
         tags=["Knowledge"],
+    )
+    app.include_router(
+        topic.router,
+        prefix="/api/v1/topic",
+        tags=["Topic"],
     )
     app.include_router(
         admin.router,

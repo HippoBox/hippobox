@@ -15,6 +15,12 @@ const ForgotPasswordPage = lazy(() =>
     import('./pages/ForgotPasswordPage').then((mod) => ({ default: mod.ForgotPasswordPage })),
 );
 const MainPage = lazy(() => import('./pages/MainPage').then((mod) => ({ default: mod.MainPage })));
+const NewKnowledgePage = lazy(() =>
+    import('./pages/NewKnowledgePage').then((mod) => ({ default: mod.NewKnowledgePage })),
+);
+const KnowledgeInsightsPage = lazy(() =>
+    import('./pages/KnowledgeInsightsPage').then((mod) => ({ default: mod.KnowledgeInsightsPage })),
+);
 const SignupSuccessPage = lazy(() =>
     import('./pages/SignupSuccessPage').then((mod) => ({ default: mod.SignupSuccessPage })),
 );
@@ -51,6 +57,16 @@ const router = createBrowserRouter(
                 <Route index element={<LoginPage />} handle={{ titleKey: 'login.title' }} />
                 <Route element={<AppLayout />}>
                     <Route path="app" element={<MainPage />} handle={{ titleKey: 'main.title' }} />
+                    <Route
+                        path="app/new"
+                        element={<NewKnowledgePage />}
+                        handle={{ titleKey: 'knowledgeCreate.title' }}
+                    />
+                    <Route
+                        path="app/insights"
+                        element={<KnowledgeInsightsPage />}
+                        handle={{ titleKey: 'knowledgeInsights.title' }}
+                    />
                     <Route
                         path="app/settings"
                         element={<SettingsPage />}

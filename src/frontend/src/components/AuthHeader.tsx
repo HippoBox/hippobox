@@ -1,11 +1,15 @@
 type AuthHeaderProps = {
-    size?: 'sm' | 'md';
+    size?: 'xs' | 'sm' | 'md';
     layout?: 'stacked' | 'inline';
     showLabel?: boolean;
     className?: string;
 };
 
 const sizeStyles = {
+    xs: {
+        icon: 'h-6 w-6 rounded-lg',
+        label: 'text-[9px] tracking-[0.25em]',
+    },
     sm: {
         icon: 'h-10 w-10 rounded-xl',
         label: 'text-[10px] tracking-[0.3em]',

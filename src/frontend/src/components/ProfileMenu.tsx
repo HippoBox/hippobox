@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { LogOut, Moon, Settings, Sun, User } from 'lucide-react';
+import { BarChart3, LogOut, Moon, Settings, Sun, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { Dropdown } from './Dropdown';
@@ -29,7 +29,7 @@ export function ProfileMenu({ profileName, profileInitial, avatarUrl }: ProfileM
             trigger={
                 <button
                     type="button"
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] font-display text-sm font-semibold text-[color:var(--color-text)] shadow-[0_8px_20px_rgba(15,23,42,0.12)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(15,23,42,0.18)]"
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] font-display text-sm font-semibold text-[color:var(--color-text)] shadow-[0_8px_20px_rgba(15,23,42,0.12)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(15,23,42,0.18)]"
                     aria-label={`${profileName}`}
                     title={profileName}
                 >
@@ -59,6 +59,20 @@ export function ProfileMenu({ profileName, profileInitial, avatarUrl }: ProfileM
                         <span className="flex items-center gap-3">
                             <User className="h-4 w-4 text-muted" aria-hidden="true" />
                             <span>{t('profileMenu.profile')}</span>
+                        </span>
+                    </button>
+                    <button
+                        type="button"
+                        className="menu-item flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold"
+                        role="menuitem"
+                        onClick={() => {
+                            close();
+                            navigate('/app/insights');
+                        }}
+                    >
+                        <span className="flex items-center gap-3">
+                            <BarChart3 className="h-4 w-4 text-muted" aria-hidden="true" />
+                            <span>{t('profileMenu.knowledgeInsights')}</span>
                         </span>
                     </button>
                     <div

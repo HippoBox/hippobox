@@ -297,6 +297,7 @@ export function SettingsPage() {
                                         <Input
                                             id="settings-profile-name"
                                             label={t('settings.profile.nameLabel')}
+                                            placeholder={t('common.fields.namePlaceholder')}
                                             value={name}
                                             onChange={(event) => setName(event.target.value)}
                                             className="w-full"
@@ -407,6 +408,7 @@ export function SettingsPage() {
                                 <Input
                                     id="settings-api-key-name"
                                     label={t('settings.apiKey.nameLabel')}
+                                    placeholder={t('settings.apiKey.nameLabel')}
                                     value={apiKeyName}
                                     onChange={(event) => setApiKeyName(event.target.value)}
                                 />

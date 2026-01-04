@@ -45,16 +45,106 @@
         "noAccount": "No account yet?",
         "createAccount": "Create one"
     },
+    "nav": {
+        "createKnowledge": "Create knowledge",
+        "knowledgeInsights": "Insights"
+    },
     "main": {
         "title": "Main page",
         "subtitle": "You're signed in. Start organizing and exploring your knowledge.",
-        "primaryAction": "Create your first note"
+        "primaryAction": "Create your first knowledge",
+        "newKnowledgePanel": {
+            "eyebrow": "New knowledge",
+            "title": "Start with new knowledge",
+            "subtitle": "Capture ideas quickly and keep them searchable.",
+            "cardTitle": "Add knowledge",
+            "cardSubtitle": "Open the editor to capture a summary, tags, and full content.",
+            "button": "Create knowledge"
+        },
+        "dashboard": {
+            "topicsTitle": "Topics overview",
+            "topicsSubtitle": "See how knowledge is distributed by topic.",
+            "topicsCountLabel": "topics",
+            "topicsEmpty": "No topics yet.",
+            "defaultTopic": "Default topic",
+            "entriesLabel": "knowledge",
+            "activityTitle": "Daily activity",
+            "activitySubtitle": "Knowledge created in the last 14 days."
+        },
+        "search": {
+            "title": "Search knowledge",
+            "subtitle": "Run a quick semantic search across your knowledge.",
+            "label": "Search query",
+            "placeholder": "Knowledge search",
+            "button": "Search",
+            "searching": "Searching...",
+            "required": "Enter a search query first.",
+            "failed": "Search failed. Please try again.",
+            "empty": "No results yet.",
+            "noTags": "No tags",
+            "createdAt": "Created At: ",
+            "updatedAt": "Updated At: ",
+            "filtersLabel": "Filters",
+            "filters": {
+                "title": "Title",
+                "topic": "Topic",
+                "tags": "Tags",
+                "content": "Content",
+                "createdAt": "Created",
+                "updatedAt": "Updated"
+            }
+        },
+        "newKnowledge": {
+            "eyebrow": "New knowledge",
+            "title": "Add knowledge",
+            "subtitle": "Capture ideas, links, and summaries in one place.",
+            "form": {
+                "titleLabel": "Title",
+                "titlePlaceholder": "Give it a clear, specific name",
+                "topicLabel": "Topic",
+                "topicPlaceholder": "e.g. Product, Research, Ops",
+                "tagsLabel": "Tags",
+                "tagsPlaceholder": "Comma-separated (e.g. ai, paper, todo)",
+                "contentLabel": "Content",
+                "contentPlaceholder": "Write your knowledge here...",
+                "contentHint": "Markdown is supported. Lead with a one-line summary.",
+                "saveButton": "Save knowledge",
+                "savingButton": "Saving...",
+                "clearButton": "Clear",
+                "requiredError": "Title, topic, and content are required.",
+                "saveFailed": "Failed to save the knowledge.",
+                "success": "Saved! Ready for the next knowledge?"
+            },
+            "tips": {
+                "title": "Writing tips",
+                "item1": "Start with a one-line summary so search works better later.",
+                "item2": "3–5 tags are usually enough to keep things tidy.",
+                "item3": "Add sources or links while they are still fresh."
+            },
+            "templates": {
+                "title": "Quick templates",
+                "meeting": "Meeting recap",
+                "meetingHint": "Decisions + action items",
+                "reading": "Research knowledge",
+                "readingHint": "Insights and quotes",
+                "idea": "Idea sketch",
+                "ideaHint": "Problem, approach, hypothesis"
+            }
+        }
+    },
+    "knowledgeCreate": {
+        "title": "Create knowledge"
     },
     "profileMenu": {
         "profile": "Profile",
+        "knowledgeInsights": "Insights",
         "theme": "Theme",
         "settings": "Settings",
         "logout": "Logout"
+    },
+    "knowledgeInsights": {
+        "title": "Knowledge insights",
+        "subtitle": "Track topics and daily creation trends."
     },
     "settings": {
         "title": "Settings",

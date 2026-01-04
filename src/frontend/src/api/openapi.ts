@@ -308,6 +308,30 @@ export interface paths {
          */
         get: operations['get_knowledge_by_tag'];
     };
+    '/api/v1/topic': {
+        /**
+         * List Topics
+         * @description Retrieve all topics for the current user.
+         */
+        get: operations['list_topics_api_v1_topic_get'];
+        /**
+         * Create Topic
+         * @description Create a new topic.
+         */
+        post: operations['create_topic_api_v1_topic_post'];
+    };
+    '/api/v1/topic/{topic_id}': {
+        /**
+         * Delete Topic
+         * @description Delete a topic. Knowledge entries are reassigned to the default topic.
+         */
+        delete: operations['delete_topic_api_v1_topic__topic_id__delete'];
+        /**
+         * Update Topic
+         * @description Update topic name.
+         */
+        patch: operations['update_topic_api_v1_topic__topic_id__patch'];
+    };
     '/api/v1/admin/users': {
         /**
          * List Users
@@ -480,6 +504,18 @@ export interface components {
              * @description Full text content of the knowledge entry
              */
             content: string;
+            /**
+             * Created At
+             * Format: date-time
+             * @description Timestamp when the entry was created
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             * @description Timestamp when the entry was last updated
+             */
+            updated_at: string;
         };
         /** KnowledgeUpdate */
         KnowledgeUpdate: {
@@ -603,6 +639,52 @@ export interface components {
              * @default bearer
              */
             token_type?: string;
+        };
+        /** TopicForm */
+        TopicForm: {
+            /**
+             * Name
+             * @description Topic name
+             */
+            name: string;
+        };
+        /** TopicResponse */
+        TopicResponse: {
+            /**
+             * Id
+             * @description Topic identifier
+             */
+            id: number;
+            /**
+             * User Id
+             * @description Owner's user identifier
+             */
+            user_id: number;
+            /**
+             * Name
+             * @description Topic name
+             */
+            name: string;
+            /**
+             * Is Default
+             * @description Whether this is the default topic
+             * @default false
+             */
+            is_default?: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             * @description Timestamp when the topic was created
+             */
+            created_at: string;
+        };
+        /** TopicUpdate */
+        TopicUpdate: {
+            /**
+             * Name
+             * @description Updated topic name
+             */
+            name?: string | null;
         };
         /** UserModel */
         UserModel: {
@@ -1391,6 +1473,102 @@ export interface operations {
             200: {
                 content: {
                     'application/json': components['schemas']['KnowledgeResponse'][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                content: {
+                    'application/json': components['schemas']['HTTPValidationError'];
+                };
+            };
+        };
+    };
+    /**
+     * List Topics
+     * @description Retrieve all topics for the current user.
+     */
+    list_topics_api_v1_topic_get: {
+        responses: {
+            /** @description Successful Response */
+            200: {
+                content: {
+                    'application/json': components['schemas']['TopicResponse'][];
+                };
+            };
+        };
+    };
+    /**
+     * Create Topic
+     * @description Create a new topic.
+     */
+    create_topic_api_v1_topic_post: {
+        requestBody: {
+            content: {
+                'application/json': components['schemas']['TopicForm'];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                content: {
+                    'application/json': components['schemas']['TopicResponse'];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                content: {
+                    'application/json': components['schemas']['HTTPValidationError'];
+                };
+            };
+        };
+    };
+    /**
+     * Delete Topic
+     * @description Delete a topic. Knowledge entries are reassigned to the default topic.
+     */
+    delete_topic_api_v1_topic__topic_id__delete: {
+        parameters: {
+            path: {
+                /** @description ID of the topic to delete */
+                topic_id: number;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                content: {
+                    'application/json': unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                content: {
+                    'application/json': components['schemas']['HTTPValidationError'];
+                };
+            };
+        };
+    };
+    /**
+     * Update Topic
+     * @description Update topic name.
+     */
+    update_topic_api_v1_topic__topic_id__patch: {
+        parameters: {
+            path: {
+                /** @description ID of the topic to update */
+                topic_id: number;
+            };
+        };
+        requestBody: {
+            content: {
+                'application/json': components['schemas']['TopicUpdate'];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                content: {
+                    'application/json': components['schemas']['TopicResponse'];
                 };
             };
             /** @description Validation Error */

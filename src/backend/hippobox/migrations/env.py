@@ -9,7 +9,7 @@ from hippobox.core.database import Base
 from hippobox.core.settings import SETTINGS
 
 # flake8: noqa
-from hippobox.models import api_key, auth, credential, knowledge, user
+from hippobox.models import api_key, auth, credential, knowledge, topic, user
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

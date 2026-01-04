@@ -45,10 +45,95 @@
         "noAccount": "계정이 없으신가요?",
         "createAccount": "계정 만들기"
     },
+    "nav": {
+        "createKnowledge": "지식 생성",
+        "knowledgeInsights": "인사이트"
+    },
     "main": {
         "title": "메인 페이지",
         "subtitle": "로그인 완료! 이제 지식을 정리하고 탐색해 보세요.",
-        "primaryAction": "첫 노트 만들기"
+        "primaryAction": "첫 지식 만들기",
+        "newKnowledgePanel": {
+            "eyebrow": "새 지식",
+            "title": "새 지식을 시작하세요",
+            "subtitle": "아이디어를 빠르게 기록하고 검색하기 쉽게 정리하세요.",
+            "cardTitle": "지식 추가",
+            "cardSubtitle": "요약, 태그, 본문까지 한 번에 기록할 수 있어요.",
+            "button": "지식 만들기"
+        },
+        "dashboard": {
+            "topicsTitle": "토픽 현황",
+            "topicsSubtitle": "토픽별로 지식이 어떻게 분포되어 있는지 확인하세요.",
+            "topicsCountLabel": "토픽",
+            "topicsEmpty": "아직 토픽이 없습니다.",
+            "defaultTopic": "기본 토픽",
+            "entriesLabel": "지식",
+            "activityTitle": "일별 활동",
+            "activitySubtitle": "최근 14일 동안 생성된 지식 수입니다."
+        },
+        "search": {
+            "title": "지식 검색",
+            "subtitle": "지식 전체를 대상으로 빠르게 검색해 보세요.",
+            "label": "검색어",
+            "placeholder": "지식 검색",
+            "button": "검색",
+            "searching": "검색 중...",
+            "required": "검색어를 입력해 주세요.",
+            "failed": "검색에 실패했습니다. 다시 시도해 주세요.",
+            "empty": "검색 결과가 없습니다.",
+            "noTags": "태그 없음",
+            "createdAt": "생성일: ",
+            "updatedAt": "수정일: ",
+            "filtersLabel": "필터",
+            "filters": {
+                "title": "제목",
+                "topic": "토픽",
+                "tags": "태그",
+                "content": "내용",
+                "createdAt": "생성일",
+                "updatedAt": "수정일"
+            }
+        },
+        "newKnowledge": {
+            "eyebrow": "새 지식",
+            "title": "지식 추가",
+            "subtitle": "아이디어, 링크, 요약을 한 번에 기록하세요.",
+            "form": {
+                "titleLabel": "제목",
+                "titlePlaceholder": "핵심이 드러나는 제목을 입력하세요",
+                "topicLabel": "토픽",
+                "topicPlaceholder": "예: 제품, 리서치, 운영",
+                "tagsLabel": "태그",
+                "tagsPlaceholder": "쉼표로 구분 (예: ai, 논문, todo)",
+                "contentLabel": "내용",
+                "contentPlaceholder": "여기에 지식 내용을 작성하세요...",
+                "contentHint": "마크다운 사용 가능. 첫 줄에 한 줄 요약을 적어두면 좋아요.",
+                "saveButton": "지식 저장",
+                "savingButton": "저장 중...",
+                "clearButton": "비우기",
+                "requiredError": "제목, 토픽, 내용을 입력해 주세요.",
+                "saveFailed": "지식 저장에 실패했습니다.",
+                "success": "저장 완료! 다음 지식을 추가해 보세요."
+            },
+            "tips": {
+                "title": "작성 팁",
+                "item1": "첫 줄에 한 줄 요약을 적어두면 나중에 검색이 쉬워요.",
+                "item2": "태그는 3~5개 정도로 간결하게 관리해 보세요.",
+                "item3": "출처나 링크는 바로 기록해 두는 게 좋아요."
+            },
+            "templates": {
+                "title": "빠른 템플릿",
+                "meeting": "회의 요약",
+                "meetingHint": "결정 사항과 액션 아이템",
+                "reading": "리서치 지식",
+                "readingHint": "인사이트와 인용문 기록",
+                "idea": "아이디어 스케치",
+                "ideaHint": "문제/해결/가설 정리"
+            }
+        }
+    },
+    "knowledgeCreate": {
+        "title": "지식 만들기"
     },
     "settings": {
         "title": "설정",
@@ -172,8 +257,13 @@
     },
     "profileMenu": {
         "profile": "프로필",
+        "knowledgeInsights": "인사이트",
         "theme": "테마",
         "settings": "설정",
         "logout": "로그아웃"
+    },
+    "knowledgeInsights": {
+        "title": "지식 인사이트",
+        "subtitle": "토픽별 분포와 일별 지식 흐름을 확인하세요."
     }
 }

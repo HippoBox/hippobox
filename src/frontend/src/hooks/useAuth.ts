@@ -42,6 +42,7 @@ export const useLoginMutation = (options?: UseMutationOptions<unknown, unknown, 
         ...options,
         onSuccess: (data, variables, onMutateResult, context) => {
             setSessionFromLogin(data);
+            queryClient.clear();
             const user = (data as { user?: UserResponse } | undefined)?.user;
             if (user) {
                 queryClient.setQueryData(['auth', 'me'], user);
@@ -69,7 +70,7 @@ export const useLogoutMutation = (
         ...options,
         onSettled: (data, error, variables, onMutateResult, context) => {
             clearSession();
-            queryClient.removeQueries({ queryKey: ['auth', 'me'] });
+            queryClient.clear();
             options?.onSettled?.(data, error, variables, onMutateResult, context);
         },
     });
