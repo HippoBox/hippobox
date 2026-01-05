@@ -4,7 +4,7 @@ import { BarChart3 } from 'lucide-react';
 
 import { ActivityChartCard } from '../components/dashboard/ActivityChartCard';
 import { TopicSummaryCard } from '../components/dashboard/TopicSummaryCard';
-import { useKnowledgeListQuery } from '../hooks/useKnowledge';
+import { useKnowledgeList } from '../contexts/KnowledgeListContext';
 import { useTopicsQuery } from '../hooks/useTopics';
 
 const formatDateKey = (date: Date) => {
@@ -56,7 +56,7 @@ const buildActivitySeries = (
 export function KnowledgeInsightsPage() {
     const { t, i18n } = useTranslation();
     const { data: topics = [] } = useTopicsQuery();
-    const { data: knowledge = [] } = useKnowledgeListQuery();
+    const { knowledge = [] } = useKnowledgeList();
 
     const topicCounts = useMemo(() => {
         const counts = new Map<string, number>();

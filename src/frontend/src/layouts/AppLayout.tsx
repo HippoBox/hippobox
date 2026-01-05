@@ -3,13 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { BarChart3, BookPlus } from 'lucide-react';
 import { Link, Navigate, Outlet } from 'react-router-dom';
 
-import { getAccessToken } from '../auth/session';
+import { useAccessToken } from '../auth/useSession';
 import { Button } from '../components/Button';
 import { Container } from '../components/Container';
 import { useMeQuery, useRefreshTokenMutation } from '../hooks/useAuth';
 import { AuthHeader } from '../components/AuthHeader';
 import { ProfileMenu } from '../components/ProfileMenu';
 import { LoadingPage } from '../pages/LoadingPage';
+import { KnowledgeListProvider } from '../contexts/KnowledgeListContext';
 
 const FALLBACK_PROFILE_NAME = 'HippoBox';
 
@@ -23,7 +24,7 @@ const resolveProfileInitial = (name: string) => {
 
 export const AppLayout = () => {
     const { t } = useTranslation();
-    const token = getAccessToken();
+    const token = useAccessToken();
     const {
         mutate: refreshSession,
         isIdle: isRefreshIdle,
@@ -99,9 +100,11 @@ export const AppLayout = () => {
                     />
                 </div>
             </nav>
-            <div className="flex-1">
-                <Outlet />
-            </div>
+            <KnowledgeListProvider enabled={!!token && !isRefreshPending}>
+                <div className="flex-1">
+                    <Outlet />
+                </div>
+            </KnowledgeListProvider>
         </Container>
     );
 };

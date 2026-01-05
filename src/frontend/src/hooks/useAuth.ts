@@ -8,7 +8,8 @@ import {
 
 import { apiClient, authedFetch, requestRefresh } from '../api/client';
 import { API_ORIGIN } from '../api';
-import { clearSession, getAccessToken, setSessionFromLogin } from '../auth/session';
+import { clearSession, setSessionFromLogin } from '../auth/session';
+import { useAccessToken } from '../auth/useSession';
 
 type LoginForm = { email: string; password: string };
 type SignupForm = { email: string; password: string; name: string };
@@ -63,7 +64,8 @@ export const useLogoutMutation = (
     options?: UseMutationOptions<unknown, unknown, void>,
 ) => {
     const queryClient = useQueryClient();
-    const resolvedToken = token ?? getAccessToken() ?? undefined;
+    const reactiveToken = useAccessToken();
+    const resolvedToken = token ?? reactiveToken ?? undefined;
 
     return useMutation({
         mutationFn: () => unwrap(apiClient.POST('/api/v1/auth/logout', withAuth(resolvedToken))),
@@ -122,7 +124,7 @@ export const useResendVerificationEmailMutation = (
     });
 
 export const useMeQuery = (options?: QueryOptions) => {
-    const token = getAccessToken() ?? undefined;
+    const token = useAccessToken() ?? undefined;
     const isEnabled = options?.enabled ?? !!token;
 
     return useQuery({
@@ -138,13 +140,18 @@ export const useUpdateProfileMutation = (
     options?: UseMutationOptions<UserResponse, unknown, UpdateProfilePayload>,
 ) => {
     const queryClient = useQueryClient();
+    const token = useAccessToken() ?? undefined;
 
     return useMutation({
         mutationFn: async (body: UpdateProfilePayload) => {
+            if (!token) {
+                throw { message: 'Not authenticated.' };
+            }
             const response = await authedFetch(`${API_ORIGIN}/api/v1/auth/me`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify(body),
             });

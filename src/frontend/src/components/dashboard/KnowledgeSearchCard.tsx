@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search } from 'lucide-react';
 
-import { useKnowledgeListQuery } from '../../hooks/useKnowledge';
+import { useKnowledgeList } from '../../contexts/KnowledgeListContext';
 import { Input } from '../Input';
 
 type KnowledgeSearchCardProps = {
@@ -32,7 +32,7 @@ const formatDate = (value: string | undefined) => {
 
 export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
     const { t } = useTranslation();
-    const { data: knowledgeList = [] } = useKnowledgeListQuery();
+    const { knowledge: knowledgeList = [] } = useKnowledgeList();
     const [query, setQuery] = useState('');
     const [selectedFilters, setSelectedFilters] = useState<Set<SearchFilterKey>>(
         () => new Set(SEARCH_FILTERS.map((filter) => filter.key)),
