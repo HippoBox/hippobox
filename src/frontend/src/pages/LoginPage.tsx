@@ -60,6 +60,18 @@ export function LoginPage() {
                 const code = (detail as { error?: unknown }).error;
                 const message = (detail as { message?: unknown }).message;
                 if (code === 'EMAIL_NOT_VERIFIED') return t('login.verifyRequired');
+
+                if (code === `INVALID_CREDENTIALS`) {
+                    const limit_count = (detail as { limit_count?: unknown }).limit_count;
+                    return t('login.invalidCredentials', { limit_count: limit_count });
+                }
+
+                if (code === `ACCOUNT_LOCKED`) {
+                    const remaining_seconds = (detail as { remaining_seconds?: unknown })
+                        .remaining_seconds;
+                    return t('login.accountLocked', { remaining_seconds: remaining_seconds });
+                }
+
                 if (typeof message === 'string' && message) return message;
             }
         }

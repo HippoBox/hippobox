@@ -34,6 +34,8 @@
         "forgot": "Forgot password?",
         "signingIn": "Signing in...",
         "verifyRequired": "Please verify your email before signing in.",
+        "invalidCredentials": "Invalid email or password. Please try again.\nRemaining login attempts: {{limit_count}}",
+        "accountLocked": "Due to too many failed login attempts, your account is locked.\nPlease try again in {{remaining_seconds}} seconds.",
         "verifyPrompt": "Your email isn’t verified yet. Resend the verification email?",
         "verifyPromptHint": "We’ll send a fresh link to the address you used to sign up.",
         "resendButton": "Resend verification email",

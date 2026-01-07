@@ -46,7 +46,7 @@ class Settings(BaseModel):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
     LOGIN_FAILED_LIMIT: int = 5
-    LOGIN_LOCKED_MINUTES: int = 15
+    LOGIN_LOCKED_MINUTES: int = 5
 
     # ----------------------------------------
     # Admin user

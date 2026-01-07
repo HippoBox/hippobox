@@ -84,8 +84,9 @@ class AuthErrorCode(Enum):
 
 
 class AuthException(ServiceException):
-    def __init__(self, code: AuthErrorCode, message: str | None = None):
+    def __init__(self, code: AuthErrorCode, message: str | None = None, details: dict | None = None):
         super().__init__(
             code=code.code,
             message=message or code.code.default_message,
+            details=details,
         )

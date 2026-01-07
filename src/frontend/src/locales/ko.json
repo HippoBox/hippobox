@@ -34,6 +34,8 @@
         "forgot": "비밀번호 재설정",
         "signingIn": "로그인 중...",
         "verifyRequired": "이메일 인증 후 로그인할 수 있습니다.",
+        "invalidCredentials": "이메일 또는 비밀번호가 올바르지 않습니다. 다시 시도해 주세요.\n남은 로그인 시도 횟수: {{limit_count}}회",
+        "accountLocked": "로그인 시도 횟수 초과로 계정이 잠겼습니다.\n{{remaining_seconds}}초 후에 다시 시도해 주세요.",
         "verifyPrompt": "아직 이메일 인증이 필요해요. 인증 메일을 다시 보낼까요?",
         "verifyPromptHint": "회원가입에 사용한 이메일로 새 링크를 보내드릴게요.",
         "resendButton": "인증 메일 다시 보내기",

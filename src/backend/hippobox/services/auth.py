@@ -97,25 +97,38 @@ class AuthService:
     # Login
     # -------------------------------------------
     async def login(self, form: LoginForm, request: Request) -> LoginTokenResponse:
+        user_ip = request.headers.get("X-Forwarded-For") or (request.client.host if request.client else "unknown")
+
+        try:
+            await self._check_login_limit(user_ip)
+        except AuthException:
+            raise
+
         try:
             user = await Users.get_entity_by_email(form.email)
         except Exception as e:
             raise_exception_with_log(AuthErrorCode.LOGIN_FAILED, e)
 
         if user is None:
-            raise AuthException(AuthErrorCode.INVALID_CREDENTIALS)
-
-        await self._check_login_limit(user.id)
+            try:
+                await self._increase_login_fail_count(user_ip)
+            except AuthException:
+                raise
 
         credential = await Credentials.get_by_user_id(user.id)
         if credential is None or not credential.is_active:
-            raise AuthException(AuthErrorCode.INVALID_CREDENTIALS)
+            try:
+                await self._increase_login_fail_count(user_ip)
+            except AuthException:
+                raise
 
         is_valid = await self._verify_password(form.password, credential.password_hash)
 
         if not is_valid:
-            await self._increase_login_fail_count(user.id)
-            raise AuthException(AuthErrorCode.INVALID_CREDENTIALS)
+            try:
+                await self._increase_login_fail_count(user_ip)
+            except AuthException:
+                raise
 
         await self._reset_login_fail_count(user.id)
 
@@ -313,34 +326,50 @@ class AuthService:
     # -------------------------------------------
     # Login Attempt Rate Limiting (Redis)
     # -------------------------------------------
-    async def _check_login_limit(self, user_id: int):
+    async def _check_login_limit(self, user_ip: str):
         try:
             redis = await RedisManager.get_client()
-            fails = await redis.get(f"login_fail:{user_id}")
+            key = f"login_fail:{user_ip}"
+            fails = await redis.get(key)
 
             if fails and int(fails) >= self.LOGIN_FAILED_LIMIT:
-                raise AuthException(AuthErrorCode.ACCOUNT_LOCKED)
-
+                remaining_seconds = await redis.ttl(key)
+                raise AuthException(
+                    AuthErrorCode.ACCOUNT_LOCKED,
+                    details={"remaining_seconds": max(0, remaining_seconds)},
+                )
+        except AuthException:
+            raise
         except Exception as e:
             log.error(f"Redis login-limit check failed: {e}")
-            raise AuthException(AuthErrorCode.UNKNOWN_ERROR, e)
 
-    async def _increase_login_fail_count(self, user_id: int):
+    async def _increase_login_fail_count(self, user_ip: str) -> int:
         try:
             redis = await RedisManager.get_client()
-            key = f"login_fail:{user_id}"
-
+            key = f"login_fail:{user_ip}"
             count = await redis.incr(key)
+
             if count == 1:
                 await redis.expire(key, timedelta(minutes=self.LOGIN_LOCKED_MINUTES))
 
+            elif count == self.LOGIN_FAILED_LIMIT:
+                raise AuthException(
+                    AuthErrorCode.ACCOUNT_LOCKED,
+                    details={"remaining_seconds": self.LOGIN_LOCKED_MINUTES * 60},
+                )
+            raise AuthException(
+                AuthErrorCode.INVALID_CREDENTIALS,
+                details={"limit_count": self.LOGIN_FAILED_LIMIT - count},
+            )
+        except AuthException:
+            raise
         except Exception as e:
             log.error(f"Redis login-fail increase failed: {e}")
 
-    async def _reset_login_fail_count(self, user_id: int):
+    async def _reset_login_fail_count(self, user_ip: str):
         try:
             redis = await RedisManager.get_client()
-            await redis.delete(f"login_fail:{user_id}")
+            await redis.delete(f"login_fail:{user_ip}")
         except Exception as e:
             log.error(f"Redis login-fail reset failed: {e}")
 

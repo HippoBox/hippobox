@@ -14,19 +14,23 @@ class ServiceErrorCode:
 
 
 class ServiceException(Exception):
-    def __init__(self, code: ServiceErrorCode, message: str | None = None):
+    def __init__(self, code: ServiceErrorCode, message: str | None = None, details: dict | None = None):
         self.code = code
         self.message = str(message) if message else code.default_message
+        self.details = details or {}
         super().__init__(self.message)
 
 
 def exceptions_to_http(exc: ServiceException) -> HTTPException:
+    details = {
+        "error": exc.code.code,
+        "message": exc.message,
+    }
+    if exc.details:
+        details.update(exc.details)
     return HTTPException(
         status_code=exc.code.http_status,
-        detail={
-            "error": exc.code.code,
-            "message": exc.message,
-        },
+        detail=details,
     )
 
 
