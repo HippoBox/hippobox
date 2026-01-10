@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { marked } from 'marked';
 
 import { useKnowledgeList } from '../../contexts/KnowledgeListContext';
 import { Input } from '../Input';
@@ -29,6 +30,27 @@ const formatDate = (value: string | undefined) => {
     const month = String(parsed.getMonth() + 1).padStart(2, '0');
     const day = String(parsed.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+};
+
+const PREVIEW_LIMIT = 200;
+
+const toPlainText = (markdown: string) => {
+    if (!markdown.trim()) return '';
+    const parsed = marked.parse(markdown, {
+        breaks: true,
+        gfm: true,
+    });
+    const html = typeof parsed === 'string' ? parsed : markdown;
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const text = doc.body.textContent ?? '';
+    return text.replace(/\s+/g, ' ').trim();
+};
+
+const truncateText = (value: string, maxLength: number) => {
+    if (value.length <= maxLength) return value;
+    const chars = Array.from(value);
+    if (chars.length <= maxLength) return value;
+    return `${chars.slice(0, maxLength).join('')}…`;
 };
 
 export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
@@ -79,6 +101,15 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
             return terms.every((term) => haystack.includes(term));
         });
     }, [defaultResults, query, selectedFilters]);
+
+    const previewById = useMemo(() => {
+        const map = new Map<number, string>();
+        defaultResults.forEach((item) => {
+            const plain = toPlainText(item.content ?? '');
+            map.set(item.id, truncateText(plain, PREVIEW_LIMIT));
+        });
+        return map;
+    }, [defaultResults]);
 
     const handleFilterToggle = (key: SearchFilterKey) => {
         setSelectedFilters((prev) => {
@@ -158,8 +189,8 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
                                 </div>
                             </div>
                             <div className="mt-1 text-[11px] text-muted">{item.topic}</div>
-                            <p className="mt-4 mb-5 min-h-[3.75rem] text-xs text-muted line-clamp-3">
-                                {item.content}
+                            <p className="mt-4 mb-5 h-[3.75rem] text-xs text-muted line-clamp-3">
+                                {previewById.get(item.id) ?? ''}
                             </p>
                             <div className="mt-3 flex flex-wrap gap-2">
                                 <span className="inline-flex items-center rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-2 py-1 text-[10px] text-muted">
