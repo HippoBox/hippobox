@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 import { useKnowledgeList } from '../../contexts/KnowledgeListContext';
 import { Input } from '../Input';
@@ -131,9 +132,11 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
             <div className="grid gap-4">
                 {visibleResults.length ? (
                     visibleResults.map((item) => (
-                        <div
+                        <Link
                             key={item.id}
-                            className="rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)]/70 px-4 py-3"
+                            to={`/app/knowledge/${item.id}`}
+                            aria-label={t('main.search.openLabel', { title: item.title })}
+                            className="group block rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)]/70 px-4 py-3 text-[color:var(--color-text)] no-underline transition hover:-translate-y-0.5 hover:border-[color:var(--color-border-strong)] hover:shadow-[0_12px_30px_rgba(15,23,42,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent)]"
                         >
                             <div className="flex flex-wrap items-center gap-2">
                                 <div className="text-sm font-semibold">{item.title}</div>
@@ -166,7 +169,7 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
                                     {t('main.search.updatedAt')} {formatDate(item.updated_at)}
                                 </span>
                             </div>
-                        </div>
+                        </Link>
                     ))
                 ) : (
                     <p className="text-sm text-muted">{t('main.search.empty')}</p>

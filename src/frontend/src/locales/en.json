@@ -86,6 +86,7 @@
             "noTags": "No tags",
             "createdAt": "Created At: ",
             "updatedAt": "Updated At: ",
+            "openLabel": "Open knowledge: {{title}}",
             "filtersLabel": "Filters",
             "filters": {
                 "title": "Title",
@@ -147,6 +148,24 @@
     "knowledgeInsights": {
         "title": "Knowledge insights",
         "subtitle": "Track topics and daily creation trends."
+    },
+    "knowledgeContent": {
+        "title": "Knowledge",
+        "back": "Back to search",
+        "edit": "Edit knowledge",
+        "loading": "Loading",
+        "loadFailed": "Unable to load knowledge",
+        "loadFailedHint": "Please try again or return to the search list.",
+        "notFoundTitle": "Knowledge not found",
+        "notFoundHint": "This knowledge entry may have been deleted or you don't have access.",
+        "noTags": "No tags",
+        "emptyContent": "No content available.",
+        "meta": {
+            "topic": "Topic",
+            "createdAt": "Created",
+            "updatedAt": "Updated",
+            "content": "Content"
+        }
     },
     "settings": {
         "title": "Settings",

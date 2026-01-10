@@ -21,6 +21,11 @@ const NewKnowledgePage = lazy(() =>
 const KnowledgeInsightsPage = lazy(() =>
     import('./pages/KnowledgeInsightsPage').then((mod) => ({ default: mod.KnowledgeInsightsPage })),
 );
+const KnowledgeContentPage = lazy(() =>
+    import('./pages/KnowledgeContentPage').then((mod) => ({
+        default: mod.KnowledgeContentPage,
+    })),
+);
 const SignupSuccessPage = lazy(() =>
     import('./pages/SignupSuccessPage').then((mod) => ({ default: mod.SignupSuccessPage })),
 );
@@ -66,6 +71,11 @@ const router = createBrowserRouter(
                         path="app/insights"
                         element={<KnowledgeInsightsPage />}
                         handle={{ titleKey: 'knowledgeInsights.title' }}
+                    />
+                    <Route
+                        path="app/knowledge/:knowledgeId"
+                        element={<KnowledgeContentPage />}
+                        handle={{ titleKey: 'knowledgeContent.title' }}
                     />
                     <Route
                         path="app/settings"
