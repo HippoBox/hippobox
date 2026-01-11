@@ -38,6 +38,7 @@ class Tag(Base):
 
 class Knowledge(Base):
     __tablename__ = "knowledge"
+    __table_args__ = (UniqueConstraint("user_id", "title", name="uq_knowledge_user_title"),)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
@@ -51,7 +52,7 @@ class Knowledge(Base):
         nullable=False,
         index=True,
     )
-    title: Mapped[str] = mapped_column(nullable=False, unique=True)
+    title: Mapped[str] = mapped_column(nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
@@ -108,7 +109,7 @@ class KnowledgeModel(BaseModel):
 
 
 class KnowledgeForm(BaseModel):
-    topic: str = Field(..., description="Topic or category under which the knowledge will be stored")
+    topic: str | None = Field(None, description="Topic or category under which the knowledge will be stored")
     tags: list[str] = Field(default_factory=list, description="Keywords for search and categorization")
     title: str = Field(..., description="A concise title summarizing the content")
     content: str = Field(..., description="The raw text body or content to be stored as knowledge")
@@ -316,7 +317,13 @@ class KnowledgeTable:
             knowledges = result.scalars().all()
             return [self._to_model(k) for k in knowledges]
 
-    async def update(self, user_id: int, knowledge_id: int, form: KnowledgeUpdate) -> KnowledgeModel | None:
+    async def update(
+        self,
+        user_id: int,
+        knowledge_id: int,
+        form: KnowledgeUpdate,
+        override_updated_at: datetime | None = None,
+    ) -> KnowledgeModel | None:
         async with get_db() as db:
             result = await db.execute(
                 select(Knowledge)
@@ -332,27 +339,37 @@ class KnowledgeTable:
                 return None
 
             update_data = form.model_dump(exclude_unset=True)
-            if "topic" in update_data:
-                topic = await self._get_or_create_topic(db, user_id, update_data.pop("topic"))
-                knowledge.topic_id = topic.id
-                knowledge.topic = topic
+            if "title" in update_data and update_data["title"] is not None:
+                update_data["title"] = update_data["title"].strip()
 
-            if "tags" in update_data:
-                tags = update_data.pop("tags") or []
-                knowledge.knowledge_tags.clear()
-                tag_names = unique_labels(tags)
-                for raw_tag in tag_names:
-                    tag = await self._get_or_create_tag(db, user_id, raw_tag)
-                    knowledge.knowledge_tags.append(
-                        KnowledgeTag(knowledge_id=knowledge.id, tag_id=tag.id, user_id=user_id)
-                    )
+            try:
+                if "topic" in update_data:
+                    topic = await self._get_or_create_topic(db, user_id, update_data.pop("topic"))
+                    knowledge.topic_id = topic.id
+                    knowledge.topic = topic
 
-            for key, value in update_data.items():
-                setattr(knowledge, key, value)
+                if "tags" in update_data:
+                    tags = update_data.pop("tags") or []
+                    knowledge.knowledge_tags.clear()
+                    tag_names = unique_labels(tags)
+                    for raw_tag in tag_names:
+                        tag = await self._get_or_create_tag(db, user_id, raw_tag)
+                        knowledge.knowledge_tags.append(
+                            KnowledgeTag(knowledge_id=knowledge.id, tag_id=tag.id, user_id=user_id)
+                        )
 
-            knowledge.updated_at = datetime.now(timezone.utc)
+                for key, value in update_data.items():
+                    setattr(knowledge, key, value)
 
-            await db.commit()
+                knowledge.updated_at = override_updated_at or datetime.now(timezone.utc)
+
+                await db.commit()
+            except IntegrityError:
+                await db.rollback()
+                raise
+            except Exception:
+                await db.rollback()
+                raise
             await db.refresh(knowledge)
             return self._to_model(knowledge)
 

@@ -1,12 +1,15 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, BookOpen, PencilLine } from 'lucide-react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft, BookOpen, PencilLine, Trash2 } from 'lucide-react';
 
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import { ErrorMessage } from '../components/ErrorMessage';
 import { MarkdownContent } from '../components/MarkdownContent';
 import { useKnowledgeList } from '../contexts/KnowledgeListContext';
+import { useDeleteKnowledgeMutation, useKnowledgeQuery } from '../hooks/useKnowledge';
 
 const formatDate = (value: string | undefined) => {
     if (!value) return '-';
@@ -18,17 +21,59 @@ const formatDate = (value: string | undefined) => {
     return `${year}.${month}.${day}`;
 };
 
+const extractErrorMessage = (error: unknown, fallback: string) => {
+    if (!error) return fallback;
+    if (typeof error === 'string') return error;
+    if (error instanceof Error && error.message) return error.message;
+    if (typeof error === 'object') {
+        const payload = error as { message?: unknown; detail?: unknown };
+        if (typeof payload.message === 'string') return payload.message;
+        if (typeof payload.detail === 'string') return payload.detail;
+        if (payload.detail && typeof payload.detail === 'object') {
+            const detail = payload.detail as { message?: unknown };
+            if (typeof detail.message === 'string') return detail.message;
+        }
+    }
+    return fallback;
+};
+
 export function KnowledgeContentPage() {
     const { t } = useTranslation();
     const { knowledgeId } = useParams();
+    const navigate = useNavigate();
     const { knowledge = [], isPending, isError } = useKnowledgeList();
+    const [deleteError, setDeleteError] = useState('');
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-    const entry = useMemo(() => {
+    const listEntry = useMemo(() => {
         if (!knowledgeId) return undefined;
         return knowledge.find((item) => String(item.id) === knowledgeId);
     }, [knowledge, knowledgeId]);
+    const numericKnowledgeId = knowledgeId ? Number(knowledgeId) : undefined;
+    const {
+        data: directEntry,
+        isPending: isDirectPending,
+        isError: isDirectError,
+    } = useKnowledgeQuery(numericKnowledgeId, {
+        enabled: Boolean(knowledgeId),
+        refetchOnMount: 'always',
+        staleTime: 0,
+    });
+    const entry = directEntry ?? listEntry;
+    const isLoading = (isPending || isDirectPending) && !entry;
+    const hasError = (isError || isDirectError) && !entry;
+    const { mutate: deleteKnowledge, isPending: isDeletePending } = useDeleteKnowledgeMutation({
+        onSuccess: () => {
+            setDeleteError('');
+            setShowDeleteDialog(false);
+            navigate('/app');
+        },
+        onError: (error) => {
+            setDeleteError(extractErrorMessage(error, t('knowledgeContent.deleteFailed')));
+        },
+    });
 
-    if (isPending) {
+    if (isLoading) {
         return (
             <div className="flex min-h-[40vh] items-center justify-center">
                 <span className="badge-chip">{t('knowledgeContent.loading')}</span>
@@ -38,7 +83,7 @@ export function KnowledgeContentPage() {
 
     return (
         <div className="w-full space-y-10">
-            {isError ? (
+            {hasError ? (
                 <Card className="p-8 text-center bg-transparent backdrop-blur-0 shadow-none border-transparent">
                     <div className="flex justify-end">
                         <Link to="/app" className="shrink-0">
@@ -70,18 +115,45 @@ export function KnowledgeContentPage() {
                             {t('knowledgeContent.meta.createdAt')} {formatDate(entry.created_at)} ·{' '}
                             {t('knowledgeContent.meta.updatedAt')} {formatDate(entry.updated_at)}
                         </div>
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                            <div className="flex min-w-0 flex-wrap items-center gap-3">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="min-w-0">
                                 <h3 className="font-display text-3xl font-semibold">
                                     {entry.title}
                                 </h3>
-                                <p className="text-sm text-muted">{entry.topic}</p>
+                                <p className="text-sm text-muted truncate">
+                                    {(() => {
+                                        const rawTopic = entry.topic?.trim() ?? '';
+                                        if (!rawTopic) return t('knowledgeContent.noTopic');
+                                        if (rawTopic.toLowerCase() === 'uncategorized') {
+                                            return t('knowledgeContent.noTopic');
+                                        }
+                                        return rawTopic;
+                                    })()}
+                                </p>
                             </div>
-                            <div className="flex shrink-0 items-center gap-2">
-                                <Button type="button" className="h-10 px-4 text-xs">
+                            <div className="ml-auto flex shrink-0 items-center gap-2">
+                                <Link to={`/app/knowledge/${entry.id}/edit`} className="shrink-0">
+                                    <Button type="button" className="h-10 px-4 text-xs">
+                                        <span className="flex items-center gap-2">
+                                            <PencilLine className="h-4 w-4" aria-hidden="true" />
+                                            {t('knowledgeContent.edit')}
+                                        </span>
+                                    </Button>
+                                </Link>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="h-10 px-4 text-xs"
+                                    disabled={isDeletePending}
+                                    onClick={() => {
+                                        if (!entry) return;
+                                        setDeleteError('');
+                                        setShowDeleteDialog(true);
+                                    }}
+                                >
                                     <span className="flex items-center gap-2">
-                                        <PencilLine className="h-4 w-4" aria-hidden="true" />
-                                        {t('knowledgeContent.edit')}
+                                        <Trash2 className="h-4 w-4" aria-hidden="true" />
+                                        {t('knowledgeContent.delete')}
                                     </span>
                                 </Button>
                                 <Link to="/app" className="shrink-0">
@@ -98,6 +170,7 @@ export function KnowledgeContentPage() {
                                 </Link>
                             </div>
                         </div>
+                        <ErrorMessage message={deleteError} />
                         <div className="flex flex-wrap gap-2">
                             {entry.tags?.length ? (
                                 entry.tags.map((tag) => (
@@ -147,6 +220,19 @@ export function KnowledgeContentPage() {
                     <p className="mt-2 text-sm text-muted">{t('knowledgeContent.notFoundHint')}</p>
                 </Card>
             )}
+            <ConfirmDialog
+                open={showDeleteDialog}
+                title={t('knowledgeContent.deleteTitle')}
+                description={t('knowledgeContent.deleteDescription')}
+                confirmLabel={t('knowledgeContent.deleteConfirmButton')}
+                cancelLabel={t('knowledgeContent.cancelButton')}
+                onConfirm={() => {
+                    if (!entry || isDeletePending) return;
+                    deleteKnowledge({ knowledgeId: entry.id });
+                }}
+                onClose={() => setShowDeleteDialog(false)}
+                isPending={isDeletePending}
+            />
         </div>
     );
 }

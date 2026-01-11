@@ -24,6 +24,12 @@ class KnowledgeErrorCode(Enum):
         status.HTTP_500_INTERNAL_SERVER_ERROR,
     )
 
+    TITLE_EXISTS = ServiceErrorCode(
+        "TITLE_EXISTS",
+        "A knowledge entry with the same title already exists.",
+        status.HTTP_409_CONFLICT,
+    )
+
     UPDATE_FAILED = ServiceErrorCode(
         "UPDATE_FAILED",
         "Failed to update knowledge",

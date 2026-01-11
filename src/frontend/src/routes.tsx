@@ -15,8 +15,8 @@ const ForgotPasswordPage = lazy(() =>
     import('./pages/ForgotPasswordPage').then((mod) => ({ default: mod.ForgotPasswordPage })),
 );
 const MainPage = lazy(() => import('./pages/MainPage').then((mod) => ({ default: mod.MainPage })));
-const NewKnowledgePage = lazy(() =>
-    import('./pages/NewKnowledgePage').then((mod) => ({ default: mod.NewKnowledgePage })),
+const KnowledgeEditorPage = lazy(() =>
+    import('./pages/KnowledgeEditorPage').then((mod) => ({ default: mod.KnowledgeEditorPage })),
 );
 const KnowledgeInsightsPage = lazy(() =>
     import('./pages/KnowledgeInsightsPage').then((mod) => ({ default: mod.KnowledgeInsightsPage })),
@@ -64,8 +64,13 @@ const router = createBrowserRouter(
                     <Route path="app" element={<MainPage />} handle={{ titleKey: 'main.title' }} />
                     <Route
                         path="app/new"
-                        element={<NewKnowledgePage />}
+                        element={<KnowledgeEditorPage />}
                         handle={{ titleKey: 'knowledgeCreate.title' }}
+                    />
+                    <Route
+                        path="app/knowledge/:knowledgeId/edit"
+                        element={<KnowledgeEditorPage />}
+                        handle={{ titleKey: 'knowledgeEditor.title' }}
                     />
                     <Route
                         path="app/insights"

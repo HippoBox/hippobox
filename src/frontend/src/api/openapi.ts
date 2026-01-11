@@ -455,7 +455,7 @@ export interface components {
              * Topic
              * @description Topic or category under which the knowledge will be stored
              */
-            topic: string;
+            topic?: string | null;
             /**
              * Tags
              * @description Keywords for search and categorization

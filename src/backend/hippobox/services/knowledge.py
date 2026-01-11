@@ -1,6 +1,7 @@
 import logging
 
 from fastapi import Request
+from sqlalchemy.exc import IntegrityError
 
 from hippobox.errors.knowledge import KnowledgeErrorCode, KnowledgeException
 from hippobox.errors.service import raise_exception_with_log
@@ -55,6 +56,8 @@ class KnowledgeService:
     async def create_knowledge(self, user_id: int, form: KnowledgeForm) -> KnowledgeResponse:
         try:
             knowledge = await Knowledges.create(user_id, form)
+        except IntegrityError:
+            raise KnowledgeException(KnowledgeErrorCode.TITLE_EXISTS)
         except Exception as e:
             raise_exception_with_log(KnowledgeErrorCode.CREATE_FAILED, e)
 
@@ -128,7 +131,12 @@ class KnowledgeService:
             updated = await Knowledges.update(user_id, kid, form)
             if updated is None:
                 raise_exception_with_log(KnowledgeErrorCode.UPDATE_FAILED)
+        except IntegrityError:
+            raise KnowledgeException(KnowledgeErrorCode.TITLE_EXISTS)
+        except Exception as e:
+            raise_exception_with_log(KnowledgeErrorCode.UPDATE_FAILED, e)
 
+        try:
             vector = self.embedding.embed(updated.content)
             self.qdrant.upsert(
                 "knowledge",
@@ -147,7 +155,20 @@ class KnowledgeService:
                 ],
             )
         except Exception as e:
-            await Knowledges.update(user_id, kid, KnowledgeUpdate(**old.model_dump()))
+            try:
+                await Knowledges.update(
+                    user_id,
+                    kid,
+                    KnowledgeUpdate(
+                        topic=old.topic,
+                        tags=old.tags,
+                        title=old.title,
+                        content=old.content,
+                    ),
+                    override_updated_at=old.updated_at,
+                )
+            except Exception as rollback_error:
+                log.exception(f"Rollback failed for id={kid}: {rollback_error}")
             raise_exception_with_log(KnowledgeErrorCode.UPDATE_FAILED, e)
 
         return KnowledgeResponse.model_validate(updated.model_dump())

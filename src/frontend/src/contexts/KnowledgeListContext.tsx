@@ -1,4 +1,5 @@
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { useLocation } from 'react-router-dom';
 
 import { useKnowledgeListQuery, type KnowledgeResponse } from '../hooks/useKnowledge';
 
@@ -16,11 +17,23 @@ type KnowledgeListProviderProps = {
 };
 
 export const KnowledgeListProvider = ({ children, enabled = true }: KnowledgeListProviderProps) => {
-    const { data, isPending, isError } = useKnowledgeListQuery({
+    const location = useLocation();
+    const previousPathRef = useRef<string | null>(null);
+    const { data, isPending, isError, refetch } = useKnowledgeListQuery({
         enabled,
         refetchOnMount: false,
         refetchOnWindowFocus: false,
     });
+
+    useEffect(() => {
+        if (!enabled) return;
+        const previousPath = previousPathRef.current;
+        const currentPath = location.pathname;
+        if (previousPath !== '/app' && currentPath === '/app') {
+            refetch();
+        }
+        previousPathRef.current = currentPath;
+    }, [enabled, location.pathname, refetch]);
 
     const value = useMemo(
         () => ({

@@ -140,6 +140,60 @@
             transform 0.2s ease;
     }
 
+    .input-field--ghost {
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .input-field--borderless {
+        border: none;
+        box-shadow: none;
+    }
+
+    .input-field--borderless:focus {
+        border-color: transparent;
+        box-shadow: none;
+    }
+
+    .editor-grid {
+        display: grid;
+        grid-template-columns: minmax(2.2rem, auto) minmax(0, 1fr);
+        gap: var(--space-4);
+        align-items: start;
+        --editor-line-height: 1.75;
+        --editor-font-size: 0.95rem;
+        --editor-padding-y: var(--space-3);
+    }
+
+    .editor-gutter {
+        padding: var(--editor-padding-y) 0;
+        text-align: right;
+        font-size: var(--editor-font-size);
+        line-height: var(--editor-line-height);
+        font-family: inherit;
+        color: var(--color-muted);
+        font-variant-numeric: tabular-nums;
+        user-select: none;
+    }
+
+    .editor-gutter span {
+        display: block;
+        height: calc(var(--editor-line-height) * 1em);
+    }
+
+    .editor-textarea {
+        font-size: var(--editor-font-size);
+        line-height: var(--editor-line-height);
+        font-family: inherit;
+        padding-top: var(--editor-padding-y);
+        padding-bottom: var(--editor-padding-y);
+    }
+
+    .input-field--expand {
+        overflow: hidden;
+        resize: none;
+    }
+
     .input-field:focus {
         outline: none;
         border-color: var(--color-border-strong);
@@ -217,6 +271,12 @@
         width: 6px;
     }
 
+    .scrollbar-theme::-webkit-scrollbar-button {
+        display: none;
+        width: 0;
+        height: 0;
+    }
+
     .scrollbar-theme::-webkit-scrollbar-track {
         background: transparent;
     }
@@ -228,6 +288,11 @@
 
     .scrollbar-theme::-webkit-scrollbar-thumb:hover {
         background: rgba(148, 163, 184, 0.75);
+    }
+
+    .scrollbar-pad {
+        padding-right: 0.5rem;
+        scrollbar-gutter: stable both-edges;
     }
 
     .auth-header-icon {
@@ -606,5 +671,12 @@
 @media (prefers-reduced-motion: reduce) {
     .dropdown-menu {
         animation: none;
+    }
+
+    .error-message-box {
+        display: inline-flex;
+        width: max-content;
+        max-width: 100%;
+        align-self: flex-start;
     }
 }
