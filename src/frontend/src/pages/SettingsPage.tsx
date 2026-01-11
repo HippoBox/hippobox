@@ -1,4 +1,3 @@
-import type { ChangeEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -20,6 +19,7 @@ import {
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { Dropdown } from '../components/Dropdown';
 import { ErrorMessage } from '../components/ErrorMessage';
 import { Input } from '../components/Input';
 import { useMeQuery, useUpdateProfileMutation } from '../hooks/useAuth';
@@ -237,9 +237,18 @@ export function SettingsPage() {
     const activeLanguage = supportedLanguages.includes(i18n.language as Language)
         ? (i18n.language as Language)
         : 'en';
+    const languageOptions = useMemo(
+        () => [
+            { value: 'en' as Language, label: t('settings.general.languageEnglish') },
+            { value: 'ko' as Language, label: t('settings.general.languageKorean') },
+        ],
+        [t],
+    );
+    const activeLanguageLabel =
+        languageOptions.find((option) => option.value === activeLanguage)?.label ??
+        t('settings.general.languageEnglish');
 
-    const handleLanguageChange = (event: ChangeEvent<HTMLSelectElement>) => {
-        const nextLanguage = event.target.value as Language;
+    const handleLanguageChange = (nextLanguage: Language) => {
         if (!supportedLanguages.includes(nextLanguage)) return;
         void i18n.changeLanguage(nextLanguage);
         try {
@@ -346,25 +355,50 @@ export function SettingsPage() {
                                         <Globe className="h-3.5 w-3.5" aria-hidden="true" />
                                         {t('settings.general.languageLabel')}
                                     </label>
-                                    <div className="relative">
-                                        <select
-                                            id="settings-language"
-                                            className="input-field appearance-none pr-12"
-                                            value={activeLanguage}
-                                            onChange={handleLanguageChange}
-                                        >
-                                            <option value="en">
-                                                {t('settings.general.languageEnglish')}
-                                            </option>
-                                            <option value="ko">
-                                                {t('settings.general.languageKorean')}
-                                            </option>
-                                        </select>
-                                        <ChevronDown
-                                            className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
-                                            aria-hidden="true"
-                                        />
-                                    </div>
+                                    <Dropdown
+                                        side="bottom"
+                                        align="start"
+                                        offsetY={8}
+                                        menuClassName="w-full max-h-64 overflow-auto scrollbar-theme scrollbar-pad"
+                                        trigger={({ isOpen, toggle }) => (
+                                            <button
+                                                id="settings-language"
+                                                type="button"
+                                                className="input-field flex w-full items-center justify-between pr-10"
+                                                onClick={toggle}
+                                            >
+                                                <span>{activeLanguageLabel}</span>
+                                                <ChevronDown
+                                                    className={`h-4 w-4 text-muted transition ${isOpen ? 'rotate-180' : ''}`}
+                                                    aria-hidden="true"
+                                                />
+                                            </button>
+                                        )}
+                                    >
+                                        {({ close }) => (
+                                            <>
+                                                {languageOptions.map((option) => (
+                                                    <button
+                                                        key={`language-${option.value}`}
+                                                        type="button"
+                                                        className="menu-item flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold"
+                                                        onClick={() => {
+                                                            handleLanguageChange(option.value);
+                                                            close();
+                                                        }}
+                                                    >
+                                                        <span>{option.label}</span>
+                                                        {option.value === activeLanguage ? (
+                                                            <Check
+                                                                className="h-4 w-4 text-muted"
+                                                                aria-hidden="true"
+                                                            />
+                                                        ) : null}
+                                                    </button>
+                                                ))}
+                                            </>
+                                        )}
+                                    </Dropdown>
                                     <p className="text-xs text-muted">
                                         {t('settings.general.languageHint')}
                                     </p>
@@ -392,10 +426,8 @@ export function SettingsPage() {
                                         <ToggleButton
                                             checked={theme === 'dark'}
                                             onChange={toggleTheme}
+                                            stopPropagation
                                             size="sm"
-                                            className={
-                                                theme === 'light' ? '!bg-slate-900' : undefined
-                                            }
                                         />
                                     </div>
                                 </div>
