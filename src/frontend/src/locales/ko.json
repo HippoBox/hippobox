@@ -300,6 +300,7 @@
         "noTags": "태그 없음",
         "noTopic": "토픽 없음",
         "emptyContent": "내용이 없습니다.",
+        "tocTitle": "목차",
         "meta": {
             "topic": "토픽",
             "createdAt": "생성일",

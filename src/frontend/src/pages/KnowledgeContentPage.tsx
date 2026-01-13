@@ -10,6 +10,7 @@ import { ErrorMessage } from '../components/ErrorMessage';
 import { MarkdownContent } from '../components/MarkdownContent';
 import { useKnowledgeList } from '../contexts/KnowledgeListContext';
 import { useDeleteKnowledgeMutation, useKnowledgeQuery } from '../hooks/useKnowledge';
+import { extractHeadings } from '../utils/markdown';
 
 const formatDate = (value: string | undefined) => {
     if (!value) return '-';
@@ -62,6 +63,8 @@ export function KnowledgeContentPage() {
     const entry = directEntry ?? listEntry;
     const isLoading = (isPending || isDirectPending) && !entry;
     const hasError = (isError || isDirectError) && !entry;
+    const headings = useMemo(() => extractHeadings(entry?.content ?? ''), [entry?.content]);
+    const showToc = headings.length > 0;
     const { mutate: deleteKnowledge, isPending: isDeletePending } = useDeleteKnowledgeMutation({
         onSuccess: () => {
             setDeleteError('');
@@ -80,6 +83,15 @@ export function KnowledgeContentPage() {
             </div>
         );
     }
+
+    const handleHeadingClick = (headingId: string) => {
+        const target = document.getElementById(headingId);
+        if (!target) return;
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (typeof window !== 'undefined') {
+            window.history.replaceState(null, '', `#${headingId}`);
+        }
+    };
 
     return (
         <div className="w-full space-y-10">
@@ -106,99 +118,148 @@ export function KnowledgeContentPage() {
                     </p>
                 </Card>
             ) : entry ? (
-                <Card
-                    className="space-y-6 p-8 bg-transparent backdrop-blur-0 shadow-none border-transparent knowledge-content-card"
-                    variant="strong"
-                >
-                    <div className="space-y-2">
-                        <div className="text-xs text-muted">
-                            {t('knowledgeContent.meta.createdAt')} {formatDate(entry.created_at)} ·{' '}
-                            {t('knowledgeContent.meta.updatedAt')} {formatDate(entry.updated_at)}
-                        </div>
-                        <div className="flex flex-wrap items-start justify-between gap-3">
-                            <div className="min-w-0">
-                                <h3 className="font-display text-3xl font-semibold">
-                                    {entry.title}
-                                </h3>
-                                <p className="text-sm text-muted truncate">
-                                    {(() => {
-                                        const rawTopic = entry.topic?.trim() ?? '';
-                                        if (!rawTopic) return t('knowledgeContent.noTopic');
-                                        if (rawTopic.toLowerCase() === 'uncategorized') {
-                                            return t('knowledgeContent.noTopic');
-                                        }
-                                        return rawTopic;
-                                    })()}
-                                </p>
+                <>
+                    <Card
+                        className="space-y-6 p-8 bg-transparent backdrop-blur-0 shadow-none border-transparent knowledge-content-card"
+                        variant="strong"
+                    >
+                        <div className="space-y-2">
+                            <div className="text-xs text-muted">
+                                {t('knowledgeContent.meta.createdAt')}{' '}
+                                {formatDate(entry.created_at)} ·{' '}
+                                {t('knowledgeContent.meta.updatedAt')}{' '}
+                                {formatDate(entry.updated_at)}
                             </div>
-                            <div className="ml-auto flex shrink-0 items-center gap-2">
-                                <Link to={`/app/knowledge/${entry.id}/edit`} className="shrink-0">
-                                    <Button type="button" className="h-10 px-4 text-xs">
-                                        <span className="flex items-center gap-2">
-                                            <PencilLine className="h-4 w-4" aria-hidden="true" />
-                                            {t('knowledgeContent.edit')}
-                                        </span>
-                                    </Button>
-                                </Link>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    className="h-10 px-4 text-xs"
-                                    disabled={isDeletePending}
-                                    onClick={() => {
-                                        if (!entry) return;
-                                        setDeleteError('');
-                                        setShowDeleteDialog(true);
-                                    }}
-                                >
-                                    <span className="flex items-center gap-2">
-                                        <Trash2 className="h-4 w-4" aria-hidden="true" />
-                                        {t('knowledgeContent.delete')}
-                                    </span>
-                                </Button>
-                                <Link to="/app" className="shrink-0">
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                    <h3 className="font-display text-3xl font-semibold">
+                                        {entry.title}
+                                    </h3>
+                                    <p className="text-sm text-muted truncate">
+                                        {(() => {
+                                            const rawTopic = entry.topic?.trim() ?? '';
+                                            if (!rawTopic) return t('knowledgeContent.noTopic');
+                                            if (rawTopic.toLowerCase() === 'uncategorized') {
+                                                return t('knowledgeContent.noTopic');
+                                            }
+                                            return rawTopic;
+                                        })()}
+                                    </p>
+                                </div>
+                                <div className="ml-auto flex shrink-0 items-center gap-2">
+                                    <Link
+                                        to={`/app/knowledge/${entry.id}/edit`}
+                                        className="shrink-0"
+                                    >
+                                        <Button type="button" className="h-10 px-4 text-xs">
+                                            <span className="flex items-center gap-2">
+                                                <PencilLine
+                                                    className="h-4 w-4"
+                                                    aria-hidden="true"
+                                                />
+                                                {t('knowledgeContent.edit')}
+                                            </span>
+                                        </Button>
+                                    </Link>
                                     <Button
                                         type="button"
                                         variant="outline"
                                         className="h-10 px-4 text-xs"
+                                        disabled={isDeletePending}
+                                        onClick={() => {
+                                            if (!entry) return;
+                                            setDeleteError('');
+                                            setShowDeleteDialog(true);
+                                        }}
                                     >
                                         <span className="flex items-center gap-2">
-                                            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-                                            {t('knowledgeContent.back')}
+                                            <Trash2 className="h-4 w-4" aria-hidden="true" />
+                                            {t('knowledgeContent.delete')}
                                         </span>
                                     </Button>
-                                </Link>
+                                    <Link to="/app" className="shrink-0">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            className="h-10 px-4 text-xs"
+                                        >
+                                            <span className="flex items-center gap-2">
+                                                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                                                {t('knowledgeContent.back')}
+                                            </span>
+                                        </Button>
+                                    </Link>
+                                </div>
+                            </div>
+                            <ErrorMessage message={deleteError} />
+                            <div className="flex flex-wrap gap-2">
+                                {entry.tags?.length ? (
+                                    entry.tags.map((tag) => (
+                                        <span
+                                            key={`${entry.id}-${tag}`}
+                                            className="inline-flex items-center rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-2 py-1 text-[10px] font-semibold text-[color:var(--color-text)]"
+                                        >
+                                            #{tag}
+                                        </span>
+                                    ))
+                                ) : (
+                                    <span className="inline-flex items-center rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-2 py-1 text-[10px] text-muted">
+                                        {t('knowledgeContent.noTags')}
+                                    </span>
+                                )}
                             </div>
                         </div>
-                        <ErrorMessage message={deleteError} />
-                        <div className="flex flex-wrap gap-2">
-                            {entry.tags?.length ? (
-                                entry.tags.map((tag) => (
-                                    <span
-                                        key={`${entry.id}-${tag}`}
-                                        className="inline-flex items-center rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-2 py-1 text-[10px] font-semibold text-[color:var(--color-text)]"
-                                    >
-                                        #{tag}
-                                    </span>
-                                ))
+
+                        <div className="p-3">
+                            {entry.content?.trim() ? (
+                                <MarkdownContent content={entry.content} />
                             ) : (
-                                <span className="inline-flex items-center rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-2 py-1 text-[10px] text-muted">
-                                    {t('knowledgeContent.noTags')}
-                                </span>
+                                <p className="text-sm text-muted">
+                                    {t('knowledgeContent.emptyContent')}
+                                </p>
                             )}
                         </div>
-                    </div>
-
-                    <div className="p-3">
-                        {entry.content?.trim() ? (
-                            <MarkdownContent content={entry.content} />
-                        ) : (
-                            <p className="text-sm text-muted">
-                                {t('knowledgeContent.emptyContent')}
-                            </p>
-                        )}
-                    </div>
-                </Card>
+                    </Card>
+                    {showToc ? (
+                        <aside className="hidden xl:block">
+                            <div
+                                className="rounded-2xl bg-[color:var(--color-surface)]/70 p-4 xl:fixed xl:top-40 xl:w-64"
+                                style={{
+                                    left: 'max(1rem, calc(50% - 36rem - 17rem))',
+                                }}
+                            >
+                                <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-text)]">
+                                    {t('knowledgeContent.tocTitle')}
+                                </div>
+                                <nav
+                                    className="space-y-2"
+                                    aria-label={t('knowledgeContent.tocTitle')}
+                                >
+                                    {headings.map((heading) => (
+                                        <a
+                                            key={heading.id}
+                                            href={`#${heading.id}`}
+                                            onClick={(event) => {
+                                                event.preventDefault();
+                                                handleHeadingClick(heading.id);
+                                            }}
+                                            className={[
+                                                'block text-sm text-muted transition hover:text-[color:var(--color-text)]',
+                                                heading.level === 1 && 'text-[13px] font-semibold',
+                                                heading.level === 2 && 'pl-3 text-[12px]',
+                                                heading.level === 3 && 'pl-6 text-[11px]',
+                                            ]
+                                                .filter(Boolean)
+                                                .join(' ')}
+                                        >
+                                            {heading.text}
+                                        </a>
+                                    ))}
+                                </nav>
+                            </div>
+                        </aside>
+                    ) : null}
+                </>
             ) : (
                 <Card className="p-8 text-center bg-transparent backdrop-blur-0 shadow-none border-transparent">
                     <div className="flex justify-end">

@@ -180,6 +180,7 @@
         "noTags": "No tags",
         "noTopic": "No topic",
         "emptyContent": "No content available.",
+        "tocTitle": "On this page",
         "meta": {
             "topic": "Topic",
             "createdAt": "Created",

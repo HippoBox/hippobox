@@ -449,6 +449,10 @@
         font-weight: 600;
     }
 
+    .markdown-body .markdown-heading {
+        scroll-margin-top: 6rem;
+    }
+
     .markdown-body h1 {
         font-size: 1.7rem;
     }

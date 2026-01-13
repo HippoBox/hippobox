@@ -8,6 +8,7 @@ import DOMPurify from 'dompurify';
 
 import 'highlight.js/styles/github-dark.css';
 import 'katex/dist/katex.min.css';
+import { createSlugger, preprocessMarkdown } from '../utils/markdown';
 
 marked.use(
     markedHighlight({
@@ -104,6 +105,7 @@ const sanitizeOptions = {
         'frameborder',
         'scrolling',
         'class',
+        'id',
         'style',
         'xmlns',
         'display',
@@ -112,18 +114,18 @@ const sanitizeOptions = {
     ],
 };
 
-const preprocessMarkdown = (value: string) => {
-    let processed = value;
-    processed = processed.replace(/\*\*\s*`(.+?)`\s*\*\*/g, '**$1**');
-    processed = processed.replace(
-        /\*\*([^*]*?[\(「\[][^*]*?[\)」\]][^*]*?)\*\*/g,
-        '<strong>$1</strong>',
-    );
-    processed = processed.replace(/`(\$[^`]+?\$)`/g, '$1');
-    processed = processed.replace(/(\$[^$]+?\$)/g, (match) => match.replace(/_/g, '\\_'));
-    return processed;
-};
+const createMarkdownRenderer = () => {
+    const slugger = createSlugger();
+    const renderer = new marked.Renderer();
 
+    renderer.heading = (text, level, raw) => {
+        const slug = slugger(raw ?? text);
+        const tag = `h${level}`;
+        return `<${tag} id="${slug}" class="markdown-heading">${text}</${tag}>`;
+    };
+
+    return renderer;
+};
 type MarkdownContentProps = {
     content: string;
 };
@@ -138,9 +140,11 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
 
         const parseMarkdown = async () => {
             configureDomPurify();
+            const renderer = createMarkdownRenderer();
             const parsed = await marked.parse(processed, {
                 breaks: true,
                 gfm: true,
+                renderer,
             });
             const sanitized = DOMPurify.sanitize(parsed, sanitizeOptions);
             if (!cancelled) {
