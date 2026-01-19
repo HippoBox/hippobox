@@ -318,5 +318,15 @@
         "requestNew": "Request a new link",
         "backToLogin": "Back to sign in",
         "errorFallback": "Password reset failed. Please try again."
+    },
+    "error": {
+        "badge": "Error",
+        "notFoundTitle": "Page not found",
+        "notFoundSubtitle": "We couldn't find the page you're looking for.",
+        "genericTitle": "Something went wrong",
+        "genericSubtitle": "An unexpected error occurred. Please try again.",
+        "actionHome": "Go to home",
+        "actionBack": "Go back",
+        "actionRetry": "Try again"
     }
 }

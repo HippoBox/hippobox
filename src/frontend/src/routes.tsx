@@ -45,6 +45,9 @@ const ResetPasswordPage = lazy(() =>
 const SettingsPage = lazy(() =>
     import('./pages/SettingsPage').then((mod) => ({ default: mod.SettingsPage })),
 );
+const ErrorPage = lazy(() =>
+    import('./pages/ErrorPage').then((mod) => ({ default: mod.ErrorPage })),
+);
 
 const normalizeRouterBasename = (value: string): string => {
     const trimmed = value.trim();
@@ -58,7 +61,7 @@ const normalizeRouterBasename = (value: string): string => {
 const router = createBrowserRouter(
     createRoutesFromElements(
         <>
-            <Route element={<RootLayout />}>
+            <Route element={<RootLayout />} errorElement={<ErrorPage />}>
                 <Route index element={<LoginPage />} handle={{ titleKey: 'login.title' }} />
                 <Route element={<AppLayout />}>
                     <Route path="app" element={<MainPage />} handle={{ titleKey: 'main.title' }} />
