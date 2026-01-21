@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BarChart3, BookPlus } from 'lucide-react';
+import { BarChart3, BookPlus, Plug } from 'lucide-react';
 import { Link, Navigate, Outlet } from 'react-router-dom';
 
 import { useAccessToken } from '../auth/useSession';
@@ -90,6 +90,14 @@ export const AppLayout = () => {
                             <span className="flex items-center gap-2">
                                 <BarChart3 className="h-4 w-4" aria-hidden="true" />
                                 {t('nav.knowledgeInsights')}
+                            </span>
+                        </Button>
+                    </Link>
+                    <Link to="/app/mcp" className="shrink-0">
+                        <Button type="button" variant="outline" className="h-9 px-4 text-xs">
+                            <span className="flex items-center gap-2">
+                                <Plug className="h-4 w-4" aria-hidden="true" />
+                                {t('nav.mcpGuide')}
                             </span>
                         </Button>
                     </Link>

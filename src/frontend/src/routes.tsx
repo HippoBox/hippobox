@@ -21,6 +21,9 @@ const KnowledgeEditorPage = lazy(() =>
 const KnowledgeInsightsPage = lazy(() =>
     import('./pages/KnowledgeInsightsPage').then((mod) => ({ default: mod.KnowledgeInsightsPage })),
 );
+const McpGuidePage = lazy(() =>
+    import('./pages/McpGuidePage').then((mod) => ({ default: mod.McpGuidePage })),
+);
 const KnowledgeContentPage = lazy(() =>
     import('./pages/KnowledgeContentPage').then((mod) => ({
         default: mod.KnowledgeContentPage,
@@ -79,6 +82,11 @@ const router = createBrowserRouter(
                         path="app/insights"
                         element={<KnowledgeInsightsPage />}
                         handle={{ titleKey: 'knowledgeInsights.title' }}
+                    />
+                    <Route
+                        path="app/mcp"
+                        element={<McpGuidePage />}
+                        handle={{ titleKey: 'mcpGuide.title' }}
                     />
                     <Route
                         path="app/knowledge/:knowledgeId"

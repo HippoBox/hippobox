@@ -49,7 +49,26 @@
     },
     "nav": {
         "createKnowledge": "지식 생성",
-        "knowledgeInsights": "인사이트"
+        "knowledgeInsights": "인사이트",
+        "mcpGuide": "MCP 등록"
+    },
+    "mcpGuide": {
+        "title": "MCP 등록 가이드",
+        "cta": "API 키 만들기",
+        "claude": {
+            "title": "Claude Desktop",
+            "description": "claude_desktop_config.json에 추가한 뒤 Claude Desktop을 재시작하세요."
+        },
+        "cursor": {
+            "title": "Cursor",
+            "description": "Cursor MCP 설정에 추가한 뒤 Cursor를 재시작하세요."
+        },
+        "codex": {
+            "title": "Codex",
+            "description": "config.toml에 추가한 뒤 Codex를 재시작하세요."
+        },
+        "copy": "복사",
+        "copied": "복사됨"
     },
     "main": {
         "title": "메인 페이지",
