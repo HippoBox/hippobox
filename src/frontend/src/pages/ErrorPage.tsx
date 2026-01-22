@@ -4,7 +4,7 @@ import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router-d
 
 import { Button } from '../components/Button';
 import { Container } from '../components/Container';
-import { useAccessToken } from '../auth/useSession';
+import { useAccessToken } from '../hooks/useSession';
 
 const DEFAULT_APP_NAME = 'HippoBox';
 const DEFAULT_TEMPLATE = '{{page}} | {{app}}';

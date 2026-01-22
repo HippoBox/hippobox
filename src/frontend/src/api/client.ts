@@ -1,6 +1,6 @@
 import createClient from 'openapi-fetch';
 
-import { clearSession, getAccessToken, setSessionFromRefresh } from '../auth/session';
+import { clearSession, getAccessToken, setSessionFromRefresh } from '../store/session';
 import { BASENAME } from '../config-constants';
 import { API_ORIGIN } from './index';
 import type { paths } from './openapi';

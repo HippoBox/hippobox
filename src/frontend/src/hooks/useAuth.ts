@@ -8,8 +8,8 @@ import {
 
 import { apiClient, authedFetch, requestRefresh } from '../api/client';
 import { API_ORIGIN } from '../api';
-import { clearSession, setSessionFromLogin } from '../auth/session';
-import { useAccessToken } from '../auth/useSession';
+import { clearSession, setSessionFromLogin } from '../store/session';
+import { useAccessToken } from './useSession';
 
 type LoginForm = { email: string; password: string };
 type SignupForm = { email: string; password: string; name: string };

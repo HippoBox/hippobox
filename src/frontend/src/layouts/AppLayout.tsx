@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { BarChart3, BookPlus, Plug } from 'lucide-react';
 import { Link, Navigate, Outlet } from 'react-router-dom';
 
-import { useAccessToken } from '../auth/useSession';
+import { useAccessToken } from '../hooks/useSession';
 import { Button } from '../components/Button';
 import { Container } from '../components/Container';
 import { useMeQuery, useRefreshTokenMutation } from '../hooks/useAuth';
