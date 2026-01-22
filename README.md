@@ -45,6 +45,17 @@ cd src/backend
 uv run uvicorn hippobox.server:app --reload
 ```
 
+## Frontend
+
+```bash
+cd src/frontend
+npm install
+npm run dev # watch build to keep src/frontend/dist updated for backend serving
+npm run dev:vite # Vite dev server with HMR (default 5173)
+npm run build # build to src/frontend/dist for backend serving
+npm run preview # preview the built bundle
+```
+
 
 ## MCP settings
 
