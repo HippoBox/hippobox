@@ -28,7 +28,8 @@
 ## Frontend
 - `cd src/frontend`
 - `npm install`
-- `npm run dev` (Vite dev server)
+- `npm run dev` (watch build to keep `src/frontend/dist` updated for backend serving)
+- `npm run dev:vite` (Vite dev server with HMR, default port 5173)
 - `npm run build` to produce `src/frontend/dist` (served by backend)
 - `npm run preview` to preview the built bundle
 
