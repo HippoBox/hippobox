@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Body, Depends, Request, Response
 from fastapi.responses import RedirectResponse
-
 from hippobox.core.email_links import build_verify_email_redirect_url
 from hippobox.errors.auth import AuthErrorCode, AuthException
 from hippobox.errors.service import exceptions_to_http
@@ -17,7 +16,11 @@ from hippobox.models.user import (
 )
 from hippobox.services.auth import AuthService, get_auth_service
 from hippobox.utils.auth import get_current_user
-from hippobox.utils.cookies import clear_refresh_cookies, get_refresh_cookie_value, set_refresh_cookies
+from hippobox.utils.cookies import (
+    clear_refresh_cookies,
+    get_refresh_cookie_value,
+    set_refresh_cookies,
+)
 
 router = APIRouter()
 
@@ -99,7 +102,13 @@ async def login(
     """
     try:
         token = await service.login(form, request)
-        set_refresh_cookies(response, request, token.refresh_token, token.user.id)
+        set_refresh_cookies(
+            response,
+            request,
+            token.refresh_token,
+            token.user.id,
+            remember_me=form.remember_me,
+        )
         return token
     except AuthException as e:
         raise exceptions_to_http(e)

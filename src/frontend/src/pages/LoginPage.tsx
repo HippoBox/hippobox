@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -8,7 +8,13 @@ import { Container } from '../components/Container';
 import { ErrorMessage } from '../components/ErrorMessage';
 import { Input } from '../components/Input';
 import { AuthHeader } from '../components/AuthHeader';
-import { useLoginMutation, useResendVerificationEmailMutation } from '../hooks/useAuth';
+import { LoadingPage } from '../pages/LoadingPage';
+import {
+    useLoginMutation,
+    useRefreshTokenMutation,
+    useResendVerificationEmailMutation,
+} from '../hooks/useAuth';
+import { useAccessToken } from '../hooks/useSession';
 import { isValidEmail, isValidPassword } from '../utils/validation';
 
 type FormErrorKey = '' | 'requiredEmail' | 'invalidEmail' | 'requiredPassword' | 'invalidPassword';
@@ -17,10 +23,18 @@ export function LoginPage() {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const token = useAccessToken();
     const [email, setEmail] = useState(() => searchParams.get('email') ?? '');
     const [password, setPassword] = useState('');
+    const [rememberMe, setRememberMe] = useState(false);
     const [formErrorKey, setFormErrorKey] = useState<FormErrorKey>('');
     const [resendComplete, setResendComplete] = useState(false);
+
+    const {
+        mutate: refreshSession,
+        isIdle: isRefreshIdle,
+        isPending: isRefreshPending,
+    } = useRefreshTokenMutation();
 
     const loginMutation = useLoginMutation({
         onSuccess: () => {
@@ -90,6 +104,20 @@ export function LoginPage() {
     const formErrorMessage = formErrorKey ? t(`common.errors.${formErrorKey}`) : '';
     const errorMessage = formErrorMessage || apiErrorMessage;
 
+    useEffect(() => {
+        if (token) {
+            navigate('/app', { replace: true });
+            return;
+        }
+        if (isRefreshIdle) {
+            refreshSession();
+        }
+    }, [isRefreshIdle, navigate, refreshSession, token]);
+
+    if (!token && isRefreshPending) {
+        return <LoadingPage />;
+    }
+
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (!email.trim()) {
@@ -110,7 +138,7 @@ export function LoginPage() {
         }
         setFormErrorKey('');
         setResendComplete(false);
-        loginMutation.mutate({ email, password });
+        loginMutation.mutate({ email, password, remember_me: rememberMe });
     };
 
     return (
@@ -167,6 +195,8 @@ export function LoginPage() {
                                 <input
                                     type="checkbox"
                                     className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-400 dark:border-slate-600 dark:text-white"
+                                    checked={rememberMe}
+                                    onChange={(event) => setRememberMe(event.target.checked)}
                                 />
                                 <span>{t('login.remember')}</span>
                             </label>

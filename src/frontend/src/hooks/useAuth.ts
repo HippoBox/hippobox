@@ -11,7 +11,7 @@ import { API_ORIGIN } from '../api';
 import { clearSession, setSessionFromLogin } from '../store/session';
 import { useAccessToken } from './useSession';
 
-type LoginForm = { email: string; password: string };
+type LoginForm = { email: string; password: string; remember_me?: boolean };
 type SignupForm = { email: string; password: string; name: string };
 type PasswordResetRequestPayload = { email: string };
 type PasswordResetConfirmPayload = { token: string; new_password: string };

@@ -552,6 +552,11 @@ export interface components {
              * @description Raw password for login (8-64 chars, uppercase+digit+symbol, no spaces)
              */
             password: string;
+            /**
+             * Remember Me
+             * @description If true, issue a persistent refresh cookie for login persistence
+             */
+            remember_me?: boolean;
         };
         /** LoginTokenResponse */
         LoginTokenResponse: {
