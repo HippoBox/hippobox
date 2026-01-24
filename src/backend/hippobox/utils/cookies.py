@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from fastapi import Request, Response
+
 from hippobox.core.settings import SETTINGS
 
 REFRESH_COOKIE_NAME = "hippobox_refresh_token"

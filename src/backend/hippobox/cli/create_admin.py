@@ -2,10 +2,10 @@ import argparse
 import asyncio
 import sys
 
+from hippobox.core.bootstrap_admin import AdminBootstrapError, bootstrap_admin_user
 from hippobox.core.database import dispose_db, init_db
 from hippobox.core.logging_config import setup_logger
 from hippobox.core.settings import SETTINGS
-from hippobox.core.bootstrap_admin import AdminBootstrapError, bootstrap_admin_user
 
 
 def _parse_args() -> argparse.Namespace:

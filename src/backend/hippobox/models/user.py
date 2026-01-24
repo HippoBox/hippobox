@@ -2,6 +2,11 @@ import logging
 from datetime import datetime, timezone
 from enum import Enum
 
+from pydantic import BaseModel, Field, field_validator
+from sqlalchemy import DateTime, select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Mapped, mapped_column
+
 from hippobox.core.database import Base, get_db
 from hippobox.core.validation import (
     EMAIL_REGEX,
@@ -14,10 +19,6 @@ from hippobox.core.validation import (
     is_password_strong,
 )
 from hippobox.errors.auth import AuthErrorCode, AuthException
-from pydantic import BaseModel, Field, field_validator
-from sqlalchemy import DateTime, select
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Mapped, mapped_column
 
 log = logging.getLogger("user")
 

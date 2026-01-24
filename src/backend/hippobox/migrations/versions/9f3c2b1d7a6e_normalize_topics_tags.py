@@ -38,8 +38,7 @@ def _has_index(conn, table_name: str, index_name: str) -> bool:
 
 def _has_unique_constraint(conn, table_name: str, constraint_name: str) -> bool:
     return any(
-        constraint["name"] == constraint_name
-        for constraint in _get_inspector(conn).get_unique_constraints(table_name)
+        constraint["name"] == constraint_name for constraint in _get_inspector(conn).get_unique_constraints(table_name)
     )
 
 

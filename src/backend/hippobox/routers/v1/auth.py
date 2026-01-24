@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Body, Depends, Request, Response
 from fastapi.responses import RedirectResponse
+
 from hippobox.core.email_links import build_verify_email_redirect_url
 from hippobox.errors.auth import AuthErrorCode, AuthException
 from hippobox.errors.service import exceptions_to_http

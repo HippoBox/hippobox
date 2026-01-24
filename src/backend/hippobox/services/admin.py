@@ -2,10 +2,10 @@ import logging
 
 from fastapi import Request
 
+from hippobox.core.redis import RedisManager
 from hippobox.errors.admin import AdminErrorCode, AdminException
 from hippobox.errors.service import raise_exception_with_log
 from hippobox.models.user import UserModel, Users
-from hippobox.core.redis import RedisManager
 
 log = logging.getLogger("admin")
 
