@@ -24,7 +24,8 @@
             "requiredConfirmPassword": "비밀번호 확인을 입력해 주세요.",
             "passwordMismatch": "비밀번호가 일치하지 않습니다.",
             "emailExists": "이미 사용 중인 이메일입니다.",
-            "nameExists": "이미 사용 중인 이름입니다."
+            "nameExists": "이미 사용 중인 이름입니다.",
+            "userNotFound": "해당 이메일과 일치하는 사용자가 없습니다."
         }
     },
     "login": {

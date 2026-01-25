@@ -11,7 +11,7 @@ import { AuthHeader } from '../components/AuthHeader';
 import { useRequestPasswordResetMutation } from '../hooks/useAuth';
 import { isValidEmail } from '../utils/validation';
 
-type FormErrorKey = '' | 'requiredEmail' | 'invalidEmail';
+type FormErrorKey = '' | 'requiredEmail' | 'invalidEmail' | 'userNotFound';
 
 export function ForgotPasswordPage() {
     const { t } = useTranslation();
@@ -41,7 +41,12 @@ export function ForgotPasswordPage() {
         if (typeof error === 'object') {
             const detail = (error as { detail?: unknown }).detail;
             if (detail && typeof detail === 'object') {
+                const code = (detail as { error?: unknown }).error;
                 const message = (detail as { message?: unknown }).message;
+                if (code === `USER_NOT_FOUND`) {
+                    setErrorKey('userNotFound');
+                }
+
                 if (typeof message === 'string' && message) return message;
             }
         }

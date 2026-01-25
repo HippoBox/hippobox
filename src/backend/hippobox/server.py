@@ -152,16 +152,16 @@ def create_app() -> FastAPI:
 
         @app.exception_handler(404)
         async def spa_fallback(request, exc):
-            if request.method not in {"GET", "HEAD"}:
-                return JSONResponse(status_code=404, content={"detail": "Not Found"})
+            accepts_html = "text/html" in request.headers.get("accept", "")
+            is_frontend_path = frontend_base_path == "/" or request.url.path.startswith(frontend_base_path)
 
-            if frontend_base_path != "/" and not request.url.path.startswith(frontend_base_path):
-                return JSONResponse(status_code=404, content={"detail": "Not Found"})
+            if request.method in {"GET", "HEAD"} and accepts_html and is_frontend_path:
+                index_path = static_files_dist / "index.html"
+                if index_path.exists():
+                    return FileResponse(index_path)
 
-            index_path = static_files_dist / "index.html"
-            if index_path.exists():
-                return FileResponse(index_path)
-            return JSONResponse(status_code=404, content={"detail": "Not Found"})
+            detail = getattr(exc, "detail", "Not Found")
+            return JSONResponse(status_code=404, content={"detail": detail})
 
     else:
         log.info("Frontend dist not found. Run npm install && npm run build in ./src/frontend.")

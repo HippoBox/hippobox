@@ -24,7 +24,8 @@
             "requiredConfirmPassword": "Please confirm your password.",
             "passwordMismatch": "Passwords do not match.",
             "emailExists": "This email is already in use.",
-            "nameExists": "This name is already in use."
+            "nameExists": "This name is already in use.",
+            "userNotFound": "There is no user with this email address."
         }
     },
     "login": {
@@ -95,7 +96,7 @@
             "topicDeleteFailed": "Failed to delete the topic.",
             "entriesLabel": "knowledge",
             "activityTitle": "Daily activity",
-            "activitySubtitle": "{{year}} daily knowledge activity"
+            "activitySubtitle": "Knowledge created in the last 14 days."
         },
         "search": {
             "title": "Search knowledge",
