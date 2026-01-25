@@ -350,6 +350,10 @@ export interface paths {
         /** Ping */
         get: operations['ping_tool'];
     };
+    '/config': {
+        /** App Config */
+        get: operations['app_config_config_get'];
+    };
 }
 
 export type webhooks = Record<string, never>;
@@ -555,6 +559,7 @@ export interface components {
             /**
              * Remember Me
              * @description If true, issue a persistent refresh cookie for login persistence
+             * @default false
              */
             remember_me?: boolean;
         };
@@ -1626,6 +1631,17 @@ export interface operations {
     };
     /** Ping */
     ping_tool: {
+        responses: {
+            /** @description Successful Response */
+            200: {
+                content: {
+                    'application/json': unknown;
+                };
+            };
+        };
+    };
+    /** App Config */
+    app_config_config_get: {
         responses: {
             /** @description Successful Response */
             200: {
