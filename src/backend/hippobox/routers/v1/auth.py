@@ -17,11 +17,7 @@ from hippobox.models.user import (
 )
 from hippobox.services.auth import AuthService, get_auth_service
 from hippobox.utils.auth import get_current_user
-from hippobox.utils.cookies import (
-    clear_refresh_cookies,
-    get_refresh_cookie_value,
-    set_refresh_cookies,
-)
+from hippobox.utils.cookies import clear_refresh_cookies, get_refresh_cookie_value, set_refresh_cookies
 
 router = APIRouter()
 

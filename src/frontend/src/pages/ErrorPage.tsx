@@ -59,17 +59,22 @@ const extractErrorInfo = (error: unknown) => {
     };
 };
 
-export function ErrorPage() {
+type ErrorPageProps = {
+    statusOverride?: number;
+};
+
+export function ErrorPage({ statusOverride }: ErrorPageProps) {
     const { t } = useTranslation();
     const error = useRouteError();
     const navigate = useNavigate();
     const token = useAccessToken();
 
     const { status, statusText, message } = useMemo(() => extractErrorInfo(error), [error]);
-    const isNotFound = status === 404;
+    const resolvedStatus = statusOverride ?? status;
+    const isNotFound = resolvedStatus === 404;
     const title = t(isNotFound ? 'error.notFoundTitle' : 'error.genericTitle');
     const subtitle = t(isNotFound ? 'error.notFoundSubtitle' : 'error.genericSubtitle');
-    const badgeLabel = status ? String(status) : t('error.badge');
+    const badgeLabel = resolvedStatus ? String(resolvedStatus) : t('error.badge');
     const detail = !isNotFound ? message || statusText : undefined;
     const homeTarget = token ? '/app' : '/';
 

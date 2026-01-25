@@ -315,6 +315,8 @@
     "forgot": {
         "title": "Reset your password",
         "subtitle": "We will send a reset link to your email",
+        "disabledTitle": "Password reset unavailable",
+        "disabledSubtitle": "Password reset is disabled. Please contact your administrator.",
         "sending": "Sending link...",
         "submit": "Send reset link",
         "errorFallback": "Failed to send reset link. Please try again.",

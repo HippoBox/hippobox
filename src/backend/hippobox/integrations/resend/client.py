@@ -12,13 +12,14 @@ DEFAULT_TIMEOUT_SECONDS = 10.0
 
 class ResendClient:
     def __init__(self):
+        self._enabled = SETTINGS.EMAIL_ENABLED
         self._api_key = SETTINGS.RESEND_API_KEY
         self._base_url = SETTINGS.RESEND_API_BASE_URL
         self._from = SETTINGS.EMAIL_FROM
         self._reply_to = SETTINGS.EMAIL_REPLY_TO or None
 
     def _is_configured(self) -> bool:
-        return bool(self._api_key and self._from)
+        return bool(self._enabled and self._api_key and self._from)
 
     async def send_email(
         self,
@@ -31,7 +32,10 @@ class ResendClient:
         reply_to: str | None = None,
     ) -> str | None:
         if not self._is_configured():
-            log.warning("Resend not configured. Set RESEND_API_KEY and EMAIL_FROM to enable email sending.")
+            if not self._enabled:
+                log.info("Email sending disabled (EMAIL_ENABLED=false). Skipping email.")
+            else:
+                log.warning("Resend not configured. Set RESEND_API_KEY and EMAIL_FROM to enable email sending.")
             return None
 
         headers = {

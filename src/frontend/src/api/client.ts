@@ -1,7 +1,7 @@
 import createClient from 'openapi-fetch';
 
 import { clearSession, getAccessToken, setSessionFromRefresh } from '../store/session';
-import { BASENAME } from '../config-constants';
+import { getRuntimeConfig } from '../config/runtime';
 import { API_ORIGIN } from './index';
 import type { paths } from './openapi';
 
@@ -20,7 +20,7 @@ const SKIP_REFRESH_PATHS = new Set<string>([
 let refreshPromise: Promise<{ access_token?: string } | null> | null = null;
 
 const resolveLoginPath = () => {
-    const trimmed = BASENAME.trim();
+    const trimmed = getRuntimeConfig().frontendBasePath.trim();
     if (!trimmed || trimmed === '/') {
         return '/';
     }

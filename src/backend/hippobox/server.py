@@ -2,7 +2,7 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, status
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi_mcp import FastApiMCP
 
@@ -143,7 +143,22 @@ def create_app() -> FastAPI:
 
     frontend_base_path = normalize_base_path(SETTINGS.FRONTEND_BASE_PATH)
     static_files_dist = (SETTINGS.ROOT_DIR / "dist").resolve()
+
+    @app.get("/config")
+    async def app_config():
+        return {
+            "email_enabled": SETTINGS.EMAIL_ENABLED,
+            "frontend_base_path": frontend_base_path,
+            "api_base_path": "/api/v1",
+        }
+
     if static_files_dist.exists():
+        if frontend_base_path != "/":
+
+            @app.get("/")
+            async def frontend_base_redirect():
+                return RedirectResponse(url=frontend_base_path)
+
         app.mount(
             frontend_base_path,
             StaticFiles(directory=static_files_dist, html=True),

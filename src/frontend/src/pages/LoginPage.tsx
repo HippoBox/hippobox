@@ -9,6 +9,7 @@ import { ErrorMessage } from '../components/ErrorMessage';
 import { Input } from '../components/Input';
 import { AuthHeader } from '../components/AuthHeader';
 import { LoadingPage } from '../pages/LoadingPage';
+import { useEmailEnabled } from '../hooks/useFeatures';
 import {
     useLoginMutation,
     useRefreshTokenMutation,
@@ -29,6 +30,7 @@ export function LoginPage() {
     const [rememberMe, setRememberMe] = useState(false);
     const [formErrorKey, setFormErrorKey] = useState<FormErrorKey>('');
     const [resendComplete, setResendComplete] = useState(false);
+    const { emailEnabled } = useEmailEnabled();
 
     const {
         mutate: refreshSession,
@@ -200,13 +202,15 @@ export function LoginPage() {
                                 />
                                 <span>{t('login.remember')}</span>
                             </label>
-                            <button
-                                type="button"
-                                onClick={() => navigate('/forgot')}
-                                className="text-link"
-                            >
-                                {t('login.forgot')}
-                            </button>
+                            {emailEnabled ? (
+                                <button
+                                    type="button"
+                                    onClick={() => navigate('/forgot')}
+                                    className="text-link"
+                                >
+                                    {t('login.forgot')}
+                                </button>
+                            ) : null}
                         </div>
 
                         <ErrorMessage message={errorMessage} />
