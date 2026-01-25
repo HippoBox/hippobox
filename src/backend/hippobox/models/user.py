@@ -262,6 +262,12 @@ class UserTable:
             result = await db.execute(select(User.id).where(User.role == UserRole.ADMIN).limit(1))
             return result.first() is not None
 
+    async def get_admin(self) -> UserModel | None:
+        async with get_db() as db:
+            result = await db.execute(select(User).where(User.role == UserRole.ADMIN).limit(1))
+            user = result.scalar_one_or_none()
+            return UserModel.model_validate(user) if user else None
+
     # Used only in the service layer (never expose raw ORM entities to routers)
     async def get_entity_by_email(self, email: str) -> User | None:
         async with get_db() as db:

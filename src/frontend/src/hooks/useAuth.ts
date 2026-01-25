@@ -10,6 +10,7 @@ import { apiClient, authedFetch, requestRefresh } from '../api/client';
 import { API_ORIGIN } from '../api';
 import { clearSession, setSessionFromLogin } from '../store/session';
 import { useAccessToken } from './useSession';
+import { useLoginEnabled } from './useFeatures';
 
 type LoginForm = { email: string; password: string; remember_me?: boolean };
 type SignupForm = { email: string; password: string; name: string };
@@ -125,7 +126,8 @@ export const useResendVerificationEmailMutation = (
 
 export const useMeQuery = (options?: QueryOptions) => {
     const token = useAccessToken() ?? undefined;
-    const isEnabled = options?.enabled ?? !!token;
+    const { loginEnabled } = useLoginEnabled();
+    const isEnabled = options?.enabled ?? (loginEnabled ? !!token : true);
 
     return useQuery({
         queryKey: ['auth', 'me'],

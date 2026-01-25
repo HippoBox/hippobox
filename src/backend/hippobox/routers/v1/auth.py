@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Body, Depends, Request, Response
+from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response, status
 from fastapi.responses import RedirectResponse
 
 from hippobox.core.email_links import build_verify_email_redirect_url
+from hippobox.core.settings import SETTINGS
 from hippobox.errors.auth import AuthErrorCode, AuthException
 from hippobox.errors.service import exceptions_to_http
 from hippobox.models.user import (
@@ -20,6 +21,13 @@ from hippobox.utils.auth import get_current_user
 from hippobox.utils.cookies import clear_refresh_cookies, get_refresh_cookie_value, set_refresh_cookies
 
 router = APIRouter()
+
+
+def _raise_login_disabled():
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail={"error": "LOGIN_DISABLED", "message": "Login is disabled"},
+    )
 
 
 @router.get("/me", response_model=UserResponse)
@@ -66,6 +74,8 @@ async def signup(
         and triggers an asynchronous email verification process.
     """
     try:
+        if not SETTINGS.LOGIN_ENABLED:
+            _raise_login_disabled()
         return await service.signup(form)
     except AuthException as e:
         raise exceptions_to_http(e)
@@ -98,6 +108,8 @@ async def login(
     - Updates last login timestamp.
     """
     try:
+        if not SETTINGS.LOGIN_ENABLED:
+            _raise_login_disabled()
         token = await service.login(form, request)
         set_refresh_cookies(
             response,
@@ -135,6 +147,8 @@ async def logout(
     future access token renewals without re-login.
     """
     try:
+        if not SETTINGS.LOGIN_ENABLED:
+            _raise_login_disabled()
         await service.logout(current_user.id)
         clear_refresh_cookies(response)
         return {"message": "Successfully logged out"}
@@ -168,6 +182,8 @@ async def refresh_token(
     This endpoint implements **Refresh Token Rotation**.
     The old refresh token is invalidated, and a completely new pair is issued.
     """
+    if not SETTINGS.LOGIN_ENABLED:
+        _raise_login_disabled()
     cookie_refresh_token, cookie_user_id = get_refresh_cookie_value(request)
     refresh_token_value = refresh_token or cookie_refresh_token
     user_id_value = user_id or cookie_user_id
@@ -235,6 +251,8 @@ async def resend_verification_email(
     Resend a verification email if the user exists and is not verified.
     """
     try:
+        if not SETTINGS.LOGIN_ENABLED:
+            _raise_login_disabled()
         await service.resend_verification_email(form.email)
         return {"message": "If the email exists, a verification link has been sent."}
     except AuthException as e:
@@ -263,6 +281,8 @@ async def request_password_reset(
     Generates a password reset token in Redis and simulates sending an email.
     """
     try:
+        if not SETTINGS.LOGIN_ENABLED:
+            _raise_login_disabled()
         await service.request_password_reset(form.email)
         return {"message": "If the email exists, a reset link has been sent."}
     except AuthException as e:
@@ -293,6 +313,8 @@ async def reset_password(
     updates the database, and deletes the token.
     """
     try:
+        if not SETTINGS.LOGIN_ENABLED:
+            _raise_login_disabled()
         await service.reset_password(form.token, form.new_password)
         return {"message": "Password has been reset successfully."}
     except AuthException as e:

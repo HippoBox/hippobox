@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -9,6 +9,7 @@ import { ErrorMessage } from '../components/ErrorMessage';
 import { Input } from '../components/Input';
 import { AuthHeader } from '../components/AuthHeader';
 import { useResetPasswordMutation } from '../hooks/useAuth';
+import { useLoginEnabled } from '../hooks/useFeatures';
 import { isValidPassword } from '../utils/validation';
 
 type FormErrorKey =
@@ -71,6 +72,7 @@ export function ResetPasswordPage() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [errorKey, setErrorKey] = useState<FormErrorKey>('');
     const [done, setDone] = useState(false);
+    const { loginEnabled } = useLoginEnabled();
 
     const resetMutation = useResetPasswordMutation({
         onSuccess: () => {
@@ -100,6 +102,15 @@ export function ResetPasswordPage() {
 
         return t('resetPassword.errorFallback');
     }, [resetMutation.error, t]);
+
+    useEffect(() => {
+        if (loginEnabled) return;
+        navigate('/app', { replace: true });
+    }, [loginEnabled, navigate]);
+
+    if (!loginEnabled) {
+        return null;
+    }
 
     if (!token) {
         return (

@@ -9,7 +9,7 @@ import { ErrorMessage } from '../components/ErrorMessage';
 import { Input } from '../components/Input';
 import { AuthHeader } from '../components/AuthHeader';
 import { useRequestPasswordResetMutation } from '../hooks/useAuth';
-import { useEmailEnabled } from '../hooks/useFeatures';
+import { useEmailEnabled, useLoginEnabled } from '../hooks/useFeatures';
 import { isValidEmail } from '../utils/validation';
 
 type FormErrorKey = '' | 'requiredEmail' | 'invalidEmail' | 'userNotFound';
@@ -21,6 +21,7 @@ export function ForgotPasswordPage() {
     const [errorKey, setErrorKey] = useState<FormErrorKey>('');
     const [sent, setSent] = useState(false);
     const { emailEnabled } = useEmailEnabled();
+    const { loginEnabled } = useLoginEnabled();
 
     const requestMutation = useRequestPasswordResetMutation({
         onSuccess: () => {
@@ -74,11 +75,15 @@ export function ForgotPasswordPage() {
     const mergedErrorMessage = errorMessage || apiErrorMessage;
 
     useEffect(() => {
+        if (!loginEnabled) {
+            navigate('/app', { replace: true });
+            return;
+        }
         if (emailEnabled) return;
         navigate('/', { replace: true });
-    }, [emailEnabled, navigate]);
+    }, [emailEnabled, loginEnabled, navigate]);
 
-    if (!emailEnabled) {
+    if (!loginEnabled || !emailEnabled) {
         return null;
     }
 

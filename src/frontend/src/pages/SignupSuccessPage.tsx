@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -5,7 +6,7 @@ import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { Container } from '../components/Container';
 import { AuthHeader } from '../components/AuthHeader';
-import { useEmailEnabled } from '../hooks/useFeatures';
+import { useEmailEnabled, useLoginEnabled } from '../hooks/useFeatures';
 
 type SignupSuccessState = { email?: string };
 
@@ -16,6 +17,19 @@ export function SignupSuccessPage() {
     const state = (location.state as SignupSuccessState | null) ?? null;
     const email = state?.email?.trim() ?? '';
     const { emailEnabled } = useEmailEnabled();
+    const { loginEnabled } = useLoginEnabled();
+
+    useEffect(() => {
+        if (!loginEnabled) {
+            navigate('/app', { replace: true });
+            return;
+        }
+        navigate('/', { replace: true });
+    }, [loginEnabled, navigate]);
+
+    if (!loginEnabled) {
+        return null;
+    }
 
     return (
         <Container className="flex-col justify-start pt-24">

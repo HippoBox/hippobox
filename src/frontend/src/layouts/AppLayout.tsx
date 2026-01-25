@@ -4,6 +4,7 @@ import { BarChart3, BookPlus, Plug } from 'lucide-react';
 import { Link, Navigate, Outlet } from 'react-router-dom';
 
 import { useAccessToken } from '../hooks/useSession';
+import { useLoginEnabled } from '../hooks/useFeatures';
 import { Button } from '../components/Button';
 import { Container } from '../components/Container';
 import { useMeQuery, useRefreshTokenMutation } from '../hooks/useAuth';
@@ -25,6 +26,7 @@ const resolveProfileInitial = (name: string) => {
 export const AppLayout = () => {
     const { t } = useTranslation();
     const token = useAccessToken();
+    const { loginEnabled } = useLoginEnabled();
     const {
         mutate: refreshSession,
         isIdle: isRefreshIdle,
@@ -36,7 +38,7 @@ export const AppLayout = () => {
         isPending: isMePending,
         isError: isMeError,
     } = useMeQuery({
-        enabled: !!token,
+        enabled: loginEnabled ? !!token : true,
     });
     const profileName = resolveProfileName((me as { name?: unknown } | undefined)?.name);
     const profileInitial = useMemo(() => resolveProfileInitial(profileName), [profileName]);
@@ -45,20 +47,25 @@ export const AppLayout = () => {
         typeof avatarUrl === 'string' && avatarUrl.trim() ? avatarUrl : undefined;
 
     useEffect(() => {
+        if (!loginEnabled) {
+            return;
+        }
         if (!token && isRefreshIdle) {
             refreshSession();
         }
-    }, [isRefreshIdle, refreshSession, token]);
+    }, [isRefreshIdle, loginEnabled, refreshSession, token]);
 
-    if (!token && isRefreshError) {
+    if (loginEnabled && !token && isRefreshError) {
         return <Navigate to="/" replace />;
     }
 
-    if (token && isMeError) {
+    if (loginEnabled && token && isMeError) {
         return <Navigate to="/" replace />;
     }
 
-    const isLoading = (!token && isRefreshPending) || (token && isMePending);
+    const isLoading = loginEnabled
+        ? (!token && isRefreshPending) || (token && isMePending)
+        : isMePending;
 
     return (
         <Container
@@ -102,7 +109,7 @@ export const AppLayout = () => {
                     />
                 </div>
             </nav>
-            <KnowledgeListProvider enabled={!!token && !isRefreshPending}>
+            <KnowledgeListProvider enabled={loginEnabled ? !!token && !isRefreshPending : true}>
                 <div className="flex-1">
                     {isLoading ? (
                         <LoadingPage variant="content" />

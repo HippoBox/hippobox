@@ -16,6 +16,7 @@ import {
     useResendVerificationEmailMutation,
 } from '../hooks/useAuth';
 import { useAccessToken } from '../hooks/useSession';
+import { useLoginEnabled } from '../hooks/useFeatures';
 import { isValidEmail, isValidPassword } from '../utils/validation';
 
 type FormErrorKey = '' | 'requiredEmail' | 'invalidEmail' | 'requiredPassword' | 'invalidPassword';
@@ -30,6 +31,7 @@ export function LoginPage() {
     const [rememberMe, setRememberMe] = useState(false);
     const [formErrorKey, setFormErrorKey] = useState<FormErrorKey>('');
     const [resendComplete, setResendComplete] = useState(false);
+    const { loginEnabled } = useLoginEnabled();
     const { emailEnabled } = useEmailEnabled();
 
     const {
@@ -107,6 +109,10 @@ export function LoginPage() {
     const errorMessage = formErrorMessage || apiErrorMessage;
 
     useEffect(() => {
+        if (!loginEnabled) {
+            navigate('/app', { replace: true });
+            return;
+        }
         if (token) {
             navigate('/app', { replace: true });
             return;
@@ -114,9 +120,13 @@ export function LoginPage() {
         if (isRefreshIdle) {
             refreshSession();
         }
-    }, [isRefreshIdle, navigate, refreshSession, token]);
+    }, [isRefreshIdle, loginEnabled, navigate, refreshSession, token]);
 
-    if (!token && isRefreshPending) {
+    if (!loginEnabled) {
+        return null;
+    }
+
+    if (loginEnabled && !token && isRefreshPending) {
         return <LoadingPage />;
     }
 

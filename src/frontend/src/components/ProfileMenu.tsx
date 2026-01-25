@@ -6,6 +6,7 @@ import { Dropdown } from './Dropdown';
 import { ToggleButton } from './ToggleButton';
 import { useTheme } from '../context/ThemeContext';
 import { useLogoutMutation } from '../hooks/useAuth';
+import { useLoginEnabled } from '../hooks/useFeatures';
 
 type ProfileMenuProps = {
     profileName: string;
@@ -18,6 +19,7 @@ export function ProfileMenu({ profileName, profileInitial, avatarUrl }: ProfileM
     const { theme, toggleTheme } = useTheme();
     const navigate = useNavigate();
     const logoutMutation = useLogoutMutation();
+    const { loginEnabled } = useLoginEnabled();
 
     return (
         <Dropdown
@@ -116,25 +118,27 @@ export function ProfileMenu({ profileName, profileInitial, avatarUrl }: ProfileM
                             <span>{t('profileMenu.settings')}</span>
                         </span>
                     </button>
-                    <button
-                        type="button"
-                        className="menu-item flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold"
-                        role="menuitem"
-                        disabled={logoutMutation.isPending}
-                        onClick={() => {
-                            close();
-                            logoutMutation.mutate(undefined, {
-                                onSettled: () => {
-                                    navigate('/');
-                                },
-                            });
-                        }}
-                    >
-                        <span className="flex items-center gap-3">
-                            <LogOut className="h-4 w-4 text-muted" aria-hidden="true" />
-                            <span>{t('profileMenu.logout')}</span>
-                        </span>
-                    </button>
+                    {loginEnabled ? (
+                        <button
+                            type="button"
+                            className="menu-item flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold"
+                            role="menuitem"
+                            disabled={logoutMutation.isPending}
+                            onClick={() => {
+                                close();
+                                logoutMutation.mutate(undefined, {
+                                    onSettled: () => {
+                                        navigate('/');
+                                    },
+                                });
+                            }}
+                        >
+                            <span className="flex items-center gap-3">
+                                <LogOut className="h-4 w-4 text-muted" aria-hidden="true" />
+                                <span>{t('profileMenu.logout')}</span>
+                            </span>
+                        </button>
+                    ) : null}
                 </>
             )}
         </Dropdown>

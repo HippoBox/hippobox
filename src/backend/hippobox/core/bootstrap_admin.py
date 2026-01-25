@@ -86,3 +86,32 @@ async def ensure_default_admin_from_settings() -> bool:
     except (AdminBootstrapError, Exception) as exc:
         log.warning("Admin bootstrap failed: %s", exc)
         return False
+
+
+async def ensure_admin_for_login_disabled() -> bool:
+    if SETTINGS.LOGIN_ENABLED:
+        return False
+    if await Users.admin_exists():
+        return False
+
+    email = SETTINGS.ADMIN_EMAIL or "admin@local.test"
+    password = SETTINGS.ADMIN_PASSWORD or "Admin123!"
+    name = SETTINGS.ADMIN_NAME or "admin"
+
+    if not SETTINGS.ADMIN_EMAIL or not SETTINGS.ADMIN_PASSWORD:
+        log.warning(
+            "LOGIN_ENABLED is false and no admin credentials provided. "
+            "Auto-creating admin with defaults (email=%s). Set ADMIN_EMAIL/ADMIN_PASSWORD.",
+            email,
+        )
+
+    try:
+        return await bootstrap_admin_user(
+            email,
+            password,
+            name,
+            verify_email=True,
+        )
+    except (AdminBootstrapError, Exception) as exc:
+        log.warning("Auto admin bootstrap failed: %s", exc)
+        return False

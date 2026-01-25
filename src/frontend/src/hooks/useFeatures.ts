@@ -6,6 +6,7 @@ import { DEFAULT_EMAIL_ENABLED } from '../config/features';
 import { setRuntimeConfig } from '../config/runtime';
 
 type AppConfigResponse = {
+    login_enabled?: boolean;
     email_enabled: boolean;
     frontend_base_path?: string;
     api_base_path?: string;
@@ -32,8 +33,12 @@ export const useAuthConfig = () => {
     });
     useEffect(() => {
         if (!query.data) return;
+        const loginEnabled = query.data.login_enabled ?? true;
         setRuntimeConfig({
-            emailEnabled: query.data.email_enabled ?? DEFAULT_EMAIL_ENABLED,
+            loginEnabled,
+            emailEnabled: loginEnabled
+                ? query.data.email_enabled ?? DEFAULT_EMAIL_ENABLED
+                : false,
             frontendBasePath: query.data.frontend_base_path ?? '',
             apiBasePath: query.data.api_base_path ?? '/api/v1',
         });
@@ -43,8 +48,18 @@ export const useAuthConfig = () => {
 
 export const useEmailEnabled = () => {
     const { data, isLoading, isError } = useAuthConfig();
+    const loginEnabled = data?.login_enabled ?? true;
     return {
-        emailEnabled: data?.email_enabled ?? DEFAULT_EMAIL_ENABLED,
+        emailEnabled: loginEnabled ? data?.email_enabled ?? DEFAULT_EMAIL_ENABLED : false,
+        isLoading,
+        isError,
+    };
+};
+
+export const useLoginEnabled = () => {
+    const { data, isLoading, isError } = useAuthConfig();
+    return {
+        loginEnabled: data?.login_enabled ?? true,
         isLoading,
         isError,
     };

@@ -44,6 +44,7 @@ class Settings(BaseModel):
     # ----------------------------------------
     # TODO: development-only option
     SECRET_KEY: str = "HIPPOBOX_DEV_SECRET"
+    LOGIN_ENABLED: bool = os.getenv("LOGIN_ENABLED", "true").lower() == "true"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
     LOGIN_FAILED_LIMIT: int = 5
@@ -88,6 +89,9 @@ class Settings(BaseModel):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+        if not self.LOGIN_ENABLED:
+            object.__setattr__(self, "EMAIL_ENABLED", False)
 
         if self.DB_DRIVER.startswith("sqlite"):
             db_file = self.ROOT_DIR / self.DB_NAME

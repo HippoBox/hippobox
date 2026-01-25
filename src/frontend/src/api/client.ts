@@ -37,6 +37,9 @@ const normalizePathname = (value: string) => {
 };
 
 const handleAuthFailure = () => {
+    if (!getRuntimeConfig().loginEnabled) {
+        return;
+    }
     clearSession();
     if (typeof window === 'undefined') return;
     const loginPath = resolveLoginPath();
@@ -83,6 +86,9 @@ export const authedFetch = async (input: RequestInfo | URL, init: RequestInit = 
 };
 
 const refreshAccessToken = async () => {
+    if (!getRuntimeConfig().loginEnabled) {
+        return null;
+    }
     const response = await fetch(`${API_ORIGIN}${REFRESH_PATH}`, {
         method: 'POST',
         headers: {
@@ -109,6 +115,9 @@ const refreshAccessToken = async () => {
 };
 
 export const requestRefresh = async () => {
+    if (!getRuntimeConfig().loginEnabled) {
+        return null;
+    }
     if (refreshPromise) return refreshPromise;
 
     refreshPromise = refreshAccessToken();
@@ -131,6 +140,7 @@ apiClient.use({
         return new Request(request, { headers });
     },
     async onResponse({ request, response, schemaPath }) {
+        if (!getRuntimeConfig().loginEnabled) return response;
         if (response.status !== 401) return;
         if (schemaPath && SKIP_REFRESH_PATHS.has(schemaPath)) return response;
         if (request.headers.get(AUTH_RETRY_HEADER) === '1') return response;

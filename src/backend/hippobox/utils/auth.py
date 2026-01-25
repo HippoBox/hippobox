@@ -10,12 +10,28 @@ from hippobox.models.api_key import APIKeys
 from hippobox.models.user import UserResponse, UserRole, Users
 from hippobox.utils.security import hash_api_key
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 async def get_current_user(
-    background_tasks: BackgroundTasks, token_auth: Annotated[HTTPAuthorizationCredentials, Depends(security)]
+    background_tasks: BackgroundTasks, token_auth: Annotated[HTTPAuthorizationCredentials | None, Depends(security)]
 ) -> UserResponse:
+    if not SETTINGS.LOGIN_ENABLED:
+        admin = await Users.get_admin()
+        if not admin:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail={"error": "ADMIN_NOT_FOUND", "message": "Admin user not found"},
+            )
+        return UserResponse.model_validate(admin)
+
+    if token_auth is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     token = token_auth.credentials
 
     credentials_exception = HTTPException(

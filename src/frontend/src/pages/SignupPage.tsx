@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
@@ -9,6 +9,7 @@ import { ErrorMessage } from '../components/ErrorMessage';
 import { Input } from '../components/Input';
 import { AuthHeader } from '../components/AuthHeader';
 import { useSignupMutation } from '../hooks/useAuth';
+import { useLoginEnabled } from '../hooks/useFeatures';
 import { isValidEmail, isValidName, isValidPassword } from '../utils/validation';
 
 type FormErrorKey =
@@ -74,12 +75,26 @@ export function SignupPage() {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [errorKey, setErrorKey] = useState<FormErrorKey>('');
+    const { loginEnabled } = useLoginEnabled();
 
     const signupMutation = useSignupMutation({
         onSuccess: () => {
+            if (!loginEnabled) {
+                navigate('/app', { replace: true });
+                return;
+            }
             navigate('/signup/success', { state: { email } });
         },
     });
+
+    useEffect(() => {
+        if (loginEnabled) return;
+        navigate('/app', { replace: true });
+    }, [loginEnabled, navigate]);
+
+    if (!loginEnabled) {
+        return null;
+    }
 
     const apiErrorMessage = useMemo(() => {
         const error = signupMutation.error;

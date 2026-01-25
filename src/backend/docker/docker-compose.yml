@@ -60,6 +60,7 @@ services:
         env_file:
             - ./.env
         environment:
+            - LOGIN_ENABLED=${LOGIN_ENABLED:-true}
             - SWAGGER_ENABLED=${SWAGGER_ENABLED:-false}
             - FRONTEND_BASE_PATH=${FRONTEND_BASE_PATH:-}
             - DB_DRIVER=${DB_DRIVER:-postgresql+asyncpg}

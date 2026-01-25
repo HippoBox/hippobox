@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi_mcp import FastApiMCP
 
-from hippobox.core.bootstrap_admin import ensure_default_admin_from_settings
+from hippobox.core.bootstrap_admin import ensure_admin_for_login_disabled, ensure_default_admin_from_settings
 from hippobox.core.database import dispose_db, init_db
 from hippobox.core.logging_config import setup_logger
 from hippobox.core.redis import RedisManager
@@ -39,6 +39,7 @@ async def lifespan(app: FastAPI):
 
     await init_db()
     log.info("Database initialized")
+    await ensure_admin_for_login_disabled()
     await ensure_default_admin_from_settings()
 
     try:
@@ -147,6 +148,7 @@ def create_app() -> FastAPI:
     @app.get("/config")
     async def app_config():
         return {
+            "login_enabled": SETTINGS.LOGIN_ENABLED,
             "email_enabled": SETTINGS.EMAIL_ENABLED,
             "frontend_base_path": frontend_base_path,
             "api_base_path": "/api/v1",
