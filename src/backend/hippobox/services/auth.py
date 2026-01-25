@@ -20,6 +20,7 @@ from hippobox.models.user import (
     SignupForm,
     TokenRefreshResponse,
     UserResponse,
+    UserRole,
     Users,
 )
 from hippobox.utils.security import get_password_hash, verify_password
@@ -79,7 +80,8 @@ class AuthService:
             if "password" in user_data:
                 del user_data["password"]
 
-            user = await Users.create(user_data)
+            is_verified = not SETTINGS.EMAIL_ENABLED
+            user = await Users.create_with_role(user_data, UserRole.USER, is_verified=is_verified)
             await Credentials.create(user.id, hashed_password)
             await Auths.create(user.id, "email", user.email)
 
@@ -89,7 +91,8 @@ class AuthService:
         except Exception as e:
             raise_exception_with_log(AuthErrorCode.CREATE_FAILED, e)
 
-        await self._create_email_verification_token(user.id, user.email, user.name)
+        if SETTINGS.EMAIL_ENABLED:
+            await self._create_email_verification_token(user.id, user.email, user.name)
 
         return UserResponse.model_validate(user.model_dump())
 
@@ -132,7 +135,7 @@ class AuthService:
 
         await self._reset_login_fail_count(user.id)
 
-        if not user.is_verified:
+        if SETTINGS.EMAIL_ENABLED and not user.is_verified:
             raise AuthException(AuthErrorCode.EMAIL_NOT_VERIFIED)
 
         try:
@@ -211,6 +214,9 @@ class AuthService:
     # Email Verification
     # -------------------------------------------
     async def _create_email_verification_token(self, user_id: int, email: str, name: str | None = None):
+        if not SETTINGS.EMAIL_ENABLED:
+            log.info("Email verification disabled. Skipping verification token for %s", email)
+            return
         try:
             redis = await RedisManager.get_client()
             token = str(uuid.uuid4())
@@ -257,6 +263,9 @@ class AuthService:
         return UserResponse.model_validate(updated.model_dump())
 
     async def resend_verification_email(self, email: str):
+        if not SETTINGS.EMAIL_ENABLED:
+            log.info("Email sending disabled. Skipping resend verification for %s", email)
+            return
         try:
             user = await Users.get_entity_by_email(email)
         except Exception as e:
@@ -271,6 +280,9 @@ class AuthService:
     # Password Reset
     # -------------------------------------------
     async def request_password_reset(self, email: str):
+        if not SETTINGS.EMAIL_ENABLED:
+            log.info("Email sending disabled. Skipping password reset for %s", email)
+            return
         try:
             user = await Users.get_entity_by_email(email)
         except Exception as e:

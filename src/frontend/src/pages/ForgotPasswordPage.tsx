@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
@@ -9,6 +9,7 @@ import { ErrorMessage } from '../components/ErrorMessage';
 import { Input } from '../components/Input';
 import { AuthHeader } from '../components/AuthHeader';
 import { useRequestPasswordResetMutation } from '../hooks/useAuth';
+import { useEmailEnabled } from '../hooks/useFeatures';
 import { isValidEmail } from '../utils/validation';
 
 type FormErrorKey = '' | 'requiredEmail' | 'invalidEmail' | 'userNotFound';
@@ -19,6 +20,7 @@ export function ForgotPasswordPage() {
     const [email, setEmail] = useState('');
     const [errorKey, setErrorKey] = useState<FormErrorKey>('');
     const [sent, setSent] = useState(false);
+    const { emailEnabled } = useEmailEnabled();
 
     const requestMutation = useRequestPasswordResetMutation({
         onSuccess: () => {
@@ -70,6 +72,15 @@ export function ForgotPasswordPage() {
 
     const errorMessage = errorKey ? t(`common.errors.${errorKey}`) : '';
     const mergedErrorMessage = errorMessage || apiErrorMessage;
+
+    useEffect(() => {
+        if (emailEnabled) return;
+        navigate('/', { replace: true });
+    }, [emailEnabled, navigate]);
+
+    if (!emailEnabled) {
+        return null;
+    }
 
     if (sent) {
         return (

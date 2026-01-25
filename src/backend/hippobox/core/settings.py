@@ -25,6 +25,7 @@ class Settings(BaseModel):
     # ----------------------------------------
     # Email (Resend)
     # ----------------------------------------
+    EMAIL_ENABLED: bool = os.getenv("EMAIL_ENABLED", "false").lower() != "false"
     RESEND_API_KEY: str = os.getenv("RESEND_API_KEY", "")
     RESEND_API_BASE_URL: str = os.getenv("RESEND_API_BASE_URL", "https://api.resend.com")
     EMAIL_FROM: str = os.getenv("EMAIL_FROM", "")

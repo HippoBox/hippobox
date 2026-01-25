@@ -5,6 +5,7 @@ import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { Container } from '../components/Container';
 import { AuthHeader } from '../components/AuthHeader';
+import { useEmailEnabled } from '../hooks/useFeatures';
 
 type SignupSuccessState = { email?: string };
 
@@ -14,6 +15,7 @@ export function SignupSuccessPage() {
     const location = useLocation();
     const state = (location.state as SignupSuccessState | null) ?? null;
     const email = state?.email?.trim() ?? '';
+    const { emailEnabled } = useEmailEnabled();
 
     return (
         <Container className="flex-col justify-start pt-24">
@@ -26,14 +28,14 @@ export function SignupSuccessPage() {
                         </h2>
                     </div>
 
-                    {email ? (
-                        <p className="mt-4 rounded-xl border border-slate-200/70 bg-white/60 px-3 py-2 text-xs text-slate-600 dark:border-slate-700/60 dark:bg-slate-900/40 dark:text-slate-300">
-                            {t('signupSuccess.emailSentTo', { email })}
-                        </p>
-                    ) : (
-                        <p className="mt-4 rounded-xl border border-slate-200/70 bg-white/60 px-3 py-2 text-xs text-slate-600 dark:border-slate-700/60 dark:bg-slate-900/40 dark:text-slate-300">
-                            {t('signupSuccess.emailSent')}
-                        </p>
+                    {emailEnabled && (
+                        <div className="mt-4 rounded-xl border border-slate-200/70 bg-white/60 px-3 py-2 text-xs text-slate-600 dark:border-slate-700/60 dark:bg-slate-900/40 dark:text-slate-300">
+                            {email ? (
+                                <p>{t('signupSuccess.emailSentTo', { email })}</p>
+                            ) : (
+                                <p>{t('signupSuccess.emailSent')}</p>
+                            )}
+                        </div>
                     )}
 
                     <div className="mt-6 grid gap-3">

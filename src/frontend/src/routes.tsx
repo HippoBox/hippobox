@@ -61,78 +61,90 @@ const normalizeRouterBasename = (value: string): string => {
     return withLeading.replace(/\/+$/, '') || '/';
 };
 
-const router = createBrowserRouter(
-    createRoutesFromElements(
-        <>
-            <Route element={<RootLayout />} errorElement={<ErrorPage />}>
-                <Route index element={<LoginPage />} handle={{ titleKey: 'login.title' }} />
-                <Route element={<AppLayout />}>
-                    <Route path="app" element={<MainPage />} handle={{ titleKey: 'main.title' }} />
+export const createAppRouter = (basename: string) =>
+    createBrowserRouter(
+        createRoutesFromElements(
+            <>
+                <Route element={<RootLayout />} errorElement={<ErrorPage />}>
+                    <Route index element={<LoginPage />} handle={{ titleKey: 'login.title' }} />
+                    <Route element={<AppLayout />}>
+                        <Route
+                            path="app"
+                            element={<MainPage />}
+                            handle={{ titleKey: 'main.title' }}
+                        />
+                        <Route
+                            path="app/new"
+                            element={<KnowledgeEditorPage />}
+                            handle={{ titleKey: 'knowledgeCreate.title' }}
+                        />
+                        <Route
+                            path="app/knowledge/:knowledgeId/edit"
+                            element={<KnowledgeEditorPage />}
+                            handle={{ titleKey: 'knowledgeEditor.title' }}
+                        />
+                        <Route
+                            path="app/insights"
+                            element={<KnowledgeInsightsPage />}
+                            handle={{ titleKey: 'knowledgeInsights.title' }}
+                        />
+                        <Route
+                            path="app/mcp"
+                            element={<McpGuidePage />}
+                            handle={{ titleKey: 'mcpGuide.title' }}
+                        />
+                        <Route
+                            path="app/knowledge/:knowledgeId"
+                            element={<KnowledgeContentPage />}
+                            handle={{ titleKey: 'knowledgeContent.title' }}
+                        />
+                        <Route
+                            path="app/settings"
+                            element={<SettingsPage />}
+                            handle={{ titleKey: 'settings.title' }}
+                        />
+                    </Route>
                     <Route
-                        path="app/new"
-                        element={<KnowledgeEditorPage />}
-                        handle={{ titleKey: 'knowledgeCreate.title' }}
+                        path="signup"
+                        element={<SignupPage />}
+                        handle={{ titleKey: 'signup.title' }}
                     />
                     <Route
-                        path="app/knowledge/:knowledgeId/edit"
-                        element={<KnowledgeEditorPage />}
-                        handle={{ titleKey: 'knowledgeEditor.title' }}
+                        path="signup/success"
+                        element={<SignupSuccessPage />}
+                        handle={{ titleKey: 'signupSuccess.title' }}
                     />
                     <Route
-                        path="app/insights"
-                        element={<KnowledgeInsightsPage />}
-                        handle={{ titleKey: 'knowledgeInsights.title' }}
+                        path="forgot"
+                        element={<ForgotPasswordPage />}
+                        handle={{ titleKey: 'forgot.title' }}
                     />
                     <Route
-                        path="app/mcp"
-                        element={<McpGuidePage />}
-                        handle={{ titleKey: 'mcpGuide.title' }}
+                        path="verify-email/success"
+                        element={<VerifyEmailSuccessPage />}
+                        handle={{ titleKey: 'verifyEmail.successTitle' }}
                     />
                     <Route
-                        path="app/knowledge/:knowledgeId"
-                        element={<KnowledgeContentPage />}
-                        handle={{ titleKey: 'knowledgeContent.title' }}
+                        path="verify-email/failure"
+                        element={<VerifyEmailFailurePage />}
+                        handle={{ titleKey: 'verifyEmail.failureTitle' }}
                     />
                     <Route
-                        path="app/settings"
-                        element={<SettingsPage />}
-                        handle={{ titleKey: 'settings.title' }}
+                        path="reset-password"
+                        element={<ResetPasswordPage />}
+                        handle={{ titleKey: 'resetPassword.title' }}
+                    />
+                    <Route
+                        path="*"
+                        element={<ErrorPage statusOverride={404} />}
+                        handle={{ titleKey: 'error.notFoundTitle' }}
                     />
                 </Route>
-                <Route
-                    path="signup"
-                    element={<SignupPage />}
-                    handle={{ titleKey: 'signup.title' }}
-                />
-                <Route
-                    path="signup/success"
-                    element={<SignupSuccessPage />}
-                    handle={{ titleKey: 'signupSuccess.title' }}
-                />
-                <Route
-                    path="forgot"
-                    element={<ForgotPasswordPage />}
-                    handle={{ titleKey: 'forgot.title' }}
-                />
-                <Route
-                    path="verify-email/success"
-                    element={<VerifyEmailSuccessPage />}
-                    handle={{ titleKey: 'verifyEmail.successTitle' }}
-                />
-                <Route
-                    path="verify-email/failure"
-                    element={<VerifyEmailFailurePage />}
-                    handle={{ titleKey: 'verifyEmail.failureTitle' }}
-                />
-                <Route
-                    path="reset-password"
-                    element={<ResetPasswordPage />}
-                    handle={{ titleKey: 'resetPassword.title' }}
-                />
-            </Route>
-        </>,
-    ),
-    { basename: normalizeRouterBasename(BASENAME) },
-);
+            </>,
+        ),
+        { basename: normalizeRouterBasename(basename) },
+    );
+
+const router = createAppRouter(BASENAME);
 
 export default router;

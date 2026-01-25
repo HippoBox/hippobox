@@ -1,3 +1,5 @@
+import { getRuntimeConfig } from '../config/runtime';
+
 export type QueryValue = string | number | boolean | null | undefined;
 export type Query = Record<string, QueryValue>;
 
@@ -13,18 +15,24 @@ const getApiBasePath = () => import.meta.env.VITE_API_BASE?.trim() || '/api/v1';
 export const API_ORIGIN = getApiOrigin();
 export const API_BASE_PATH = getApiBasePath();
 
-export const API_BASE_URL = (() => {
+const resolveApiBasePath = () => {
+    const runtime = getRuntimeConfig();
+    return runtime.apiBasePath || API_BASE_PATH;
+};
+
+const resolveApiBaseUrl = () => {
+    const basePath = resolveApiBasePath();
     if (!API_ORIGIN) {
         // Dev: Vite proxy. Prod: same-origin.
-        return API_BASE_PATH;
+        return basePath;
     }
 
-    if (API_BASE_PATH.startsWith('/')) {
-        return `${API_ORIGIN}${API_BASE_PATH}`;
+    if (basePath.startsWith('/')) {
+        return `${API_ORIGIN}${basePath}`;
     }
 
-    return `${API_ORIGIN}/${API_BASE_PATH}`;
-})();
+    return `${API_ORIGIN}/${basePath}`;
+};
 
 const buildQuery = (query?: Query) => {
     if (!query) return '';
@@ -40,7 +48,8 @@ const buildQuery = (query?: Query) => {
 };
 
 export const buildApiUrl = (path: string, query?: Query) => {
-    const normalizedBase = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+    const baseUrl = resolveApiBaseUrl();
+    const normalizedBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     const normalizedPath = path.startsWith('/') ? path : `/${path}`;
 
     return `${normalizedBase}${normalizedPath}${buildQuery(query)}`;
