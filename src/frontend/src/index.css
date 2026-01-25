@@ -266,20 +266,17 @@
     }
 
     .badge-chip {
+        border-radius: 999px;
+        padding: 0.85rem 1.5rem;
+        font-weight: 600;
+        font-size: 0.7rem;
         display: inline-flex;
         align-items: center;
-        min-width: 64px;
-        max-width: 64px;
         justify-content: center;
-        gap: 0.5rem;
-        border-radius: 999px;
-        border: 1px solid var(--color-border);
-        padding: 0.35rem;
-        font-size: 0.7rem;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: var(--color-muted);
-        background: var(--color-surface);
+        background: var(--btn-primary-gradient);
+        color: var(--color-primary-contrast);
+        box-shadow: var(--btn-primary-shadow);
+        border: 1px solid var(--btn-primary-border);
     }
 
     .scrollbar-theme {

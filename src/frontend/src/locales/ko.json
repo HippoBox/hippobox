@@ -88,9 +88,14 @@
             "topicsCountLabel": "토픽",
             "topicsEmpty": "아직 토픽이 없습니다.",
             "defaultTopic": "기본 토픽",
+            "topicDelete": "토픽 삭제",
+            "topicDeleteTitle": "토픽 삭제",
+            "topicDeleteDescription": "\"{{topic}}\" 토픽을 삭제하면 관련 지식이 기본 토픽으로 이동합니다.",
+            "topicDeleteConfirmButton": "토픽 삭제",
+            "topicDeleteFailed": "토픽 삭제에 실패했습니다.",
             "entriesLabel": "지식",
             "activityTitle": "일별 활동",
-            "activitySubtitle": "최근 14일 동안 생성된 지식 수입니다."
+            "activitySubtitle": "{{year}}년 일별 지식 활동"
         },
         "search": {
             "title": "지식 검색",

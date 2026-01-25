@@ -4,12 +4,12 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field
-from sqlalchemy import DateTime, ForeignKey, String, UniqueConstraint, select
+from sqlalchemy import DateTime, ForeignKey, String, UniqueConstraint, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from hippobox.core.database import Base, get_db
-from hippobox.utils.knowledge_labels import DEFAULT_TOPIC_NORMALIZED, clean_label, normalize_label
+from hippobox.utils.knowledge_labels import DEFAULT_TOPIC_NAME, DEFAULT_TOPIC_NORMALIZED, clean_label, normalize_label
 
 # for sqlalchemy type checking
 if TYPE_CHECKING:
@@ -116,6 +116,29 @@ class TopicTable:
             topic = result.scalar_one_or_none()
             if topic is None:
                 return False
+
+            result = await db.execute(
+                select(Topic).where(Topic.user_id == user_id, Topic.normalized_name == DEFAULT_TOPIC_NORMALIZED)
+            )
+            default_topic = result.scalar_one_or_none()
+            if default_topic is None:
+                default_topic = Topic(
+                    user_id=user_id,
+                    name=DEFAULT_TOPIC_NAME,
+                    normalized_name=DEFAULT_TOPIC_NORMALIZED,
+                    created_at=datetime.now(timezone.utc),
+                )
+                db.add(default_topic)
+                await db.flush()
+
+            if topic.id != default_topic.id:
+                from hippobox.models.knowledge import Knowledge
+
+                await db.execute(
+                    update(Knowledge)
+                    .where(Knowledge.user_id == user_id, Knowledge.topic_id == topic.id)
+                    .values(topic_id=default_topic.id)
+                )
 
             await db.delete(topic)
             await db.commit()

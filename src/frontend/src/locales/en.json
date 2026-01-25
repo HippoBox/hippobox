@@ -88,9 +88,14 @@
             "topicsCountLabel": "topics",
             "topicsEmpty": "No topics yet.",
             "defaultTopic": "Default topic",
+            "topicDelete": "Delete topic",
+            "topicDeleteTitle": "Delete topic",
+            "topicDeleteDescription": "Deleting \"{{topic}}\" will move related knowledge to the default topic.",
+            "topicDeleteConfirmButton": "Delete topic",
+            "topicDeleteFailed": "Failed to delete the topic.",
             "entriesLabel": "knowledge",
             "activityTitle": "Daily activity",
-            "activitySubtitle": "Knowledge created in the last 14 days."
+            "activitySubtitle": "{{year}} daily knowledge activity"
         },
         "search": {
             "title": "Search knowledge",

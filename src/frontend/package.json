@@ -17,6 +17,7 @@
     },
     "dependencies": {
         "@tanstack/react-query": "^5.59.0",
+        "date-fns": "^4.1.0",
         "dompurify": "^3.0.8",
         "highlight.js": "^11.9.0",
         "i18next": "^23.15.1",
