@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response, status
 from fastapi.responses import RedirectResponse
 
-from hippobox.core.email_links import build_verify_email_redirect_url
 from hippobox.core.settings import SETTINGS
 from hippobox.errors.auth import AuthErrorCode, AuthException
 from hippobox.errors.service import exceptions_to_http
+from hippobox.integrations.resend.email_links import build_verify_email_redirect_url
 from hippobox.models.user import (
     EmailVerificationResend,
     LoginForm,

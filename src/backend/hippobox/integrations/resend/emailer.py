@@ -1,8 +1,8 @@
 import logging
 
-from hippobox.core.email_links import build_password_reset_link, build_verify_email_link
 from hippobox.core.email_templates import build_password_reset_email, build_verification_email
 from hippobox.integrations.resend.client import ResendClient
+from hippobox.integrations.resend.email_links import build_password_reset_link, build_verify_email_link
 
 log = logging.getLogger("email")
 
