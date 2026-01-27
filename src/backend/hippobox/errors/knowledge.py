@@ -42,6 +42,12 @@ class KnowledgeErrorCode(Enum):
         status.HTTP_500_INTERNAL_SERVER_ERROR,
     )
 
+    VDB_DISABLED = ServiceErrorCode(
+        "VDB_DISABLED",
+        "Vector search is disabled",
+        status.HTTP_503_SERVICE_UNAVAILABLE,
+    )
+
     @property
     def code(self) -> ServiceErrorCode:
         return self.value

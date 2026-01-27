@@ -73,6 +73,7 @@ class Settings(BaseModel):
     # ----------------------------------------
     # Qdrant
     # ----------------------------------------
+    VDB_ENABLED: bool = os.getenv("VDB_ENABLED", "true").lower() == "true"
     QDRANT_MODE: str = os.getenv("QDRANT_MODE", "local")
     QDRANT_PATH: str = os.getenv("QDRANT_PATH", "qdrant_storage")
     QDRANT_URL: str = os.getenv("QDRANT_URL", "http://localhost:6333")

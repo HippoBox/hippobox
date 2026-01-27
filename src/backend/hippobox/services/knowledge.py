@@ -14,9 +14,13 @@ log = logging.getLogger("knowledge")
 
 
 class KnowledgeService:
-    def __init__(self, embedding: Embedding, qdrant: Qdrant):
+    def __init__(self, embedding: Embedding | None, qdrant: Qdrant | None, vdb_enabled: bool):
         self.embedding = embedding
         self.qdrant = qdrant
+        self.vdb_enabled = vdb_enabled
+
+        if self.vdb_enabled and (self.embedding is None or self.qdrant is None):
+            raise RuntimeError("VDB is enabled but embedding or Qdrant is not initialized.")
 
     # -------------------------------------------
     # Search
@@ -24,6 +28,9 @@ class KnowledgeService:
     async def search(
         self, user_id: int, query: str, topic: str | None = None, tag: str | None = None, limit: int = 1
     ) -> list[KnowledgeResponse]:
+        if not self.vdb_enabled:
+            raise KnowledgeException(KnowledgeErrorCode.VDB_DISABLED)
+
         vector = self.embedding.embed(query)
         results = self.qdrant.search("knowledge", vector, limit=limit)
 
@@ -63,27 +70,28 @@ class KnowledgeService:
 
         log.info(f"SQL knowledge created (id={knowledge.id})")
 
-        try:
-            vector = self.embedding.embed(knowledge.content)
-            self.qdrant.upsert(
-                "knowledge",
-                [
-                    {
-                        "id": knowledge.id,
-                        "vector": vector,
-                        "text": preprocess_content(knowledge),
-                        "metadata": {
-                            "topic": knowledge.topic,
-                            "tags": knowledge.tags,
-                            "title": knowledge.title,
-                            "created_at": str(knowledge.created_at),
-                        },
-                    }
-                ],
-            )
-        except Exception as e:
-            await Knowledges.delete(user_id, knowledge.id)
-            raise_exception_with_log(KnowledgeErrorCode.CREATE_FAILED, e)
+        if self.vdb_enabled:
+            try:
+                vector = self.embedding.embed(knowledge.content)
+                self.qdrant.upsert(
+                    "knowledge",
+                    [
+                        {
+                            "id": knowledge.id,
+                            "vector": vector,
+                            "text": preprocess_content(knowledge),
+                            "metadata": {
+                                "topic": knowledge.topic,
+                                "tags": knowledge.tags,
+                                "title": knowledge.title,
+                                "created_at": str(knowledge.created_at),
+                            },
+                        }
+                    ],
+                )
+            except Exception as e:
+                await Knowledges.delete(user_id, knowledge.id)
+                raise_exception_with_log(KnowledgeErrorCode.CREATE_FAILED, e)
 
         return KnowledgeResponse.model_validate(knowledge.model_dump())
 
@@ -136,40 +144,41 @@ class KnowledgeService:
         except Exception as e:
             raise_exception_with_log(KnowledgeErrorCode.UPDATE_FAILED, e)
 
-        try:
-            vector = self.embedding.embed(updated.content)
-            self.qdrant.upsert(
-                "knowledge",
-                [
-                    {
-                        "id": updated.id,
-                        "vector": vector,
-                        "text": preprocess_content(updated),
-                        "metadata": {
-                            "topic": updated.topic,
-                            "tags": updated.tags,
-                            "title": updated.title,
-                            "created_at": str(updated.created_at),
-                        },
-                    }
-                ],
-            )
-        except Exception as e:
+        if self.vdb_enabled:
             try:
-                await Knowledges.update(
-                    user_id,
-                    kid,
-                    KnowledgeUpdate(
-                        topic=old.topic,
-                        tags=old.tags,
-                        title=old.title,
-                        content=old.content,
-                    ),
-                    override_updated_at=old.updated_at,
+                vector = self.embedding.embed(updated.content)
+                self.qdrant.upsert(
+                    "knowledge",
+                    [
+                        {
+                            "id": updated.id,
+                            "vector": vector,
+                            "text": preprocess_content(updated),
+                            "metadata": {
+                                "topic": updated.topic,
+                                "tags": updated.tags,
+                                "title": updated.title,
+                                "created_at": str(updated.created_at),
+                            },
+                        }
+                    ],
                 )
-            except Exception as rollback_error:
-                log.exception(f"Rollback failed for id={kid}: {rollback_error}")
-            raise_exception_with_log(KnowledgeErrorCode.UPDATE_FAILED, e)
+            except Exception as e:
+                try:
+                    await Knowledges.update(
+                        user_id,
+                        kid,
+                        KnowledgeUpdate(
+                            topic=old.topic,
+                            tags=old.tags,
+                            title=old.title,
+                            content=old.content,
+                        ),
+                        override_updated_at=old.updated_at,
+                    )
+                except Exception as rollback_error:
+                    log.exception(f"Rollback failed for id={kid}: {rollback_error}")
+                raise_exception_with_log(KnowledgeErrorCode.UPDATE_FAILED, e)
 
         return KnowledgeResponse.model_validate(updated.model_dump())
 
@@ -186,7 +195,8 @@ class KnowledgeService:
             if not deleted:
                 raise KnowledgeException(KnowledgeErrorCode.DELETE_FAILED)
 
-            self.qdrant.delete("knowledge", [kid])
+            if self.vdb_enabled:
+                self.qdrant.delete("knowledge", [kid])
         except Exception as e:
             restored = await Knowledges.restore(old)
             if restored is None:
@@ -201,4 +211,5 @@ def get_knowledge_service(request: Request) -> KnowledgeService:
     return KnowledgeService(
         request.app.state.EMBEDDING,
         request.app.state.QDRANT,
+        request.app.state.SETTINGS.VDB_ENABLED,
     )

@@ -2,6 +2,7 @@ from enum import Enum
 
 from fastapi import APIRouter, Depends, Request
 
+from hippobox.core.settings import SETTINGS
 from hippobox.errors.knowledge import KnowledgeException
 from hippobox.errors.service import exceptions_to_http
 from hippobox.models.knowledge import KnowledgeForm, KnowledgeResponse, KnowledgeUpdate
@@ -26,7 +27,12 @@ class OperationID(str, Enum):
 # -----------------------------
 # Search
 # -----------------------------
-@router.get("/search", response_model=list[KnowledgeResponse], operation_id=OperationID.search_knowledge)
+@router.get(
+    "/search",
+    response_model=list[KnowledgeResponse],
+    operation_id=OperationID.search_knowledge,
+    include_in_schema=SETTINGS.VDB_ENABLED,
+)
 async def search_knowledge(
     query: str,
     topic: str | None = None,

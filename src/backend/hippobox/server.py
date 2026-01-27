@@ -42,23 +42,28 @@ async def lifespan(app: FastAPI):
     await ensure_admin_for_login_disabled()
     await ensure_default_admin_from_settings()
 
-    try:
-        qdrant = Qdrant()
-        app.state.QDRANT = qdrant
-        log.info("Qdrant client initialized")
+    if SETTINGS.VDB_ENABLED:
+        try:
+            qdrant = Qdrant()
+            app.state.QDRANT = qdrant
+            log.info("Qdrant client initialized")
 
-    except Exception as e:
-        log.error(f"Qdrant initialization failed: {e}")
-        raise
+        except Exception as e:
+            log.error(f"Qdrant initialization failed: {e}")
+            raise
 
-    try:
-        embedding = Embedding()
-        app.state.EMBEDDING = embedding
-        log.info("Embedding client initialized")
+        try:
+            embedding = Embedding()
+            app.state.EMBEDDING = embedding
+            log.info("Embedding client initialized")
 
-    except Exception as e:
-        log.error(f"Embedding initialization failed: {e}")
-        raise
+        except Exception as e:
+            log.error(f"Embedding initialization failed: {e}")
+            raise
+    else:
+        app.state.QDRANT = None
+        app.state.EMBEDDING = None
+        log.info("VDB disabled; skipping Qdrant and embedding initialization")
 
     log.info("HippoBox Server Lifespan Startup")
     try:
@@ -122,12 +127,14 @@ def create_app() -> FastAPI:
     async def ping():
         return {"status": "ok", "message": "pong"}
 
+    include_operations = [
+        "ping_tool",
+        *[op.value for op in OperationID if SETTINGS.VDB_ENABLED or op != OperationID.search_knowledge],
+    ]
+
     mcp = FastApiMCP(
         app,
-        include_operations=[
-            "ping_tool",
-            *[op.value for op in OperationID],
-        ],
+        include_operations=include_operations,
     )
     mcp.mount_http()
     log.info("MCP tools registered.")
