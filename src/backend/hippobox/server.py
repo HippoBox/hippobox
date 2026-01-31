@@ -5,8 +5,10 @@ from fastapi import FastAPI, status
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi_mcp import FastApiMCP
-
-from hippobox.core.bootstrap_admin import ensure_admin_for_login_disabled, ensure_default_admin_from_settings
+from hippobox.core.bootstrap_admin import (
+    ensure_admin_for_login_disabled,
+    ensure_default_admin_from_settings,
+)
 from hippobox.core.database import dispose_db, init_db
 from hippobox.core.logging_config import setup_logger
 from hippobox.core.redis import RedisManager
@@ -150,7 +152,7 @@ def create_app() -> FastAPI:
         return path or "/"
 
     frontend_base_path = normalize_base_path(SETTINGS.FRONTEND_BASE_PATH)
-    static_files_dist = (SETTINGS.ROOT_DIR / "dist").resolve()
+    static_files_dist = (SETTINGS.ROOT_DIR / "static" / "dist").resolve()
 
     @app.get("/config")
     async def app_config():

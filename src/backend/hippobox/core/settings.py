@@ -8,7 +8,7 @@ load_dotenv()
 
 
 class Settings(BaseModel):
-    ROOT_DIR: Path = Path(__file__).resolve().parents[2]
+    ROOT_DIR: Path = Path(__file__).resolve().parents[1]
 
     # ----------------------------------------
     # API Docs (Swagger/OpenAPI)
@@ -25,7 +25,7 @@ class Settings(BaseModel):
     # ----------------------------------------
     # Email (Resend)
     # ----------------------------------------
-    EMAIL_ENABLED: bool = os.getenv("EMAIL_ENABLED", "false").lower() != "false"
+    EMAIL_ENABLED: bool = os.getenv("EMAIL_ENABLED", "false").lower() == "true"
     RESEND_API_KEY: str = os.getenv("RESEND_API_KEY", "")
     RESEND_API_BASE_URL: str = os.getenv("RESEND_API_BASE_URL", "https://api.resend.com")
     EMAIL_FROM: str = os.getenv("EMAIL_FROM", "")

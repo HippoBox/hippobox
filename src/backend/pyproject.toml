@@ -2,7 +2,7 @@
 name = "hippobox"
 version = "0.1.0"
 description = "HippoBox MCP + Knowledge Store Server"
-readme = "README.md"
+readme = "../../README.md"
 requires-python = ">=3.13"
 dependencies = [
     "alembic>=1.17.2",
@@ -38,6 +38,9 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["hippobox"]
 
+[tool.hatch.build]
+include = ["hippobox/static/dist/**"]
+
 [tool.black]
 line-length = 120
 
@@ -46,3 +49,6 @@ profile = "black"
 line_length = 120
 multi_line_output = 3
 include_trailing_comma = true
+
+[project.scripts]
+hippobox = "hippobox.cli:main"

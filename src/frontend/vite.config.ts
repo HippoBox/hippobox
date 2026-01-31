@@ -19,7 +19,14 @@ const copyDistToBackend = (): Plugin => ({
     apply: 'build',
     async writeBundle() {
         const distDir = path.resolve(frontendRoot, 'dist');
-        const backendDistDir = path.resolve(frontendRoot, '..', 'backend', 'dist');
+        const backendDistDir = path.resolve(
+            frontendRoot,
+            '..',
+            'backend',
+            'hippobox',
+            'static',
+            'dist',
+        );
 
         await fs.rm(backendDistDir, { recursive: true, force: true });
         await fs.mkdir(backendDistDir, { recursive: true });

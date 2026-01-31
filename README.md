@@ -1,11 +1,25 @@
 # HippoBox
 
-![HippoBox logo](src/frontend/public/hippobox-banner.png)
+![HippoBox logo](https://raw.githubusercontent.com/HippoBox/hippobox/main/src/frontend/public/hippobox-banner.png)
 
 HippoBox is a unified FastAPI + FastAPIMcp for managing a personal knowledge base.
 It provides CRUD operations for knowledge entries, semantic search powered by embeddings, and MCP tool integration for use in Claude Desktop or other MCP-compatible clients.
 
-# Quick Start
+# Running as a package
+
+```bash
+pip install hippobox
+```
+
+```bash
+# Basic execution
+hippobox run
+
+# Custom host and port
+hippobox run --host 0.0.0.0 --port 8080
+```
+
+# Quick Start from Source
 
 ## 1. Install uv
 
@@ -48,9 +62,9 @@ npm run build # build to src/frontend/dist for backend serving
 npm run preview # preview the built bundle
 ```
 
-## MCP settings
+# MCP settings
 
-### <img src="src/frontend/src/assets/claude.svg" width="30" height="30" align="center"> Using with Claude Desktop
+## <img src="https://raw.githubusercontent.com/HippoBox/hippobox/main/src/frontend/src/assets/claude.svg" width="30" height="30" align="center"> Using with Claude Desktop
 
 Add the following to your `claude_desktop_config.json`:
 
@@ -59,7 +73,12 @@ Add the following to your `claude_desktop_config.json`:
     "mcpServers": {
         "hippobox": {
             "command": "uvx",
-            "args": ["mcp-proxy", "--transport", "streamablehttp", "http://localhost:8000/mcp"],
+            "args": [
+                "mcp-proxy",
+                "--transport",
+                "streamablehttp",
+                "http://localhost:8000/mcp"
+            ],
             "env": {
                 "API_ACCESS_TOKEN": "<YOUR_ACCESS_TOKEN>"
             }
@@ -68,7 +87,7 @@ Add the following to your `claude_desktop_config.json`:
 }
 ```
 
-### <img src="src/frontend/src/assets/cursor.svg" width="30" height="30" align="center"> Using with Cursor
+## <img src="https://raw.githubusercontent.com/HippoBox/hippobox/main/src/frontend/src/assets/cursor.svg" width="30" height="30" align="center"> Using with Cursor
 
 Add the following to your Cursor mcp settings:
 
@@ -85,7 +104,7 @@ Add the following to your Cursor mcp settings:
 }
 ```
 
-### <img src="src/frontend/src/assets/openai-codex.svg" width="35" height="35" align="center"> Using with Codex
+## <img src="https://raw.githubusercontent.com/HippoBox/hippobox/main/src/frontend/src/assets/openai-codex.svg" width="35" height="35" align="center"> Using with Codex
 
 Add the following to your `config.toml`:
 
