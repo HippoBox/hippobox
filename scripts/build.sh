@@ -13,4 +13,4 @@ else
   exit 1
 fi
 
-docker build -f "$root/src/backend/docker/Dockerfile" -t "hippobox:${tag}" "$root"
+docker build -f "$root/docker/Dockerfile" -t "hippobox:${tag}" "$root"

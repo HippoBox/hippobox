@@ -25,4 +25,4 @@ try {
     Pop-Location
 }
 
-docker build -f "$root\\src\\backend\\docker\\Dockerfile" -t "hippobox:$Tag" "$root"
+docker build -f "$root\\docker\\Dockerfile" -t "hippobox:$Tag" "$root"
