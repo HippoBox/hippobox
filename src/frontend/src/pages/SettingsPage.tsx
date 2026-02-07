@@ -43,6 +43,7 @@ export function SettingsPage() {
     const { data: me } = useMeQuery();
     const [name, setName] = useState('');
     const [nameError, setNameError] = useState<string | null>(null);
+    const [nameSuccess, setNameSuccess] = useState<string | null>(null);
     const [apiKeyName, setApiKeyName] = useState('');
     const [apiKeyError, setApiKeyError] = useState<string | null>(null);
     const [createdKey, setCreatedKey] = useState<ApiKeyCreatedResponse | null>(null);
@@ -50,8 +51,12 @@ export function SettingsPage() {
     const [copiedSecret, setCopiedSecret] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string } | null>(null);
     const { mutate: updateProfile, isPending: isSaving } = useUpdateProfileMutation({
-        onSuccess: () => setNameError(null),
+        onSuccess: () => {
+            setNameError(null);
+            setNameSuccess(t('settings.profile.saveSuccess'));
+        },
         onError: (error) => {
+            setNameSuccess(null);
             const fallback = t('settings.profile.saveFailed');
             if (!error || typeof error !== 'object') {
                 setNameError(fallback);
@@ -60,6 +65,10 @@ export function SettingsPage() {
             const payload = error as { error?: string; message?: string };
             if (payload.error === 'NAME_ALREADY_EXISTS') {
                 setNameError(t('settings.profile.nameDuplicate'));
+                return;
+            }
+            if (payload.message === 'Not authenticated.') {
+                setNameError(t('common.errors.notAuthenticated'));
                 return;
             }
             setNameError(payload.message ?? fallback);
@@ -141,10 +150,15 @@ export function SettingsPage() {
     }, [me]);
 
     useEffect(() => {
-        if (nameError) {
-            setNameError(null);
-        }
+        if (nameError) setNameError(null);
+        if (nameSuccess) setNameSuccess(null);
     }, [name]);
+
+    useEffect(() => {
+        if (activeTab !== 'profile') {
+            setNameSuccess(null);
+        }
+    }, [activeTab]);
 
     useEffect(() => {
         if (apiKeyError) {
@@ -178,8 +192,10 @@ export function SettingsPage() {
         const trimmed = name.trim();
         if (!trimmed) {
             setNameError(t('settings.profile.nameRequired'));
+            setNameSuccess(null);
             return;
         }
+        setNameSuccess(null);
         updateProfile({ name: trimmed });
     };
 
@@ -321,6 +337,11 @@ export function SettingsPage() {
                                         </Button>
                                     </div>
                                     <ErrorMessage message={nameError} />
+                                    {nameSuccess ? (
+                                        <p className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-600">
+                                            {nameSuccess}
+                                        </p>
+                                    ) : null}
                                     <div className="space-y-1">
                                         <div className="text-xs font-semibold text-muted">
                                             {t('settings.profile.emailLabel')}

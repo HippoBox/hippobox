@@ -25,7 +25,8 @@
             "passwordMismatch": "비밀번호가 일치하지 않습니다.",
             "emailExists": "이미 사용 중인 이메일입니다.",
             "nameExists": "이미 사용 중인 이름입니다.",
-            "userNotFound": "해당 이메일과 일치하는 사용자가 없습니다."
+            "userNotFound": "해당 이메일과 일치하는 사용자가 없습니다.",
+            "notAuthenticated": "인증이 필요합니다."
         }
     },
     "login": {
@@ -189,6 +190,7 @@
             "saveButton": "저장",
             "nameDuplicate": "해당 이름은 이미 사용중입니다.",
             "nameRequired": "이름을 입력해주세요.",
+            "saveSuccess": "업데이트가 완료되었습니다.",
             "saveFailed": "이름 변경에 실패하였습니다."
         },
         "general": {

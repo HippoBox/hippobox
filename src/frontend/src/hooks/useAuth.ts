@@ -143,10 +143,11 @@ export const useUpdateProfileMutation = (
 ) => {
     const queryClient = useQueryClient();
     const token = useAccessToken() ?? undefined;
+    const { loginEnabled } = useLoginEnabled();
 
     return useMutation({
         mutationFn: async (body: UpdateProfilePayload) => {
-            if (!token) {
+            if (loginEnabled && !token) {
                 throw { message: 'Not authenticated.' };
             }
             const response = await authedFetch(`${API_ORIGIN}/api/v1/auth/me`, {
