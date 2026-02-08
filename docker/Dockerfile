@@ -19,7 +19,7 @@ COPY src/backend/ ./src/backend/
 COPY --from=frontend-builder /frontend/dist/ ./src/backend/hippobox/static/dist/
 
 WORKDIR /app/src/backend
-RUN hatch build -t wheel
+RUN HIPPOBOX_SKIP_FRONTEND_BUILD=1 hatch build -t wheel
 
 # 3rd stage: Final execution stage
 FROM python:3.13-slim
