@@ -1,43 +1,48 @@
 name: Upload Python Package
 
 on:
-  release:
-    types: [published]
+    release:
+        types: [published]
 
 permissions:
-  contents: read
+    contents: read
 
 jobs:
-  pypi-publish:
-    runs-on: ubuntu-latest
+    pypi-publish:
+        runs-on: ubuntu-latest
 
-    permissions:
-      id-token: write
+        permissions:
+            id-token: write
 
-    environment:
-      name: pypi
-      # url: https://pypi.org/project/hippobox/
+        environment:
+            name: pypi
+            # url: https://pypi.org/project/hippobox/
 
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
+        steps:
+            - name: Checkout source
+              uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.13"
 
-      - name: Install build tool
-        run: |
-          python -m pip install --upgrade pip
-          pip install hatch
+            - name: Set up Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
 
-      - name: Build package
-        working-directory: src/backend
-        run: |
-          hatch build
+            - name: Install build tool
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install hatch
 
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: src/backend/dist/
+            - name: Build package
+              working-directory: src/backend
+              run: |
+                  hatch build
+
+            - name: Publish to PyPI
+              uses: pypa/gh-action-pypi-publish@release/v1
+              with:
+                  packages-dir: src/backend/dist/
