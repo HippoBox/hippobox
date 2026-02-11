@@ -58,31 +58,15 @@ export function ActivityChartCard({ series, totalCount }: ActivityChartCardProps
         return labels.filter((label, i) => i === 0 || label.pos > labels[i - 1].pos + 3);
     }, [fullYearSeries, startPadding]);
 
-    const maxCount = useMemo(() => Math.max(0, ...series.map((item) => item.count)), [series]);
-
-    const getLevel = (count: number) => {
-        if (count <= 0) return 0;
-        const ratio = count / (maxCount || 1);
-        if (ratio <= 0.25) return 1;
-        if (ratio <= 0.5) return 2;
-        if (ratio <= 0.75) return 3;
-        return 4;
-    };
-
-    const getLevelClass = (level: number) => {
-        switch (level) {
-            case 0:
-                return 'bg-slate-100 dark:bg-slate-800/50';
-            case 1:
-                return 'bg-orange-200 dark:bg-orange-900/30';
-            case 2:
-                return 'bg-orange-300 dark:bg-orange-700/50';
-            case 3:
-                return 'bg-orange-500 dark:bg-orange-500/70';
-            case 4:
-                return 'bg-orange-600 dark:bg-orange-400';
-            default:
-                return 'bg-slate-100 dark:bg-slate-800/50';
+    const getLevelClass = (knowledgeCount: number) => {
+        if (knowledgeCount === 0) {
+            return 'bg-slate-100 dark:bg-slate-800/50';
+        } else if (knowledgeCount >= 1 && knowledgeCount <= 2) {
+            return 'bg-orange-300 dark:bg-orange-700/50';
+        } else if (knowledgeCount >= 3 && knowledgeCount <= 4) {
+            return 'bg-orange-500 dark:bg-orange-500/70';
+        } else if (knowledgeCount >= 5) {
+            return 'bg-orange-600 dark:bg-orange-400';
         }
     };
 
@@ -134,11 +118,10 @@ export function ActivityChartCard({ series, totalCount }: ActivityChartCardProps
                         ))}
 
                         {fullYearSeries.map((item) => {
-                            const level = getLevel(item.count);
                             return (
                                 <div
                                     key={item.key}
-                                    className={`aspect-square rounded-sm ${getLevelClass(level)} transition-all hover:scale-125 hover:z-10 cursor-pointer ${
+                                    className={`aspect-square rounded-sm ${getLevelClass(item.count)} transition-all hover:scale-125 hover:z-10 cursor-pointer ${
                                         item.isToday
                                             ? 'ring-2 ring-[color:var(--color-accent)] ring-offset-2 ring-offset-[color:var(--color-surface)]'
                                             : ''
@@ -153,7 +136,7 @@ export function ActivityChartCard({ series, totalCount }: ActivityChartCardProps
                 <div className="flex items-center justify-end gap-2 mt-6 text-[10px] text-muted">
                     <span>Less</span>
                     <div className="flex gap-1">
-                        {[0, 1, 2, 3, 4].map((lvl) => (
+                        {[0, 1, 3, 5].map((lvl) => (
                             <div
                                 key={lvl}
                                 className={`w-2.5 h-2.5 rounded-[1px] ${getLevelClass(lvl)}`}
