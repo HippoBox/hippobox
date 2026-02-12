@@ -79,10 +79,6 @@ export function SignupPage() {
 
     const signupMutation = useSignupMutation({
         onSuccess: () => {
-            if (!loginEnabled) {
-                navigate('/app', { replace: true });
-                return;
-            }
             navigate('/signup/success', { state: { email } });
         },
     });

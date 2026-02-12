@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -18,14 +17,6 @@ export function SignupSuccessPage() {
     const email = state?.email?.trim() ?? '';
     const { emailEnabled } = useEmailEnabled();
     const { loginEnabled } = useLoginEnabled();
-
-    useEffect(() => {
-        if (!loginEnabled) {
-            navigate('/app', { replace: true });
-            return;
-        }
-        navigate('/', { replace: true });
-    }, [loginEnabled, navigate]);
 
     if (!loginEnabled) {
         return null;
