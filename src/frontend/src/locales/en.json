@@ -27,7 +27,8 @@
             "nameExists": "This name is already in use.",
             "userNotFound": "There is no user with this email address.",
             "notAuthenticated": "Not authenticated."
-        }
+        },
+        "capsLockOn": "Caps Lock is on."
     },
     "login": {
         "title": "Login",

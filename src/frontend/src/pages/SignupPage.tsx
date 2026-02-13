@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
@@ -74,6 +74,11 @@ export function SignupPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [isCapsLockOn, setIsCapsLockOn] = useState(false);
+    const [isCapsLockOnConfirm, setIsCapsLockOnConfirm] = useState(false);
+    const [isPasswordFocused, setIsPasswordFocused] = useState(false);
+    const [isConfirmFocused, setIsConfirmFocused] = useState(false);
+    const capsLockStateRef = useRef(false);
     const [errorKey, setErrorKey] = useState<FormErrorKey>('');
     const { loginEnabled } = useLoginEnabled();
 
@@ -87,6 +92,27 @@ export function SignupPage() {
         if (loginEnabled) return;
         navigate('/app', { replace: true });
     }, [loginEnabled, navigate]);
+
+    useEffect(() => {
+        const handleCapsLock = (event: KeyboardEvent) => {
+            const next = event.getModifierState('CapsLock');
+            capsLockStateRef.current = next;
+            if (isPasswordFocused) {
+                setIsCapsLockOn(next);
+            }
+            if (isConfirmFocused) {
+                setIsCapsLockOnConfirm(next);
+            }
+        };
+
+        window.addEventListener('keydown', handleCapsLock);
+        window.addEventListener('keyup', handleCapsLock);
+
+        return () => {
+            window.removeEventListener('keydown', handleCapsLock);
+            window.removeEventListener('keyup', handleCapsLock);
+        };
+    }, [isPasswordFocused, isConfirmFocused]);
 
     if (!loginEnabled) {
         return null;
@@ -158,6 +184,22 @@ export function SignupPage() {
             isValid: password.length > 0 && !/\s/.test(password),
         },
     ];
+
+    const capsLockIcon = (
+        <svg
+            viewBox="0 0 24 24"
+            className="h-3.5 w-3.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="M12 9v5" />
+            <path d="M12 17h.01" />
+            <path d="M10.3 3.7 2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0Z" />
+        </svg>
+    );
 
     const confirmRules = [
         {
@@ -274,6 +316,14 @@ export function SignupPage() {
                             label={t('common.fields.passwordLabel')}
                             placeholder={t('common.fields.passwordPlaceholder')}
                             value={password}
+                            onFocus={() => {
+                                setIsPasswordFocused(true);
+                                setIsCapsLockOn(capsLockStateRef.current);
+                            }}
+                            onBlur={() => {
+                                setIsPasswordFocused(false);
+                                setIsCapsLockOn(false);
+                            }}
                             onChange={(event) => {
                                 const next = event.target.value;
                                 setPassword(next);
@@ -287,6 +337,16 @@ export function SignupPage() {
                                 }
                             }}
                         />
+                        {isPasswordFocused && isCapsLockOn ? (
+                            <ErrorMessage
+                                message={t('common.capsLockOn')}
+                                tone="warning"
+                                role="status"
+                                ariaLive="polite"
+                                icon={capsLockIcon}
+                                className="font-semibold"
+                            />
+                        ) : null}
                         <div className="space-y-2 rounded-xl border border-slate-200/70 bg-white/60 p-3 dark:border-slate-700/60 dark:bg-slate-900/40">
                             {passwordRules.map((rule) => (
                                 <RuleItem
@@ -302,6 +362,14 @@ export function SignupPage() {
                             label={t('common.fields.confirmPasswordLabel')}
                             placeholder={t('common.fields.confirmPasswordPlaceholder')}
                             value={confirmPassword}
+                            onFocus={() => {
+                                setIsConfirmFocused(true);
+                                setIsCapsLockOnConfirm(capsLockStateRef.current);
+                            }}
+                            onBlur={() => {
+                                setIsConfirmFocused(false);
+                                setIsCapsLockOnConfirm(false);
+                            }}
                             onChange={(event) => {
                                 const next = event.target.value;
                                 setConfirmPassword(next);
@@ -312,6 +380,16 @@ export function SignupPage() {
                                 }
                             }}
                         />
+                        {isConfirmFocused && isCapsLockOnConfirm ? (
+                            <ErrorMessage
+                                message={t('common.capsLockOn')}
+                                tone="warning"
+                                role="status"
+                                ariaLive="polite"
+                                icon={capsLockIcon}
+                                className="font-semibold"
+                            />
+                        ) : null}
                         <div className="space-y-2 rounded-xl border border-slate-200/70 bg-white/60 p-3 dark:border-slate-700/60 dark:bg-slate-900/40">
                             {confirmRules.map((rule) => (
                                 <RuleItem
