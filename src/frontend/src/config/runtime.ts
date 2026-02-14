@@ -6,6 +6,7 @@ type RuntimeConfig = {
     apiBasePath: string;
     emailEnabled: boolean;
     loginEnabled: boolean;
+    vdbEnabled: boolean;
 };
 
 let runtimeConfig: RuntimeConfig = {
@@ -13,6 +14,7 @@ let runtimeConfig: RuntimeConfig = {
     apiBasePath: '/api/v1',
     emailEnabled: DEFAULT_EMAIL_ENABLED,
     loginEnabled: true,
+    vdbEnabled: true,
 };
 
 export const getRuntimeConfig = () => runtimeConfig;

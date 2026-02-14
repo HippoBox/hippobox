@@ -8,6 +8,7 @@ import { setRuntimeConfig } from '../config/runtime';
 type AppConfigResponse = {
     login_enabled?: boolean;
     email_enabled: boolean;
+    vdb_enabled?: boolean;
     frontend_base_path?: string;
     api_base_path?: string;
 };
@@ -37,8 +38,9 @@ export const useAuthConfig = () => {
         setRuntimeConfig({
             loginEnabled,
             emailEnabled: loginEnabled
-                ? query.data.email_enabled ?? DEFAULT_EMAIL_ENABLED
+                ? (query.data.email_enabled ?? DEFAULT_EMAIL_ENABLED)
                 : false,
+            vdbEnabled: query.data.vdb_enabled ?? true,
             frontendBasePath: query.data.frontend_base_path ?? '',
             apiBasePath: query.data.api_base_path ?? '/api/v1',
         });
@@ -50,7 +52,7 @@ export const useEmailEnabled = () => {
     const { data, isLoading, isError } = useAuthConfig();
     const loginEnabled = data?.login_enabled ?? true;
     return {
-        emailEnabled: loginEnabled ? data?.email_enabled ?? DEFAULT_EMAIL_ENABLED : false,
+        emailEnabled: loginEnabled ? (data?.email_enabled ?? DEFAULT_EMAIL_ENABLED) : false,
         isLoading,
         isError,
     };
@@ -60,6 +62,15 @@ export const useLoginEnabled = () => {
     const { data, isLoading, isError } = useAuthConfig();
     return {
         loginEnabled: data?.login_enabled ?? true,
+        isLoading,
+        isError,
+    };
+};
+
+export const useVdbEnabled = () => {
+    const { data, isLoading, isError } = useAuthConfig();
+    return {
+        vdbEnabled: data?.vdb_enabled ?? true,
         isLoading,
         isError,
     };

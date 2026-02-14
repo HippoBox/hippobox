@@ -5,10 +5,8 @@ from fastapi import FastAPI, status
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi_mcp import FastApiMCP
-from hippobox.core.bootstrap_admin import (
-    ensure_admin_for_login_disabled,
-    ensure_default_admin_from_settings,
-)
+
+from hippobox.core.bootstrap_admin import ensure_admin_for_login_disabled, ensure_default_admin_from_settings
 from hippobox.core.database import dispose_db, init_db
 from hippobox.core.logging_config import setup_logger
 from hippobox.core.redis import RedisManager
@@ -159,6 +157,7 @@ def create_app() -> FastAPI:
         return {
             "login_enabled": SETTINGS.LOGIN_ENABLED,
             "email_enabled": SETTINGS.EMAIL_ENABLED,
+            "vdb_enabled": SETTINGS.VDB_ENABLED,
             "frontend_base_path": frontend_base_path,
             "api_base_path": "/api/v1",
         }

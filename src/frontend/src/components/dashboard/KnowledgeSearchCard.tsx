@@ -1,11 +1,17 @@
-import { useMemo, useState, type MouseEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { marked } from 'marked';
 
 import { useKnowledgeList } from '../../context/KnowledgeListContext';
+import { apiClient } from '../../api/client';
+import type { KnowledgeResponse } from '../../hooks/useKnowledge';
+import { useVdbEnabled } from '../../hooks/useFeatures';
+import { Button } from '../Button';
+import { ErrorMessage } from '../ErrorMessage';
 import { Input } from '../Input';
+import { LoadingPage } from '../../pages/LoadingPage';
 
 type KnowledgeSearchCardProps = {
     inputId?: string;
@@ -63,11 +69,18 @@ type TopicRow = {
 export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
     const { t } = useTranslation();
     const { knowledge: knowledgeList = [] } = useKnowledgeList();
+    const { vdbEnabled } = useVdbEnabled();
     const [query, setQuery] = useState('');
+    const [hyperQuery, setHyperQuery] = useState('');
+    const [hyperSubmittedQuery, setHyperSubmittedQuery] = useState('');
+    const [hyperResults, setHyperResults] = useState<KnowledgeResponse[]>([]);
+    const [hyperPending, setHyperPending] = useState(false);
+    const [hyperError, setHyperError] = useState('');
     const [activeTopic, setActiveTopic] = useState<string | null>(null);
     const [selectedFilters, setSelectedFilters] = useState<Set<SearchFilterKey>>(
         () => new Set(SEARCH_FILTERS.map((filter) => filter.key)),
     );
+    const hyperRequestIdRef = useRef(0);
 
     const defaultResults = useMemo(() => {
         return [...knowledgeList].sort((a, b) => {
@@ -76,6 +89,18 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
             return bTime - aTime;
         });
     }, [knowledgeList]);
+
+    const filterByActiveTopic = (items: KnowledgeResponse[]) => {
+        if (!activeTopic) return items;
+        return items.filter((item) => {
+            const raw = item.topic?.trim() ?? '';
+            const normalized = raw.toLowerCase();
+            if (activeTopic === NO_TOPIC_KEY) {
+                return !normalized || normalized === 'uncategorized';
+            }
+            return normalized === activeTopic;
+        });
+    };
 
     const visibleResults = useMemo(() => {
         const trimmed = query.trim();
@@ -111,29 +136,20 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
                 });
             }
         }
-
-        if (activeTopic) {
-            results = results.filter((item) => {
-                const raw = item.topic?.trim() ?? '';
-                const normalized = raw.toLowerCase();
-                if (activeTopic === NO_TOPIC_KEY) {
-                    return !normalized || normalized === 'uncategorized';
-                }
-                return normalized === activeTopic;
-            });
-        }
-
-        return results;
+        return filterByActiveTopic(results);
     }, [defaultResults, query, selectedFilters, activeTopic]);
+
+    const isHyperActive = vdbEnabled && hyperSubmittedQuery.trim().length > 0;
+    const displayResults = isHyperActive ? hyperResults : visibleResults;
 
     const previewById = useMemo(() => {
         const map = new Map<number, string>();
-        defaultResults.forEach((item) => {
+        displayResults.forEach((item) => {
             const plain = toPlainText(item.content ?? '');
             map.set(item.id, truncateText(plain, PREVIEW_LIMIT));
         });
         return map;
-    }, [defaultResults]);
+    }, [displayResults]);
 
     const topicRows = useMemo<TopicRow[]>(() => {
         const rows = new Map<string, TopicRow>();
@@ -178,9 +194,87 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
     };
 
     const handleTopicClick = (event: MouseEvent<HTMLButtonElement>, key: string) => {
+        if (isHyperActive) return;
         event.preventDefault();
         setActiveTopic((prev) => (prev === key ? null : key));
     };
+
+    const handleHyperSubmit = () => {
+        const trimmed = hyperQuery.trim();
+        if (!trimmed) {
+            setHyperSubmittedQuery('');
+            return;
+        }
+        setHyperSubmittedQuery(trimmed);
+    };
+
+    const handleHyperReset = () => {
+        hyperRequestIdRef.current += 1;
+        setQuery('');
+        setActiveTopic(null);
+        setHyperQuery('');
+        setHyperSubmittedQuery('');
+        setHyperResults([]);
+        setHyperError('');
+        setHyperPending(false);
+    };
+
+    useEffect(() => {
+        if (!vdbEnabled) {
+            hyperRequestIdRef.current += 1;
+            setHyperQuery('');
+            setHyperSubmittedQuery('');
+            setHyperResults([]);
+            setHyperError('');
+            setHyperPending(false);
+            return;
+        }
+        const trimmed = hyperSubmittedQuery.trim();
+        if (!trimmed) {
+            hyperRequestIdRef.current += 1;
+            setHyperResults([]);
+            setHyperError('');
+            setHyperPending(false);
+            return;
+        }
+
+        const requestId = hyperRequestIdRef.current + 1;
+        hyperRequestIdRef.current = requestId;
+        const timeoutId = window.setTimeout(async () => {
+            setHyperPending(true);
+            setHyperError('');
+            setHyperResults([]);
+            try {
+                const { data, error } = await apiClient.GET('/api/v1/knowledge/search', {
+                    params: {
+                        query: {
+                            query: trimmed,
+                            limit: 5,
+                        },
+                    },
+                });
+                if (hyperRequestIdRef.current !== requestId) return;
+                if (error) {
+                    setHyperResults([]);
+                    setHyperError(t('main.search.failed'));
+                } else {
+                    setHyperResults(data ?? []);
+                }
+            } catch {
+                if (hyperRequestIdRef.current !== requestId) return;
+                setHyperResults([]);
+                setHyperError(t('main.search.failed'));
+            } finally {
+                if (hyperRequestIdRef.current === requestId) {
+                    setHyperPending(false);
+                }
+            }
+        }, 350);
+
+        return () => {
+            window.clearTimeout(timeoutId);
+        };
+    }, [hyperSubmittedQuery, t, vdbEnabled]);
 
     return (
         <div className="w-full space-y-6">
@@ -203,12 +297,15 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
                             <button
                                 key={filter.key}
                                 type="button"
+                                disabled={isHyperActive}
                                 onClick={() => handleFilterToggle(filter.key)}
                                 className={[
                                     'h-11 w-24 rounded-full border text-[11px] font-semibold uppercase tracking-[0.12em] transition',
-                                    isActive
-                                        ? 'border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] text-[color:var(--color-text)]'
-                                        : 'border-[color:var(--color-border)] bg-transparent text-muted',
+                                    isHyperActive
+                                        ? 'cursor-not-allowed border-[color:var(--color-border)] bg-transparent text-muted/70'
+                                        : isActive
+                                          ? 'border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] text-[color:var(--color-text)]'
+                                          : 'border-[color:var(--color-border)] bg-transparent text-muted',
                                 ]
                                     .filter(Boolean)
                                     .join(' ')}
@@ -219,9 +316,69 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
                     })}
                 </div>
             </div>
+            {vdbEnabled ? (
+                <div className="space-y-2">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <div className="flex-1">
+                            <div className="hippo-search-shell">
+                                <div className="hippo-search-inner">
+                                    <Input
+                                        id={`${inputId ?? 'knowledge-search'}-hyper`}
+                                        placeholder={t('main.search.hyperPlaceholder')}
+                                        value={hyperQuery}
+                                        leadingIcon={
+                                            <img
+                                                src="/hipposearch.svg"
+                                                alt=""
+                                                className="h-5 w-5 object-contain"
+                                                aria-hidden="true"
+                                            />
+                                        }
+                                        className="hippo-search-text input-field--borderless bg-transparent shadow-none focus:shadow-none focus:border-transparent"
+                                        onKeyDown={(event) => {
+                                            if (event.key === 'Enter') {
+                                                event.preventDefault();
+                                                handleHyperSubmit();
+                                            }
+                                        }}
+                                        onChange={(event) => {
+                                            const next = event.target.value;
+                                            setHyperQuery(next);
+                                            if (!next.trim()) {
+                                                setHyperSubmittedQuery('');
+                                            }
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2 sm:justify-end">
+                            <Button
+                                type="button"
+                                className="h-11 whitespace-nowrap"
+                                disabled={hyperPending || !hyperQuery.trim()}
+                                onClick={handleHyperSubmit}
+                            >
+                                {t('main.search.button')}
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="h-11 whitespace-nowrap"
+                                disabled={hyperPending && isHyperActive}
+                                onClick={handleHyperReset}
+                            >
+                                {t('main.search.showAll')}
+                            </Button>
+                        </div>
+                    </div>
+                    {hyperPending && isHyperActive ? <LoadingPage variant="content" /> : null}
+                    {hyperError ? <ErrorMessage message={hyperError} /> : null}
+                </div>
+            ) : null}
             <div className="grid gap-4">
-                {visibleResults.length ? (
-                    visibleResults.map((item) => (
+                {displayResults.length ? (
+                    displayResults.map((item) => (
                         <Link
                             key={item.id}
                             to={`/app/knowledge/${item.id}`}
@@ -263,7 +420,7 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
                             </div>
                         </Link>
                     ))
-                ) : (
+                ) : hyperPending && isHyperActive ? null : (
                     <p className="text-sm text-muted">{t('main.search.empty')}</p>
                 )}
             </div>
@@ -286,11 +443,15 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
                                         key={topic.key}
                                         type="button"
                                         onClick={(event) => handleTopicClick(event, topic.key)}
+                                        disabled={isHyperActive}
+                                        aria-disabled={isHyperActive}
                                         className={[
                                             'flex w-32 items-center justify-between gap-2 rounded-lg border px-2.5 py-1.5 text-left text-sm transition',
-                                            isActive
-                                                ? 'border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] text-[color:var(--color-text)]'
-                                                : 'border-transparent text-muted hover:border-[color:var(--color-border)] hover:text-[color:var(--color-text)]',
+                                            isHyperActive
+                                                ? 'border-transparent text-muted/70'
+                                                : isActive
+                                                  ? 'border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] text-[color:var(--color-text)]'
+                                                  : 'border-transparent text-muted hover:border-[color:var(--color-border)] hover:text-[color:var(--color-text)]',
                                         ]
                                             .filter(Boolean)
                                             .join(' ')}
