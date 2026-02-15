@@ -82,6 +82,8 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
     );
     const hyperRequestIdRef = useRef(0);
 
+    const isHyperActive = vdbEnabled && hyperSubmittedQuery.trim().length > 0;
+
     const defaultResults = useMemo(() => {
         return [...knowledgeList].sort((a, b) => {
             const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
@@ -102,9 +104,13 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
         });
     };
 
+    const baseResults = useMemo(() => {
+        return isHyperActive ? hyperResults : defaultResults;
+    }, [defaultResults, hyperResults, isHyperActive]);
+
     const visibleResults = useMemo(() => {
         const trimmed = query.trim();
-        let results = defaultResults;
+        let results = baseResults;
         if (trimmed) {
             const isTagOnly = trimmed.startsWith('#');
             const activeFilters =
@@ -137,10 +143,8 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
             }
         }
         return filterByActiveTopic(results);
-    }, [defaultResults, query, selectedFilters, activeTopic]);
-
-    const isHyperActive = vdbEnabled && hyperSubmittedQuery.trim().length > 0;
-    const displayResults = isHyperActive ? hyperResults : visibleResults;
+    }, [baseResults, query, selectedFilters, activeTopic]);
+    const displayResults = visibleResults;
 
     const previewById = useMemo(() => {
         const map = new Map<number, string>();
@@ -153,7 +157,7 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
 
     const topicRows = useMemo<TopicRow[]>(() => {
         const rows = new Map<string, TopicRow>();
-        defaultResults.forEach((item) => {
+        baseResults.forEach((item) => {
             const raw = item.topic?.trim() ?? '';
             const normalized = raw.toLowerCase();
             const isEmpty = !raw || normalized === 'uncategorized';
@@ -173,7 +177,7 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
             if (b.count !== a.count) return b.count - a.count;
             return a.label.localeCompare(b.label);
         });
-    }, [defaultResults, t]);
+    }, [baseResults, t]);
 
     const handleFilterToggle = (key: SearchFilterKey) => {
         setSelectedFilters((prev) => {
@@ -194,7 +198,6 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
     };
 
     const handleTopicClick = (event: MouseEvent<HTMLButtonElement>, key: string) => {
-        if (isHyperActive) return;
         event.preventDefault();
         setActiveTopic((prev) => (prev === key ? null : key));
     };
@@ -297,15 +300,12 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
                             <button
                                 key={filter.key}
                                 type="button"
-                                disabled={isHyperActive}
                                 onClick={() => handleFilterToggle(filter.key)}
                                 className={[
                                     'h-11 w-24 rounded-full border text-[11px] font-semibold uppercase tracking-[0.12em] transition',
-                                    isHyperActive
-                                        ? 'cursor-not-allowed border-[color:var(--color-border)] bg-transparent text-muted/70'
-                                        : isActive
-                                          ? 'border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] text-[color:var(--color-text)]'
-                                          : 'border-[color:var(--color-border)] bg-transparent text-muted',
+                                    isActive
+                                        ? 'border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] text-[color:var(--color-text)]'
+                                        : 'border-[color:var(--color-border)] bg-transparent text-muted',
                                 ]
                                     .filter(Boolean)
                                     .join(' ')}
@@ -443,15 +443,11 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
                                         key={topic.key}
                                         type="button"
                                         onClick={(event) => handleTopicClick(event, topic.key)}
-                                        disabled={isHyperActive}
-                                        aria-disabled={isHyperActive}
                                         className={[
                                             'flex w-32 items-center justify-between gap-2 rounded-lg border px-2.5 py-1.5 text-left text-sm transition',
-                                            isHyperActive
-                                                ? 'border-transparent text-muted/70'
-                                                : isActive
-                                                  ? 'border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] text-[color:var(--color-text)]'
-                                                  : 'border-transparent text-muted hover:border-[color:var(--color-border)] hover:text-[color:var(--color-text)]',
+                                            isActive
+                                                ? 'border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] text-[color:var(--color-text)]'
+                                                : 'border-transparent text-muted hover:border-[color:var(--color-border)] hover:text-[color:var(--color-text)]',
                                         ]
                                             .filter(Boolean)
                                             .join(' ')}
