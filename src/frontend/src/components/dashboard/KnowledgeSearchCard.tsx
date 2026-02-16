@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { marked } from 'marked';
 
 import { useKnowledgeList } from '../../context/KnowledgeListContext';
+import { useTheme } from '../../context/ThemeContext';
 import { apiClient } from '../../api/client';
 import type { KnowledgeResponse } from '../../hooks/useKnowledge';
 import { useVdbEnabled } from '../../hooks/useFeatures';
@@ -69,6 +70,7 @@ type TopicRow = {
 export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
     const { t } = useTranslation();
     const { knowledge: knowledgeList = [] } = useKnowledgeList();
+    const { theme } = useTheme();
     const { vdbEnabled } = useVdbEnabled();
     const [query, setQuery] = useState('');
     const [hyperQuery, setHyperQuery] = useState('');
@@ -83,6 +85,7 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
     const hyperRequestIdRef = useRef(0);
 
     const isHyperActive = vdbEnabled && hyperSubmittedQuery.trim().length > 0;
+    const hippoIconSrc = theme === 'dark' ? '/hipposearch-white.svg' : '/hipposearch-black.svg';
 
     const defaultResults = useMemo(() => {
         return [...knowledgeList].sort((a, b) => {
@@ -328,7 +331,7 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
                                         value={hyperQuery}
                                         leadingIcon={
                                             <img
-                                                src="/hipposearch.svg"
+                                                src={hippoIconSrc}
                                                 alt=""
                                                 className="h-5 w-5 object-contain"
                                                 aria-hidden="true"
