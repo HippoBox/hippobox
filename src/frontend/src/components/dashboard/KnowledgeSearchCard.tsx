@@ -41,6 +41,7 @@ const formatDate = (value: string | undefined) => {
 
 const PREVIEW_LIMIT = 200;
 const NO_TOPIC_KEY = '__no_topic__';
+const SEARCH_STATE_STORAGE_KEY = 'hippobox_knowledge_search_state';
 
 const toPlainText = (markdown: string) => {
     if (!markdown.trim()) return '';
@@ -67,20 +68,63 @@ type TopicRow = {
     count: number;
 };
 
+type StoredSearchState = {
+    query?: string;
+    hyperQuery?: string;
+    hyperSubmittedQuery?: string;
+    hyperResults?: KnowledgeResponse[];
+    activeTopic?: string | null;
+    selectedFilters?: SearchFilterKey[];
+};
+
+const loadStoredSearchState = (): StoredSearchState | null => {
+    if (typeof window === 'undefined') return null;
+    try {
+        const raw = window.localStorage.getItem(SEARCH_STATE_STORAGE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw) as StoredSearchState;
+        if (!parsed || typeof parsed !== 'object') return null;
+        return parsed;
+    } catch {
+        return null;
+    }
+};
+
+const sanitizeStoredFilters = (filters?: SearchFilterKey[]) => {
+    if (!Array.isArray(filters)) return null;
+    const allowed = new Set(SEARCH_FILTERS.map((filter) => filter.key));
+    const sanitized = filters.filter((key) => allowed.has(key));
+    return sanitized.length ? sanitized : null;
+};
+
 export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
     const { t } = useTranslation();
     const { knowledge: knowledgeList = [] } = useKnowledgeList();
     const { theme } = useTheme();
     const { vdbEnabled } = useVdbEnabled();
-    const [query, setQuery] = useState('');
-    const [hyperQuery, setHyperQuery] = useState('');
-    const [hyperSubmittedQuery, setHyperSubmittedQuery] = useState('');
-    const [hyperResults, setHyperResults] = useState<KnowledgeResponse[]>([]);
+    const storedState = loadStoredSearchState();
+    const storedFilters = sanitizeStoredFilters(storedState?.selectedFilters);
+    const [query, setQuery] = useState(storedState?.query ?? '');
+    const [hyperQuery, setHyperQuery] = useState(storedState?.hyperQuery ?? '');
+    const [hyperSubmittedQuery, setHyperSubmittedQuery] = useState(
+        storedState?.hyperSubmittedQuery ?? '',
+    );
+    const [hyperResults, setHyperResults] = useState<KnowledgeResponse[]>(
+        storedState?.hyperResults ?? [],
+    );
     const [hyperPending, setHyperPending] = useState(false);
     const [hyperError, setHyperError] = useState('');
-    const [activeTopic, setActiveTopic] = useState<string | null>(null);
+    const [hyperSearchEnabled, setHyperSearchEnabled] = useState(false);
+    const [activeTopic, setActiveTopic] = useState<string | null>(
+        storedState?.activeTopic ?? null,
+    );
     const [selectedFilters, setSelectedFilters] = useState<Set<SearchFilterKey>>(
-        () => new Set(SEARCH_FILTERS.map((filter) => filter.key)),
+        () =>
+            new Set(
+                storedFilters?.length
+                    ? storedFilters
+                    : SEARCH_FILTERS.map((filter) => filter.key),
+            ),
     );
     const hyperRequestIdRef = useRef(0);
 
@@ -209,8 +253,10 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
         const trimmed = hyperQuery.trim();
         if (!trimmed) {
             setHyperSubmittedQuery('');
+            setHyperSearchEnabled(false);
             return;
         }
+        setHyperSearchEnabled(true);
         setHyperSubmittedQuery(trimmed);
     };
 
@@ -223,6 +269,7 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
         setHyperResults([]);
         setHyperError('');
         setHyperPending(false);
+        setHyperSearchEnabled(false);
     };
 
     useEffect(() => {
@@ -243,6 +290,7 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
             setHyperPending(false);
             return;
         }
+        if (!hyperSearchEnabled) return;
 
         const requestId = hyperRequestIdRef.current + 1;
         hyperRequestIdRef.current = requestId;
@@ -280,7 +328,24 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
         return () => {
             window.clearTimeout(timeoutId);
         };
-    }, [hyperSubmittedQuery, t, vdbEnabled]);
+    }, [hyperSearchEnabled, hyperSubmittedQuery, t, vdbEnabled]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const payload: StoredSearchState = {
+            query,
+            hyperQuery,
+            hyperSubmittedQuery,
+            hyperResults,
+            activeTopic,
+            selectedFilters: Array.from(selectedFilters),
+        };
+        try {
+            window.localStorage.setItem(SEARCH_STATE_STORAGE_KEY, JSON.stringify(payload));
+        } catch {
+            // ignore storage errors
+        }
+    }, [query, hyperQuery, hyperSubmittedQuery, activeTopic, selectedFilters]);
 
     return (
         <div className="w-full space-y-6">
