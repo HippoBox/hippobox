@@ -310,9 +310,13 @@ export function SettingsPage() {
                             {activeIcon}
                             {activeLabel}
                         </h3>
-                        {activeTab === 'profile' ? (
-                            <p className="text-sm text-muted">{t('settings.profile.subtitle')}</p>
-                        ) : null}
+                        <p className="text-sm text-muted">
+                            {activeTab === 'profile'
+                                ? t('settings.profile.subtitle')
+                                : activeTab === 'general'
+                                  ? t('settings.general.subtitle')
+                                  : t('settings.apiKey.subtitle')}
+                        </p>
                     </div>
                     {activeTab === 'profile' ? (
                         <div className="mt-6 space-y-6">

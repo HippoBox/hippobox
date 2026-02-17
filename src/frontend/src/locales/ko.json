@@ -57,6 +57,7 @@
     },
     "mcpGuide": {
         "title": "MCP 등록 가이드",
+        "subtitle": "MCP 등록을 위한 가이드입니다. Claude, Cursor 그리고 Codex에 대해서 MCP 지원을 제공합니다.",
         "cta": "API 키 만들기",
         "claude": {
             "title": "Claude Desktop",
@@ -87,7 +88,7 @@
         },
         "dashboard": {
             "topicsTitle": "토픽 현황",
-            "topicsSubtitle": "토픽별로 지식이 어떻게 분포되어 있는지 확인하세요.",
+            "topicsSubtitle": "토픽별로 지식이 어떻게 분포되어 있는지 확인하세요",
             "topicsCountLabel": "토픽",
             "topicsEmpty": "아직 토픽이 없습니다.",
             "defaultTopic": "기본 토픽",
@@ -197,6 +198,7 @@
             "saveFailed": "이름 변경에 실패하였습니다."
         },
         "general": {
+            "subtitle": "언어와 테마 환경을 관리하세요",
             "languageLabel": "언어",
             "languageEnglish": "영어",
             "languageKorean": "한국어",
@@ -206,6 +208,7 @@
             "themeDark": "다크"
         },
         "apiKey": {
+            "subtitle": "API 키를 생성하고 관리하세요",
             "nameLabel": "키 이름",
             "createButton": "키 생성",
             "secretTitle": "비밀 키",
@@ -311,7 +314,7 @@
     },
     "knowledgeInsights": {
         "title": "지식 인사이트",
-        "subtitle": "토픽별 분포와 일별 지식 흐름을 확인하세요."
+        "subtitle": "토픽별 분포와 일별 지식 흐름을 확인하세요"
     },
     "knowledgeContent": {
         "title": "지식",

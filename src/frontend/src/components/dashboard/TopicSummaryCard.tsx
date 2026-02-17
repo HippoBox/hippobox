@@ -24,7 +24,10 @@ export function TopicSummaryCard({ topics, onDelete, deletingTopicId }: TopicSum
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                     <h3 className="flex items-center gap-2 text-sm font-semibold">
-                        <FolderKanban className="h-4 w-4" aria-hidden="true" />
+                        <FolderKanban
+                            className="h-4 w-4 text-[color:var(--color-accent)]"
+                            aria-hidden="true"
+                        />
                         {t('main.dashboard.topicsTitle')}
                     </h3>
                     <p className="mt-1 text-xs text-muted">{t('main.dashboard.topicsSubtitle')}</p>

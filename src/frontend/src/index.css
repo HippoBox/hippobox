@@ -47,7 +47,7 @@
         --color-border-strong: rgba(148, 163, 184, 0.4);
         --color-primary: #0f172a;
         --color-primary-contrast: #f8fafc;
-        --color-accent: #f97316;
+        --color-accent: #85a2b8;
 
         --radius-xs: 8px;
         --radius-sm: 12px;
@@ -83,7 +83,7 @@
         --color-border-strong: rgba(148, 163, 184, 0.35);
         --color-primary: #f8fafc;
         --color-primary-contrast: #0f172a;
-        --color-accent: #fb923c;
+        --color-accent: #94a3b8;
 
         --shadow-soft: 0 18px 45px rgba(2, 6, 23, 0.4);
         --shadow-strong: 0 24px 65px rgba(2, 6, 23, 0.6);

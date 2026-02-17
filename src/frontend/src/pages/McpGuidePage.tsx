@@ -70,6 +70,9 @@ export function McpGuidePage() {
                     <Plug className="h-5 w-5 text-muted" aria-hidden="true" />
                     <h2 className="font-display text-2xl font-semibold">{t('mcpGuide.title')}</h2>
                 </div>
+                <p className="max-w-2xl text-sm text-muted sm:text-base">
+                    {t('mcpGuide.subtitle')}
+                </p>
             </div>
 
             <div className="grid gap-6">

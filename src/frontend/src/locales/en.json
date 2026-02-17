@@ -57,6 +57,7 @@
     },
     "mcpGuide": {
         "title": "MCP setup",
+        "subtitle": "Guide to set up your MCP. Claude, Cursor, and Codex will be supported.",
         "cta": "Go to API keys",
         "claude": {
             "title": "Claude Desktop",
@@ -87,7 +88,7 @@
         },
         "dashboard": {
             "topicsTitle": "Topics overview",
-            "topicsSubtitle": "See how knowledge is distributed by topic.",
+            "topicsSubtitle": "See how knowledge is distributed by topic",
             "topicsCountLabel": "topics",
             "topicsEmpty": "No topics yet.",
             "defaultTopic": "Default topic",
@@ -188,7 +189,7 @@
     },
     "knowledgeInsights": {
         "title": "Knowledge insights",
-        "subtitle": "Track topics and daily creation trends."
+        "subtitle": "Track topics and daily creation trends"
     },
     "knowledgeContent": {
         "title": "Knowledge",
@@ -246,6 +247,7 @@
             "saveFailed": "Failed to save changes."
         },
         "general": {
+            "subtitle": "Manage language and appearance preferences",
             "languageLabel": "Language",
             "languageEnglish": "English",
             "languageKorean": "Korean",
@@ -255,6 +257,7 @@
             "themeDark": "Dark"
         },
         "apiKey": {
+            "subtitle": "Create and manage API keys",
             "nameLabel": "Key name",
             "createButton": "Generate key",
             "secretTitle": "Secret key",

@@ -62,11 +62,11 @@ export function ActivityChartCard({ series, totalCount }: ActivityChartCardProps
         if (knowledgeCount === 0) {
             return 'bg-slate-100 dark:bg-slate-800/50';
         } else if (knowledgeCount >= 1 && knowledgeCount <= 2) {
-            return 'bg-orange-300 dark:bg-orange-700/50';
+            return 'bg-[#eef4f9] dark:bg-[#293542]';
         } else if (knowledgeCount >= 3 && knowledgeCount <= 4) {
-            return 'bg-orange-500 dark:bg-orange-500/70';
+            return 'bg-[#d6e3ee] dark:bg-[#37495b]';
         } else if (knowledgeCount >= 5) {
-            return 'bg-orange-600 dark:bg-orange-400';
+            return 'bg-[#b2c6d4] dark:bg-[#4a6274]';
         }
     };
 
