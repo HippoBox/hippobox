@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -10,6 +10,7 @@ import { apiClient } from '../../api/client';
 import type { KnowledgeResponse } from '../../hooks/useKnowledge';
 import { useVdbEnabled } from '../../hooks/useFeatures';
 import { Button } from '../Button';
+import { Dropdown } from '../Dropdown';
 import { ErrorMessage } from '../ErrorMessage';
 import { Input } from '../Input';
 import { LoadingPage } from '../../pages/LoadingPage';
@@ -62,6 +63,7 @@ const truncateText = (value: string, maxLength: number) => {
     return `${chars.slice(0, maxLength).join('')}...`;
 };
 
+const normalizeTagValue = (value: string) => value.replace(/^#+/, '').trim();
 type TopicRow = {
     key: string;
     label: string;
@@ -115,18 +117,19 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
     const [hyperPending, setHyperPending] = useState(false);
     const [hyperError, setHyperError] = useState('');
     const [hyperSearchEnabled, setHyperSearchEnabled] = useState(false);
-    const [activeTopic, setActiveTopic] = useState<string | null>(
-        storedState?.activeTopic ?? null,
-    );
+    const [activeTopic, setActiveTopic] = useState<string | null>(storedState?.activeTopic ?? null);
     const [selectedFilters, setSelectedFilters] = useState<Set<SearchFilterKey>>(
         () =>
             new Set(
-                storedFilters?.length
-                    ? storedFilters
-                    : SEARCH_FILTERS.map((filter) => filter.key),
+                storedFilters?.length ? storedFilters : SEARCH_FILTERS.map((filter) => filter.key),
             ),
     );
     const hyperRequestIdRef = useRef(0);
+    const tagDropdownCloseRef = useRef<null | (() => void)>(null);
+    const tagDropdownOpenRef = useRef<null | (() => void)>(null);
+    const tagMeasureRef = useRef<HTMLSpanElement | null>(null);
+    const [tagHighlightIndex, setTagHighlightIndex] = useState(-1);
+    const [tagMenuWidth, setTagMenuWidth] = useState<number | null>(null);
 
     const isHyperActive = vdbEnabled && hyperSubmittedQuery.trim().length > 0;
     const hippoIconSrc = theme === 'dark' ? '/hipposearch-white.svg' : '/hipposearch-black.svg';
@@ -154,6 +157,52 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
     const baseResults = useMemo(() => {
         return isHyperActive ? hyperResults : defaultResults;
     }, [defaultResults, hyperResults, isHyperActive]);
+
+    const allTags = useMemo(() => {
+        const unique = new Map<string, string>();
+        knowledgeList.forEach((item) => {
+            (item.tags ?? []).forEach((tag) => {
+                const cleaned = normalizeTagValue(tag);
+                if (!cleaned) return;
+                const key = cleaned.toLowerCase();
+                if (!unique.has(key)) {
+                    unique.set(key, cleaned);
+                }
+            });
+        });
+        return Array.from(unique.values()).sort((a, b) => a.localeCompare(b));
+    }, [knowledgeList]);
+
+    const isTagSearch = query.trim().startsWith('#');
+    const longestTagLabel = useMemo(() => {
+        if (!allTags.length) return '';
+        const longest = allTags.reduce(
+            (current, next) => (next.length > current.length ? next : current),
+            allTags[0],
+        );
+        return `#${longest}`;
+    }, [allTags]);
+    const tagSuggestions = useMemo(() => {
+        if (!isTagSearch) return [];
+        const terms = query.trim().split(/\s+/);
+        const lastTerm = terms[terms.length - 1] ?? '';
+        const needle = normalizeTagValue(lastTerm).toLowerCase();
+        const candidates = needle
+            ? allTags.filter((tag) => tag.toLowerCase().includes(needle))
+            : allTags;
+        return candidates.slice(0, 12);
+    }, [allTags, isTagSearch, query]);
+
+    useLayoutEffect(() => {
+        if (!tagMeasureRef.current || !longestTagLabel) {
+            setTagMenuWidth(null);
+            return;
+        }
+        const width = tagMeasureRef.current.getBoundingClientRect().width;
+        if (width) {
+            setTagMenuWidth(Math.ceil(width + 16));
+        }
+    }, [longestTagLabel]);
 
     const visibleResults = useMemo(() => {
         const trimmed = query.trim();
@@ -236,6 +285,32 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
             }
             return next;
         });
+    };
+
+    const applyTagSuggestion = (tag: string) => {
+        const trimmed = query.trim();
+        if (!trimmed) {
+            setQuery(`#${tag} `);
+            return;
+        }
+        const parts = trimmed.split(/\s+/);
+        const last = parts[parts.length - 1] ?? '';
+        if (last.startsWith('#')) {
+            parts[parts.length - 1] = `#${tag}`;
+        } else {
+            parts.push(`#${tag}`);
+        }
+        setQuery(`${parts.join(' ')} `);
+    };
+
+    const openTagDropdown = () => {
+        if (!tagSuggestions.length) return;
+        tagDropdownOpenRef.current?.();
+    };
+
+    const closeTagDropdown = () => {
+        tagDropdownCloseRef.current?.();
+        setTagHighlightIndex(-1);
     };
 
     const handleTagClick = (event: MouseEvent<HTMLButtonElement>, tag: string) => {
@@ -331,6 +406,22 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
     }, [hyperSearchEnabled, hyperSubmittedQuery, t, vdbEnabled]);
 
     useEffect(() => {
+        if (!isTagSearch || !allTags.length) {
+            closeTagDropdown();
+        }
+    }, [allTags.length, isTagSearch]);
+
+    useEffect(() => {
+        if (!isTagSearch || !tagSuggestions.length) {
+            setTagHighlightIndex(-1);
+            return;
+        }
+        setTagHighlightIndex((prev) =>
+            prev >= tagSuggestions.length ? tagSuggestions.length - 1 : prev,
+        );
+    }, [isTagSearch, tagSuggestions.length]);
+
+    useEffect(() => {
         if (typeof window === 'undefined') return;
         const payload: StoredSearchState = {
             query,
@@ -345,21 +436,113 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
         } catch {
             // ignore storage errors
         }
-    }, [query, hyperQuery, hyperSubmittedQuery, activeTopic, selectedFilters]);
+    }, [query, hyperQuery, hyperSubmittedQuery, hyperResults, activeTopic, selectedFilters]);
 
     return (
         <div className="w-full space-y-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
-                <div className="flex-1">
-                    <Input
-                        id={inputId ?? 'knowledge-search'}
-                        placeholder={t('main.search.placeholder')}
-                        value={query}
-                        leadingIcon={<Search className="h-4 w-4" aria-hidden="true" />}
-                        onChange={(event) => {
-                            setQuery(event.target.value);
+                <div className="flex-1 relative">
+                    <Dropdown
+                        side="bottom"
+                        align="start"
+                        offsetY={8}
+                        menuClassName="max-h-64 overflow-auto scrollbar-theme scrollbar-pad"
+                        menuStyle={tagMenuWidth ? { minWidth: `${tagMenuWidth}px` } : undefined}
+                        closeOnSelect
+                        trigger={({ open, close }) => {
+                            tagDropdownOpenRef.current = open;
+                            tagDropdownCloseRef.current = close;
+                            return (
+                                <Input
+                                    id={inputId ?? 'knowledge-search'}
+                                    placeholder={t('main.search.placeholder')}
+                                    value={query}
+                                    leadingIcon={<Search className="h-4 w-4" aria-hidden="true" />}
+                                    onKeyDown={(event) => {
+                                        if (!isTagSearch || !tagSuggestions.length) return;
+                                        if (event.key === 'ArrowDown') {
+                                            event.preventDefault();
+                                            openTagDropdown();
+                                            setTagHighlightIndex((prev) =>
+                                                prev < 0 || prev === tagSuggestions.length - 1
+                                                    ? 0
+                                                    : prev + 1,
+                                            );
+                                        } else if (event.key === 'ArrowUp') {
+                                            event.preventDefault();
+                                            openTagDropdown();
+                                            setTagHighlightIndex((prev) =>
+                                                prev <= 0 ? tagSuggestions.length - 1 : prev - 1,
+                                            );
+                                        } else if (
+                                            event.key === 'Enter' &&
+                                            tagHighlightIndex >= 0
+                                        ) {
+                                            event.preventDefault();
+                                            applyTagSuggestion(tagSuggestions[tagHighlightIndex]);
+                                            closeTagDropdown();
+                                        } else if (event.key === 'Escape') {
+                                            closeTagDropdown();
+                                        }
+                                    }}
+                                    onFocus={() => {
+                                        if (isTagSearch && allTags.length) open();
+                                    }}
+                                    onClick={() => {
+                                        if (isTagSearch && allTags.length) open();
+                                    }}
+                                    onChange={(event) => {
+                                        const next = event.target.value;
+                                        setQuery(next);
+                                        if (next.trim().startsWith('#') && allTags.length) {
+                                            open();
+                                        } else {
+                                            close();
+                                        }
+                                    }}
+                                />
+                            );
                         }}
-                    />
+                    >
+                        {() => (
+                            <>
+                                {tagSuggestions.length ? (
+                                    tagSuggestions.map((tag, index) => (
+                                        <button
+                                            key={`tag-suggest-${tag}`}
+                                            type="button"
+                                            className={[
+                                                'menu-item flex w-full items-center rounded-xl px-3 py-2 text-sm font-semibold',
+                                                index === tagHighlightIndex
+                                                    ? 'bg-[color:var(--color-border)]/30'
+                                                    : '',
+                                            ]
+                                                .filter(Boolean)
+                                                .join(' ')}
+                                            aria-selected={index === tagHighlightIndex}
+                                            onClick={() => {
+                                                applyTagSuggestion(tag);
+                                                closeTagDropdown();
+                                            }}
+                                        >
+                                            #{tag}
+                                        </button>
+                                    ))
+                                ) : (
+                                    <div className="px-3 py-2 text-xs text-muted">
+                                        {t('main.search.noTags')}
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </Dropdown>
+                    <span
+                        ref={tagMeasureRef}
+                        className="pointer-events-none absolute -left-[9999px] -top-[9999px] whitespace-nowrap px-3 py-2 text-sm font-semibold"
+                        aria-hidden="true"
+                    >
+                        {longestTagLabel}
+                    </span>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                     {SEARCH_FILTERS.map((filter) => {
