@@ -5,6 +5,21 @@
 HippoBox is a unified FastAPI + FastAPIMcp for managing a personal knowledge base.
 It provides CRUD operations for knowledge entries, semantic search powered by embeddings, and MCP tool integration for use in Claude Desktop or other MCP-compatible clients.
 
+### Overview
+
+See the knowledge entry once it is created in HippoBox.
+![Knowledge created](src/frontend/public/guide/step-6.png)
+
+### Hippo Search (VDB)
+
+Use Hippo Search to run VDB searches over your knowledge.
+![Hippo Search](src/frontend/public/guide/step-3.png)
+
+### setup MCP
+
+Configure MCP to connect HippoBox with Claude, Cursor, and Codex.
+![setup MCP](src/frontend/public/guide/step-4.png)
+
 # Running as a package
 
 ```bash
