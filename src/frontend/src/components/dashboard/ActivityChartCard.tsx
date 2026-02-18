@@ -60,11 +60,11 @@ export function ActivityChartCard({ series, totalCount }: ActivityChartCardProps
 
     const getLevelClass = (knowledgeCount: number) => {
         if (knowledgeCount === 0) {
-            return 'bg-slate-100 dark:bg-slate-800/50';
+            return 'bg-slate-50 dark:bg-slate-800/50';
         } else if (knowledgeCount >= 1 && knowledgeCount <= 2) {
-            return 'bg-[#eef4f9] dark:bg-[#293542]';
+            return 'bg-[#dfe8f3] dark:bg-[#293542]';
         } else if (knowledgeCount >= 3 && knowledgeCount <= 4) {
-            return 'bg-[#d6e3ee] dark:bg-[#37495b]';
+            return 'bg-[#c4d6e6] dark:bg-[#37495b]';
         } else if (knowledgeCount >= 5) {
             return 'bg-[#b2c6d4] dark:bg-[#4a6274]';
         }
