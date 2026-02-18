@@ -39,6 +39,7 @@ class User(Base):
 
     is_active: Mapped[bool] = mapped_column(default=True, nullable=False)
     is_verified: Mapped[bool] = mapped_column(default=False, nullable=False)
+    guide_seen: Mapped[bool] = mapped_column(default=False, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(
@@ -57,6 +58,7 @@ class UserModel(BaseModel):
 
     is_active: bool = Field(..., description="Indicates whether the user account is active")
     is_verified: bool = Field(..., description="Indicates whether the user's email has been verified successfully")
+    guide_seen: bool = Field(False, description="Whether the onboarding guide has been seen")
 
     created_at: datetime = Field(..., description="Timestamp indicating when the user account was created")
     updated_at: datetime = Field(..., description="Timestamp indicating the most recent update to the user record")
@@ -166,6 +168,7 @@ class UserResponse(BaseModel):
     name: str = Field(..., description="Display name of the user")
     role: UserRole = Field(..., description="Role assigned to the user")
     created_at: datetime = Field(..., description="Timestamp when the user account was created")
+    guide_seen: bool = Field(False, description="Whether the onboarding guide has been seen")
 
     class Config:
         from_attributes = True
@@ -191,6 +194,13 @@ class ProfileUpdateForm(BaseModel):
         min_length=NAME_MIN_LENGTH,
         max_length=NAME_MAX_LENGTH,
         pattern=NAME_REGEX,
+    )
+
+
+class GuideSeenUpdateForm(BaseModel):
+    seen: bool = Field(
+        True,
+        description="Whether the onboarding guide has been seen",
     )
 
 

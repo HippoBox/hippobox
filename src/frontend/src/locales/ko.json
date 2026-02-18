@@ -308,6 +308,7 @@
     "profileMenu": {
         "profile": "프로필",
         "knowledgeInsights": "인사이트",
+        "guide": "가이드",
         "theme": "테마",
         "settings": "설정",
         "logout": "로그아웃"
@@ -315,6 +316,42 @@
     "knowledgeInsights": {
         "title": "지식 인사이트",
         "subtitle": "토픽별 분포와 일별 지식 흐름을 확인하세요"
+    },
+    "guide": {
+        "title": "시작 가이드",
+        "subtitle": "",
+        "stepLabel": "단계 {{current}} / {{total}}",
+        "prev": "이전",
+        "next": "다음",
+        "done": "완료",
+        "restart": "다시보기",
+        "close": "닫기",
+        "steps": {
+            "overview": {
+                "title": "HippoBox란?",
+                "body": "HippoBox는 여러 AI 도구에서 지식베이스를 MCP 도구로 사용가능한 서비스입니다."
+            },
+            "core": {
+                "title": "지식베이스 기본 기능",
+                "body": "지식 검색, 생성, 편집 등 핵심 기능을 제공합니다."
+            },
+            "hippoSearch": {
+                "title": "Hippo Search",
+                "body": "Hippo Search로 VDB 검색을 실행해 의미 기반으로 지식을 찾을 수 있습니다."
+            },
+            "setupMcp": {
+                "title": "MCP 설정",
+                "body": "Claude, Cursor, Codex에 대해 MCP 설정을 진행할 수 있습니다."
+            },
+            "mcpRequest": {
+                "title": "MCP 요청",
+                "body": "AI 도구에서 HippoBox로 지식 작업을 요청해보세요."
+            },
+            "startHippobox": {
+                "title": "HippoBox를 시작하세요",
+                "body": "요청한 지식 작업은 HippoBox에서 확인이 가능합니다. 다 됐습니다! 이제 HippoBox를 시작해보세요!"
+            }
+        }
     },
     "knowledgeContent": {
         "title": "지식",

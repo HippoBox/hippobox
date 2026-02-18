@@ -12,6 +12,7 @@ import { AuthHeader } from '../components/AuthHeader';
 import { ProfileMenu } from '../components/ProfileMenu';
 import { LoadingPage } from '../pages/LoadingPage';
 import { KnowledgeListProvider } from '../context/KnowledgeListContext';
+import { GuideOverlayProvider } from '../context/GuideOverlayContext';
 
 const FALLBACK_PROFILE_NAME = 'HippoBox';
 
@@ -68,58 +69,60 @@ export const AppLayout = () => {
         : isMePending;
 
     return (
-        <Container
-            outerClassName="overflow-visible"
-            className="flex-col items-stretch justify-start gap-10 pt-1 pb-8 min-h-0"
-        >
-            <nav className="sticky top-6 z-20 h-14 flex w-full items-center justify-between rounded-[28px] border border-[color:var(--color-border)] px-6 py-4 shadow-[0_12px_32px_rgba(15,23,42,0.08)]">
-                <div className="pointer-events-none absolute inset-0 rounded-[28px] bg-[color:var(--color-bg)]/70 backdrop-blur-xl" />
-                <Link to="/app" className="shrink-0 relative z-10" aria-label="Go to main">
-                    <AuthHeader size="xs" layout="inline" />
-                </Link>
-                <div className="flex items-center gap-4 relative z-10">
-                    <Link to="/app/new" className="shrink-0">
-                        <Button type="button" className="h-9 px-4 text-xs">
-                            <span className="flex items-center gap-2">
-                                <BookPlus className="h-4 w-4" aria-hidden="true" />
-                                {t('nav.createKnowledge')}
-                            </span>
-                        </Button>
+        <GuideOverlayProvider>
+            <Container
+                outerClassName="overflow-visible"
+                className="flex-col items-stretch justify-start gap-10 pt-1 pb-8 min-h-0"
+            >
+                <nav className="sticky top-6 z-20 h-14 flex w-full items-center justify-between rounded-[28px] border border-[color:var(--color-border)] px-6 py-4 shadow-[0_12px_32px_rgba(15,23,42,0.08)]">
+                    <div className="pointer-events-none absolute inset-0 rounded-[28px] bg-[color:var(--color-bg)]/70 backdrop-blur-xl" />
+                    <Link to="/app" className="shrink-0 relative z-10" aria-label="Go to main">
+                        <AuthHeader size="xs" layout="inline" />
                     </Link>
-                    <Link to="/app/insights" className="shrink-0">
-                        <Button type="button" variant="outline" className="h-9 px-4 text-xs">
-                            <span className="flex items-center gap-2">
-                                <BarChart3 className="h-4 w-4" aria-hidden="true" />
-                                {t('nav.knowledgeInsights')}
-                            </span>
-                        </Button>
-                    </Link>
-                    <Link to="/app/mcp" className="shrink-0">
-                        <Button type="button" variant="outline" className="h-9 px-4 text-xs">
-                            <span className="flex items-center gap-2">
-                                <Plug className="h-4 w-4" aria-hidden="true" />
-                                {t('nav.mcpGuide')}
-                            </span>
-                        </Button>
-                    </Link>
-                    <ProfileMenu
-                        profileName={profileName}
-                        profileInitial={profileInitial}
-                        avatarUrl={resolvedAvatarUrl}
-                    />
-                </div>
-            </nav>
-            <KnowledgeListProvider enabled={loginEnabled ? !!token && !isRefreshPending : true}>
-                <div className="flex-1">
-                    {isLoading ? (
-                        <LoadingPage variant="content" />
-                    ) : (
-                        <Suspense fallback={<LoadingPage variant="content" />}>
-                            <Outlet />
-                        </Suspense>
-                    )}
-                </div>
-            </KnowledgeListProvider>
-        </Container>
+                    <div className="flex items-center gap-4 relative z-10">
+                        <Link to="/app/new" className="shrink-0">
+                            <Button type="button" className="h-9 px-4 text-xs">
+                                <span className="flex items-center gap-2">
+                                    <BookPlus className="h-4 w-4" aria-hidden="true" />
+                                    {t('nav.createKnowledge')}
+                                </span>
+                            </Button>
+                        </Link>
+                        <Link to="/app/insights" className="shrink-0">
+                            <Button type="button" variant="outline" className="h-9 px-4 text-xs">
+                                <span className="flex items-center gap-2">
+                                    <BarChart3 className="h-4 w-4" aria-hidden="true" />
+                                    {t('nav.knowledgeInsights')}
+                                </span>
+                            </Button>
+                        </Link>
+                        <Link to="/app/mcp" className="shrink-0">
+                            <Button type="button" variant="outline" className="h-9 px-4 text-xs">
+                                <span className="flex items-center gap-2">
+                                    <Plug className="h-4 w-4" aria-hidden="true" />
+                                    {t('nav.mcpGuide')}
+                                </span>
+                            </Button>
+                        </Link>
+                        <ProfileMenu
+                            profileName={profileName}
+                            profileInitial={profileInitial}
+                            avatarUrl={resolvedAvatarUrl}
+                        />
+                    </div>
+                </nav>
+                <KnowledgeListProvider enabled={loginEnabled ? !!token && !isRefreshPending : true}>
+                    <div className="flex-1">
+                        {isLoading ? (
+                            <LoadingPage variant="content" />
+                        ) : (
+                            <Suspense fallback={<LoadingPage variant="content" />}>
+                                <Outlet />
+                            </Suspense>
+                        )}
+                    </div>
+                </KnowledgeListProvider>
+            </Container>
+        </GuideOverlayProvider>
     );
 };

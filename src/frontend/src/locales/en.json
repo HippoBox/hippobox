@@ -183,6 +183,7 @@
     "profileMenu": {
         "profile": "Profile",
         "knowledgeInsights": "Insights",
+        "guide": "Guide",
         "theme": "Theme",
         "settings": "Settings",
         "logout": "Logout"
@@ -190,6 +191,42 @@
     "knowledgeInsights": {
         "title": "Knowledge insights",
         "subtitle": "Track topics and daily creation trends"
+    },
+    "guide": {
+        "title": "Getting started",
+        "subtitle": "",
+        "stepLabel": "Step {{current}} / {{total}}",
+        "prev": "Previous",
+        "next": "Next",
+        "done": "Done",
+        "restart": "Restart",
+        "close": "Close",
+        "steps": {
+            "overview": {
+                "title": "What is HippoBox?",
+                "body": "HippoBox is a shared knowledge base you can access from multiple AI tools through MCP integration."
+            },
+            "core": {
+                "title": "Core knowledge features",
+                "body": "Provides core knowledge features like search, creation, and editing across your content."
+            },
+            "hippoSearch": {
+                "title": "Hippo Search",
+                "body": "Use Hippo Search to run VDB searches and find knowledge by meaning, not just keywords."
+            },
+            "setupMcp": {
+                "title": "MCP setup",
+                "body": "Configure MCP for Claude, Cursor, and Codex to connect HippoBox."
+            },
+            "mcpRequest": {
+                "title": "MCP request",
+                "body": "Try requesting knowledge tasks in HippoBox from your AI tools."
+            },
+            "startHippobox": {
+                "title": "Start with HippoBox",
+                "body": "You can view the requested knowledge task in HippoBox. That's it! Now it’s time to start with HippoBox!"
+            }
+        }
     },
     "knowledgeContent": {
         "title": "Knowledge",

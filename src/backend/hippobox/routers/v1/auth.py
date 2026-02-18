@@ -7,6 +7,7 @@ from hippobox.errors.service import exceptions_to_http
 from hippobox.integrations.resend.email_links import build_verify_email_redirect_url
 from hippobox.models.user import (
     EmailVerificationResend,
+    GuideSeenUpdateForm,
     LoginForm,
     LoginTokenResponse,
     PasswordResetConfirm,
@@ -46,6 +47,21 @@ async def update_profile(
     """
     try:
         return await service.update_profile(current_user.id, form)
+    except AuthException as e:
+        raise exceptions_to_http(e)
+
+
+@router.patch("/me/guide", response_model=UserResponse)
+async def update_guide_seen(
+    form: GuideSeenUpdateForm,
+    current_user: UserResponse = Depends(get_current_user),
+    service: AuthService = Depends(get_auth_service),
+):
+    """
+    Update the guide seen state for the current user.
+    """
+    try:
+        return await service.update_guide_seen(current_user.id, form)
     except AuthException as e:
         raise exceptions_to_http(e)
 
