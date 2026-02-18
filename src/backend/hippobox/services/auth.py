@@ -14,6 +14,7 @@ from hippobox.integrations.resend.emailer import send_password_reset_email, send
 from hippobox.models.auth import Auths
 from hippobox.models.credential import Credentials
 from hippobox.models.user import (
+    GuideSeenUpdateForm,
     LoginForm,
     LoginTokenResponse,
     ProfileUpdateForm,
@@ -200,6 +201,22 @@ class AuthService:
     async def update_profile(self, user_id: int, form: ProfileUpdateForm) -> UserResponse:
         try:
             updated = await Users.update_profile(user_id, form.name)
+        except AuthException as e:
+            raise e
+        except Exception as e:
+            raise_exception_with_log(AuthErrorCode.UNKNOWN_ERROR, e)
+
+        if updated is None:
+            raise AuthException(AuthErrorCode.USER_NOT_FOUND)
+
+        return UserResponse.model_validate(updated.model_dump())
+
+    # -------------------------------------------
+    # Guide Seen Update
+    # -------------------------------------------
+    async def update_guide_seen(self, user_id: int, form: GuideSeenUpdateForm) -> UserResponse:
+        try:
+            updated = await Users.update(user_id, {"guide_seen": form.seen})
         except AuthException as e:
             raise e
         except Exception as e:

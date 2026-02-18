@@ -13,6 +13,13 @@ export interface paths {
          */
         patch: operations['update_profile_api_v1_auth_me_patch'];
     };
+    '/api/v1/auth/me/guide': {
+        /**
+         * Update Guide Seen
+         * @description Update the guide seen state for the current user.
+         */
+        patch: operations['update_guide_seen_api_v1_auth_me_guide_patch'];
+    };
     '/api/v1/auth/signup': {
         /**
          * Signup
@@ -448,6 +455,15 @@ export interface components {
              */
             email: string;
         };
+        /** GuideSeenUpdateForm */
+        GuideSeenUpdateForm: {
+            /**
+             * Seen
+             * @description Whether the onboarding guide has been seen
+             * @default true
+             */
+            seen?: boolean;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -726,6 +742,12 @@ export interface components {
              */
             is_verified: boolean;
             /**
+             * Guide Seen
+             * @description Whether the onboarding guide has been seen
+             * @default false
+             */
+            guide_seen?: boolean;
+            /**
              * Created At
              * Format: date-time
              * @description Timestamp indicating when the user account was created
@@ -763,6 +785,12 @@ export interface components {
              * @description Timestamp when the user account was created
              */
             created_at: string;
+            /**
+             * Guide Seen
+             * @description Whether the onboarding guide has been seen
+             * @default false
+             */
+            guide_seen?: boolean;
         };
         /**
          * UserRole
@@ -810,6 +838,31 @@ export interface operations {
         requestBody: {
             content: {
                 'application/json': components['schemas']['ProfileUpdateForm'];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                content: {
+                    'application/json': components['schemas']['UserResponse'];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                content: {
+                    'application/json': components['schemas']['HTTPValidationError'];
+                };
+            };
+        };
+    };
+    /**
+     * Update Guide Seen
+     * @description Update the guide seen state for the current user.
+     */
+    update_guide_seen_api_v1_auth_me_guide_patch: {
+        requestBody: {
+            content: {
+                'application/json': components['schemas']['GuideSeenUpdateForm'];
             };
         };
         responses: {

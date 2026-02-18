@@ -1,11 +1,12 @@
 import { useTranslation } from 'react-i18next';
-import { BarChart3, LogOut, Moon, Settings, Sun, User } from 'lucide-react';
+import { BarChart3, BookOpen, LogOut, Moon, Settings, Sun, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { Dropdown } from './Dropdown';
 import { ToggleButton } from './ToggleButton';
+import { useGuideOverlay } from '../context/GuideOverlayContext';
 import { useTheme } from '../context/ThemeContext';
-import { useLogoutMutation } from '../hooks/useAuth';
+import { useGuideSeenMutation, useLogoutMutation } from '../hooks/useAuth';
 import { useLoginEnabled } from '../hooks/useFeatures';
 
 type ProfileMenuProps = {
@@ -20,6 +21,8 @@ export function ProfileMenu({ profileName, profileInitial, avatarUrl }: ProfileM
     const navigate = useNavigate();
     const logoutMutation = useLogoutMutation();
     const { loginEnabled } = useLoginEnabled();
+    const { openGuide } = useGuideOverlay();
+    const guideSeenMutation = useGuideSeenMutation();
 
     return (
         <Dropdown
@@ -116,6 +119,24 @@ export function ProfileMenu({ profileName, profileInitial, avatarUrl }: ProfileM
                         <span className="flex items-center gap-3">
                             <Settings className="h-4 w-4 text-muted" aria-hidden="true" />
                             <span>{t('profileMenu.settings')}</span>
+                        </span>
+                    </button>
+                    <button
+                        type="button"
+                        className="menu-item flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold"
+                        role="menuitem"
+                        onClick={() => {
+                            close();
+                            openGuide({
+                                onClose: () => {
+                                    guideSeenMutation.mutate({ seen: true });
+                                },
+                            });
+                        }}
+                    >
+                        <span className="flex items-center gap-3">
+                            <BookOpen className="h-4 w-4 text-muted" aria-hidden="true" />
+                            <span>{t('profileMenu.guide')}</span>
                         </span>
                     </button>
                     {loginEnabled ? (

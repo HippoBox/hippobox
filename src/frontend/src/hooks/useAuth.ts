@@ -17,8 +17,9 @@ type SignupForm = { email: string; password: string; name: string };
 type PasswordResetRequestPayload = { email: string };
 type PasswordResetConfirmPayload = { token: string; new_password: string };
 type EmailVerificationResendPayload = { email: string };
-type UserResponse = { id: number; name: string; email: string };
+type UserResponse = { id: number; name: string; email: string; guide_seen?: boolean | null };
 type UpdateProfilePayload = { name: string };
+type GuideSeenPayload = { seen: boolean };
 type QueryOptions = Omit<UseQueryOptions<unknown>, 'queryKey' | 'queryFn'>;
 
 const withAuth = (token?: string) =>
@@ -162,6 +163,41 @@ export const useUpdateProfileMutation = (
             const payload = await response.json().catch(() => null);
             if (!response.ok) {
                 throw payload?.detail ?? payload ?? { message: 'Failed to update profile.' };
+            }
+            return payload as UserResponse;
+        },
+        ...options,
+        onSuccess: (data, variables, onMutateResult, context) => {
+            queryClient.setQueryData(['auth', 'me'], data);
+            options?.onSuccess?.(data, variables, onMutateResult, context);
+        },
+    });
+};
+
+export const useGuideSeenMutation = (
+    options?: UseMutationOptions<UserResponse, unknown, GuideSeenPayload>,
+) => {
+    const queryClient = useQueryClient();
+    const token = useAccessToken() ?? undefined;
+    const { loginEnabled } = useLoginEnabled();
+
+    return useMutation({
+        mutationFn: async (body: GuideSeenPayload) => {
+            if (loginEnabled && !token) {
+                throw { message: 'Not authenticated.' };
+            }
+            const response = await authedFetch(`${API_ORIGIN}/api/v1/auth/me/guide`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(body),
+            });
+
+            const payload = await response.json().catch(() => null);
+            if (!response.ok) {
+                throw payload?.detail ?? payload ?? { message: 'Failed to update guide state.' };
             }
             return payload as UserResponse;
         },
