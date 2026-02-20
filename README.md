@@ -8,17 +8,17 @@ It provides CRUD operations for knowledge entries, semantic search powered by em
 ### Overview
 
 See the knowledge entry once it is created in HippoBox.
-![Knowledge created](src/frontend/public/guide/step-6.png)
+![Knowledge created](https://raw.githubusercontent.com/HippoBox/hippobox/main/src/frontend/public/guide/step-6.png)
 
 ### Hippo Search (VDB)
 
 Use Hippo Search to run VDB searches over your knowledge.
-![Hippo Search](src/frontend/public/guide/step-3.png)
+![Hippo Search](https://raw.githubusercontent.com/HippoBox/hippobox/main/src/frontend/public/guide/step-3.png)
 
 ### setup MCP
 
 Configure MCP to connect HippoBox with Claude, Cursor, and Codex.
-![setup MCP](src/frontend/public/guide/step-4.png)
+![setup MCP](https://raw.githubusercontent.com/HippoBox/hippobox/main/src/frontend/public/guide/step-4.png)
 
 # Running as a package
 
