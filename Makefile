@@ -1,6 +1,8 @@
 SHELL := /bin/bash
 BACKEND_DIR := src/backend
 FRONTEND_DIR := src/frontend
+BACKEND_PORT ?= 8000
+FRONTEND_PORT ?= 5173
 PYTHON := $(abspath $(BACKEND_DIR)/.venv/bin/python)
 RUFF := $(abspath $(BACKEND_DIR)/.venv/bin/ruff)
 .PHONY: install backend-install frontend-install check test build verify verify-plan contract-export contract-check frontend-api-generate frontend-api-check backend-check backend-test frontend-build db-current db-migrate
@@ -48,3 +50,15 @@ frontend-test: frontend-build
 .PHONY: package-check
 package-check: build
 	$(PYTHON) scripts/check-package.py
+
+.PHONY: dev dev-local backend-dev backend-dev-local frontend-dev
+dev:
+	BACKEND_PORT="$(BACKEND_PORT)" FRONTEND_PORT="$(FRONTEND_PORT)" $(PYTHON) scripts/dev.py
+dev-local:
+	VDB_ENABLED=false REDIS_IN_MEMORY=true $(MAKE) dev
+backend-dev-local:
+	VDB_ENABLED=false REDIS_IN_MEMORY=true $(MAKE) backend-dev
+backend-dev:
+	cd $(BACKEND_DIR) && $(PYTHON) -m uvicorn hippobox.server:app --reload --host 127.0.0.1 --port "$(BACKEND_PORT)"
+frontend-dev:
+	cd $(FRONTEND_DIR) && BACKEND_PORT="$(BACKEND_PORT)" npm run dev:vite -- --host 127.0.0.1 --port "$(FRONTEND_PORT)" --strictPort
