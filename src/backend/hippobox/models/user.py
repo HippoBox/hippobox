@@ -18,7 +18,9 @@ from hippobox.core.validation import (
     PASSWORD_REGEX,
     is_password_strong,
 )
-from hippobox.errors.auth import AuthErrorCode, AuthException
+from hippobox.errors.auth import AuthErrorCode, AuthException, user_integrity_exception
+from hippobox.models.auth import Auth
+from hippobox.models.credential import Credential
 
 log = logging.getLogger("user")
 
@@ -219,15 +221,7 @@ class UserTable:
 
             except IntegrityError as e:
                 await db.rollback()
-                msg = str(e.orig)
-
-                if "user_email_key" in msg:
-                    raise AuthException(AuthErrorCode.EMAIL_ALREADY_EXISTS)
-
-                if "user_name_key" in msg:
-                    raise AuthException(AuthErrorCode.NAME_ALREADY_EXISTS)
-
-                raise AuthException(AuthErrorCode.CREATE_FAILED, str(e))
+                raise user_integrity_exception(e) from e
 
     async def create_with_role(self, form: dict, role: UserRole, is_verified: bool = False) -> UserModel:
         async with get_db() as db:
@@ -245,15 +239,37 @@ class UserTable:
 
             except IntegrityError as e:
                 await db.rollback()
-                msg = str(e.orig)
+                raise user_integrity_exception(e) from e
 
-                if "user_email_key" in msg:
-                    raise AuthException(AuthErrorCode.EMAIL_ALREADY_EXISTS)
-
-                if "user_name_key" in msg:
-                    raise AuthException(AuthErrorCode.NAME_ALREADY_EXISTS)
-
-                raise AuthException(AuthErrorCode.CREATE_FAILED, str(e))
+    async def create_signup_user(
+        self, *, email: str, name: str, password_hash: str, is_verified: bool = False
+    ) -> UserModel:
+        """Persist all signup records atomically, following Blueprint's repository boundary."""
+        async with get_db() as db:
+            async with db.begin():
+                for field, value, code in (
+                    (User.email, email, AuthErrorCode.EMAIL_ALREADY_EXISTS),
+                    (User.name, name, AuthErrorCode.NAME_ALREADY_EXISTS),
+                ):
+                    existing = await db.execute(select(User.id).where(field == value).limit(1))
+                    if existing.first() is not None:
+                        raise AuthException(code)
+                user = User(email=email, name=name, role=UserRole.USER, is_verified=is_verified)
+                db.add(user)
+                await db.flush()
+                db.add_all(
+                    [
+                        Credential(
+                            user_id=user.id,
+                            password_hash=password_hash,
+                            password_changed_at=datetime.now(timezone.utc),
+                        ),
+                        Auth(user_id=user.id, provider="email", identifier=user.email),
+                    ]
+                )
+                await db.flush()
+                result = UserModel.model_validate(user)
+            return result
 
     async def get(self, user_id: int) -> UserModel | None:
         async with get_db() as db:
@@ -323,15 +339,7 @@ class UserTable:
                 await db.commit()
             except IntegrityError as e:
                 await db.rollback()
-                msg = str(e.orig)
-
-                if "user_name_key" in msg:
-                    raise AuthException(AuthErrorCode.NAME_ALREADY_EXISTS)
-
-                if "user_email_key" in msg:
-                    raise AuthException(AuthErrorCode.EMAIL_ALREADY_EXISTS)
-
-                raise AuthException(AuthErrorCode.CREATE_FAILED, str(e))
+                raise user_integrity_exception(e) from e
 
             await db.refresh(user)
             return UserModel.model_validate(user)

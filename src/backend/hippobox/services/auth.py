@@ -5,10 +5,11 @@ from datetime import datetime, timedelta, timezone
 from functools import partial
 
 from fastapi import Request
+from sqlalchemy.exc import IntegrityError
 
 from hippobox.core.redis import RedisManager
 from hippobox.core.settings import SETTINGS
-from hippobox.errors.auth import AuthErrorCode, AuthException
+from hippobox.errors.auth import AuthErrorCode, AuthException, user_integrity_exception
 from hippobox.errors.service import raise_exception_with_log
 from hippobox.integrations.resend.emailer import send_password_reset_email, send_verification_email
 from hippobox.models.auth import Auths
@@ -21,7 +22,6 @@ from hippobox.models.user import (
     SignupForm,
     TokenRefreshResponse,
     UserResponse,
-    UserRole,
     Users,
 )
 from hippobox.utils.security import get_password_hash, verify_password
@@ -76,15 +76,16 @@ class AuthService:
     async def signup(self, form: SignupForm) -> UserResponse:
         try:
             hashed_password = await self._hash_password(form.password)
-            user_data = form.model_dump()
+            user = await Users.create_signup_user(
+                email=form.email,
+                name=form.name,
+                password_hash=hashed_password,
+                is_verified=not SETTINGS.EMAIL_ENABLED,
+            )
 
-            if "password" in user_data:
-                del user_data["password"]
-
-            is_verified = not SETTINGS.EMAIL_ENABLED
-            user = await Users.create_with_role(user_data, UserRole.USER, is_verified=is_verified)
-            await Credentials.create(user.id, hashed_password)
-            await Auths.create(user.id, "email", user.email)
+        except IntegrityError as e:
+            # Unique constraints remain authoritative when concurrent requests race.
+            raise user_integrity_exception(e) from e
 
         except AuthException as e:
             raise e

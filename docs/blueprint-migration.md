@@ -75,3 +75,14 @@ responsive actions and configuration recovery. No production data is modified.
 - SQLite 재시작 시 계정·API 키 보존, 기존 키로 실제 MCP 지식 생성 확인.
 - Docker 이미지 빌드와 임시 컨테이너의 ping·config·SPA·MCP 초기화 통과.
 - 실제 운영 서비스 연결, 운영 DB 변환, 원격 배포는 수행하지 않습니다.
+
+## 인증 처리 구조 보완
+
+위 참조 커밋의 `UserRepository.create_signup_user`, `AuthService.signup`,
+프론트엔드 `api/auth/authError.ts`를 기준으로 HippoBox 인증 경계를 정리했습니다.
+
+- 모델의 저장소 메서드 `Users.create_signup_user`가 중복 사전 검사와 사용자·비밀번호·인증 레코드의 단일 트랜잭션을 담당합니다.
+- `AuthService.signup`은 비밀번호 해시, 저장소 호출, 커밋 충돌의 도메인 오류 변환, 가입 후 이메일 흐름을 조율합니다.
+- 프론트엔드 `api/authError.ts`에서 오류 코드와 번역 문구를 연결하며 가입·로그인·재전송·비밀번호 재설정 화면이 공유합니다.
+- 기존 `detail.error` 응답 형식, 이름·이메일 고유 제약, 테이블과 화면 테마는 유지합니다. Blueprint의 OAuth/다중 인증 테이블은 도입하지 않습니다.
+- SQLite/PostgreSQL 제약 오류를 구분하며, 알 수 없는 서버 메시지는 UI에서 원문 대신 화면별 기본 안내로 표시합니다.

@@ -1,3 +1,4 @@
+import { resolveAuthErrorMessage, extractAuthError } from '../api/authError';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -52,58 +53,18 @@ export function LoginPage() {
         },
     });
 
-    const emailNotVerified = useMemo(() => {
-        const error = loginMutation.error;
-        if (!error || typeof error !== 'object') return false;
-        const detail = (error as { detail?: unknown }).detail;
-        if (!detail || typeof detail !== 'object') return false;
-        return (detail as { error?: unknown }).error === 'EMAIL_NOT_VERIFIED';
-    }, [loginMutation.error]);
+    const emailNotVerified = extractAuthError(loginMutation.error)?.error === 'EMAIL_NOT_VERIFIED';
 
-    const apiErrorMessage = useMemo(() => {
-        const error = loginMutation.error;
-        if (!error) return '';
+    const apiErrorMessage = useMemo(
+        () => resolveAuthErrorMessage(t, loginMutation.error, 'login.errorFallback'),
+        [loginMutation.error, t],
+    );
 
-        if (typeof error === 'string') {
-            return error;
-        }
-
-        if (error instanceof Error && error.message) {
-            return error.message;
-        }
-
-        if (typeof error === 'object') {
-            const detail = (error as { detail?: unknown }).detail;
-            if (detail && typeof detail === 'object') {
-                const code = (detail as { error?: unknown }).error;
-                const message = (detail as { message?: unknown }).message;
-                if (code === 'EMAIL_NOT_VERIFIED') return t('login.verifyRequired');
-
-                if (code === `INVALID_CREDENTIALS`) {
-                    const limit_count = (detail as { limit_count?: unknown }).limit_count;
-                    return t('login.invalidCredentials', { limit_count: limit_count });
-                }
-
-                if (code === `ACCOUNT_LOCKED`) {
-                    const remaining_seconds = (detail as { remaining_seconds?: unknown })
-                        .remaining_seconds;
-                    return t('login.accountLocked', { remaining_seconds: remaining_seconds });
-                }
-
-                if (typeof message === 'string' && message) return message;
-            }
-        }
-
-        return t('login.errorFallback');
-    }, [loginMutation.error, t]);
-
-    const resendErrorMessage = useMemo(() => {
-        const error = resendMutation.error;
-        if (!error) return '';
-        if (typeof error === 'string') return error;
-        if (error instanceof Error && error.message) return error.message;
-        return t('login.resendError');
-    }, [resendMutation.error, t]);
+    const resendErrorMessage = resolveAuthErrorMessage(
+        t,
+        resendMutation.error,
+        'login.resendError',
+    );
 
     const formErrorMessage = formErrorKey ? t(`common.errors.${formErrorKey}`) : '';
     const errorMessage = formErrorMessage || apiErrorMessage;
