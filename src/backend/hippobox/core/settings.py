@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from typing import Literal
 
 from dotenv import load_dotenv
 from pydantic import BaseModel
@@ -42,8 +43,8 @@ class Settings(BaseModel):
     # ----------------------------------------
     # Auth
     # ----------------------------------------
-    # TODO: development-only option
-    SECRET_KEY: str = "HIPPOBOX_DEV_SECRET"
+    APP_MODE: Literal["development", "production"] = os.getenv("APP_MODE", "development")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "HIPPOBOX_DEV_SECRET")
     LOGIN_ENABLED: bool = os.getenv("LOGIN_ENABLED", "true").lower() == "true"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
@@ -92,6 +93,14 @@ class Settings(BaseModel):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+        if self.APP_MODE == "production":
+            if not self.LOGIN_ENABLED:
+                raise ValueError("Production requires LOGIN_ENABLED=true")
+            if self.SECRET_KEY in {"HIPPOBOX_DEV_SECRET", "CHANGE_ME"} or len(self.SECRET_KEY) < 32:
+                raise ValueError("Production requires a unique SECRET_KEY of at least 32 characters")
+            if self.SECRET_KEY != self.SECRET_KEY.strip():
+                raise ValueError("SECRET_KEY must not have surrounding whitespace")
+
         if not self.LOGIN_ENABLED:
             object.__setattr__(self, "EMAIL_ENABLED", False)
 
@@ -102,10 +111,7 @@ class Settings(BaseModel):
             object.__setattr__(
                 self,
                 "DATABASE_URL",
-                (
-                    f"{self.DB_DRIVER}://{self.DB_USER}:{self.DB_PASSWORD}"
-                    f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
-                ),
+                (f"{self.DB_DRIVER}://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"),
             )
 
         if self.QDRANT_MODE.lower() == "local":

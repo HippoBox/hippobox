@@ -627,14 +627,14 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
                     {hyperError ? <ErrorMessage message={hyperError} /> : null}
                 </div>
             ) : null}
-            <div className="grid gap-4">
+            <div className="grid gap-3">
                 {displayResults.length ? (
                     displayResults.map((item) => (
                         <Link
                             key={item.id}
                             to={`/app/knowledge/${item.id}`}
                             aria-label={t('main.search.openLabel', { title: item.title })}
-                            className="group block rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)]/70 px-4 py-3 text-[color:var(--color-text)] no-underline transition hover:-translate-y-0.5 hover:border-[color:var(--color-border-strong)] hover:shadow-[0_12px_30px_rgba(15,23,42,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent)]"
+                            className="group block rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)]/70 px-4 py-3 text-[color:var(--color-text)] no-underline transition hover:border-[color:var(--color-border-strong)] hover:shadow-[0_6px_18px_rgba(15,23,42,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent)]"
                         >
                             <div className="flex flex-wrap items-center gap-2">
                                 <div className="text-sm font-semibold">{item.title}</div>
@@ -658,10 +658,10 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
                                 </div>
                             </div>
                             <div className="mt-1 text-[11px] text-muted">{item.topic}</div>
-                            <p className="mt-4 mb-5 h-[3.75rem] text-xs text-muted line-clamp-3">
+                            <p className="my-2 min-h-[2.5rem] text-xs leading-5 text-muted line-clamp-2">
                                 {previewById.get(item.id) ?? ''}
                             </p>
-                            <div className="mt-3 flex flex-wrap gap-2">
+                            <div className="mt-2 flex flex-wrap gap-2">
                                 <span className="inline-flex items-center rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-2 py-1 text-[10px] text-muted">
                                     {t('main.search.createdAt')} {formatDate(item.created_at)}
                                 </span>
@@ -676,7 +676,7 @@ export function KnowledgeSearchCard({ inputId }: KnowledgeSearchCardProps) {
                 )}
             </div>
             {topicRows.length ? (
-                <aside className="hidden xl:block">
+                <aside className="hidden min-[1760px]:block">
                     <div
                         className="rounded-2xl bg-[color:var(--color-surface)]/70 p-4 xl:fixed xl:top-40 xl:w-56"
                         style={{

@@ -10,24 +10,15 @@ from hippobox.core.bootstrap_admin import ensure_admin_for_login_disabled, ensur
 from hippobox.core.database import dispose_db, init_db
 from hippobox.core.logging_config import setup_logger
 from hippobox.core.redis import RedisManager
+from hippobox.core.request_context import RequestContextMiddleware
 from hippobox.core.settings import SETTINGS
+from hippobox.errors.service import ServiceException, exceptions_to_http
 from hippobox.rag.embedding import Embedding
 from hippobox.rag.qdrant import Qdrant
 from hippobox.routers.v1 import admin, api_key, auth, knowledge, topic
 from hippobox.routers.v1.knowledge import OperationID
 
 log = logging.getLogger("hippobox")
-
-print(
-    "  _    _ _                   ____            \n"
-    " | |  | (_)                 |  _ \\           \n"
-    " | |__| |_ _ __  _ __   ___ | |_) | _____  __\n"
-    " |  __  | | '_ \\| '_ \\ / _ \\|  _ < / _ \\/\\/ /\n"
-    " | |  | | | |_) | |_) | (_) | |_) | (_) >  < \n"
-    " |_|  |_|_| .__/| .__/ \\___/|____/ \\___/_/\\_\\\n"
-    "          | |   | |                           \n"
-    "          |_|   |_|                           \n"
-)
 
 
 @asynccontextmanager
@@ -69,6 +60,10 @@ async def lifespan(app: FastAPI):
     try:
         yield
     finally:
+        if getattr(app.state, "QDRANT", None) is not None:
+            app.state.QDRANT.client.close()
+        if getattr(app.state, "EMBEDDING", None) is not None:
+            app.state.EMBEDDING.client.close()
         await dispose_db()
         await RedisManager.close()
         log.info("HippoBox Server Lifespan Shutdown")
@@ -84,6 +79,13 @@ def create_app() -> FastAPI:
         redoc_url="/redoc" if SETTINGS.SWAGGER_ENABLED else None,
         openapi_url="/openapi.json" if SETTINGS.SWAGGER_ENABLED else None,
     )
+
+    app.add_middleware(RequestContextMiddleware)
+
+    @app.exception_handler(ServiceException)
+    async def service_handler(request, exc):
+        error = exceptions_to_http(exc)
+        return JSONResponse(status_code=error.status_code, content={"detail": error.detail})
 
     @app.exception_handler(Exception)
     async def default_handler(request, exc):
@@ -135,10 +137,11 @@ def create_app() -> FastAPI:
     mcp = FastApiMCP(
         app,
         include_operations=include_operations,
+        headers=["authorization", "x-request-id"],
     )
     mcp.mount_http()
     log.info("MCP tools registered.")
-    log.info("registered tools: ", mcp.tools)
+    log.debug("Registered %d MCP tools", len(mcp.tools))
 
     def normalize_base_path(value: str) -> str:
         path = value.strip()
@@ -155,6 +158,7 @@ def create_app() -> FastAPI:
     @app.get("/config")
     async def app_config():
         return {
+            "app_mode": SETTINGS.APP_MODE,
             "login_enabled": SETTINGS.LOGIN_ENABLED,
             "email_enabled": SETTINGS.EMAIL_ENABLED,
             "vdb_enabled": SETTINGS.VDB_ENABLED,
@@ -178,9 +182,12 @@ def create_app() -> FastAPI:
         @app.exception_handler(404)
         async def spa_fallback(request, exc):
             accepts_html = "text/html" in request.headers.get("accept", "")
-            is_frontend_path = frontend_base_path == "/" or request.url.path.startswith(frontend_base_path)
+            is_frontend_path = frontend_base_path == "/" or (
+                request.url.path == frontend_base_path or request.url.path.startswith(frontend_base_path + "/")
+            )
 
-            if request.method in {"GET", "HEAD"} and accepts_html and is_frontend_path:
+            reserved = request.url.path == "/api" or request.url.path.startswith(("/api/", "/mcp", "/assets/"))
+            if request.method in {"GET", "HEAD"} and accepts_html and is_frontend_path and not reserved:
                 index_path = static_files_dist / "index.html"
                 if index_path.exists():
                     return FileResponse(index_path)

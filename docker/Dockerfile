@@ -12,7 +12,7 @@ FROM python:3.13-slim AS backend-builder
 RUN apt-get update && apt-get upgrade -y && apt-get clean
 
 WORKDIR /app
-RUN pip install --no-cache-dir hatch
+RUN pip install --no-cache-dir hatch uv
 
 COPY README.md ./
 COPY src/backend/ ./src/backend/
@@ -20,6 +20,7 @@ COPY --from=frontend-builder /frontend/dist/ ./src/backend/hippobox/static/dist/
 
 WORKDIR /app/src/backend
 RUN HIPPOBOX_SKIP_FRONTEND_BUILD=1 hatch build -t wheel
+RUN uv export --frozen --no-dev --no-emit-project -o /app/requirements.txt
 
 # 3rd stage: Final execution stage
 FROM python:3.13-slim
@@ -27,7 +28,8 @@ RUN apt-get update && apt-get upgrade -y && apt-get clean
 WORKDIR /app
 
 COPY --from=backend-builder app/src/backend/dist/*.whl ./
-RUN pip install --no-cache-dir *.whl && rm *.whl
+COPY --from=backend-builder /app/requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir --require-hashes -r requirements.txt && pip install --no-cache-dir --no-deps *.whl && rm *.whl requirements.txt
 
 ENV PYTHONUNBUFFERED=1
 EXPOSE 8000

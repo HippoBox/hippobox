@@ -21,7 +21,7 @@ export function Input({
             {label ? (
                 <label
                     htmlFor={id}
-                    className="text-xs font-semibold uppercase tracking-[0.25em] text-muted"
+                    className="text-xs font-semibold uppercase tracking-[0.12em] text-muted"
                 >
                     {label}
                 </label>

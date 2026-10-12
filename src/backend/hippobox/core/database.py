@@ -30,7 +30,7 @@ def _create_engine():
             cursor.execute("PRAGMA foreign_keys=ON")
             cursor.close()
 
-        log.info(f"Using database: {db_url}")
+        log.info("Using configured database")
         return engine
 
     engine = create_async_engine(
@@ -39,7 +39,7 @@ def _create_engine():
         future=True,
         pool_pre_ping=True,
     )
-    log.info(f"Using database: {db_url}")
+    log.info("Using configured database")
     return engine
 
 
@@ -72,8 +72,11 @@ async def init_db():
 
 
 async def dispose_db():
-    engine = get_engine()
-    await engine.dispose()
+    global _ENGINE, _SESSION_FACTORY
+    if _ENGINE is not None:
+        await _ENGINE.dispose()
+    _ENGINE = None
+    _SESSION_FACTORY = None
     log.info("Database engine disposed")
 
 

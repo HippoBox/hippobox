@@ -26,7 +26,7 @@ class RedisManager:
                     decode_responses=True,
                 )
             else:
-                log.info(f"Connecting Redis -> {SETTINGS.REDIS_URL}")
+                log.info("Connecting configured Redis")
                 client = redis.from_url(
                     SETTINGS.REDIS_URL,
                     encoding="utf-8",

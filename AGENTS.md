@@ -41,14 +41,19 @@
 
 ## Linting and formatting
 - `cd src/backend`
-- `uv run black .`
-- `uv run isort .`
-- `uv run flake8 .`
+- `uv run ruff check .`
+- `uv run ruff format --check .`
+- `make backend-check` from the root uses the installed environment without rebuilding the package.
 
 ## Tests
-- No automated tests found in the repository.
+- `make verify-plan` describes the local checks; `make verify` runs lint/format, API contracts, backend tests, browser flows, frontend/package build and installed-package smoke tests.
+- Install Chromium once with `cd src/frontend && npx playwright install chromium`.
+- `make test-migrations-postgres` uses a disposable Docker container to validate the existing PostgreSQL Alembic history.
+- Tests use temporary databases and memory Redis. Never point tests at developer/production storage.
+- Blueprint4Agent is read-only; do not run builds, formatters, hooks or installation there.
+- Preserve HippoBox's existing structure, theme, UI family and icons; adapt useful Blueprint patterns selectively.
 
 ## Coding conventions
 - Use async SQLAlchemy sessions from `hippobox.core.database.get_db()`.
 - Keep API routes in `hippobox/routers/v1`, business logic in `hippobox/services`, and data models in `hippobox/models`.
-- Line length is 120 (Black/Isort configuration).
+- Line length is 120 (Ruff configuration).

@@ -104,11 +104,12 @@ class Qdrant:
             points_selector=models.PointIdsList(points=ids),
         )
 
-    def search(self, name: str, vector: list[float], limit: int = 5):
+    def search(self, name: str, vector: list[float], limit: int = 5, *, allowed_ids: list[int]):
         cname = self._full_name(name)
         result = self.client.query_points(
             collection_name=cname,
             query=vector,
+            query_filter=models.Filter(must=[models.HasIdCondition(has_id=allowed_ids)]),
             limit=limit,
         )
 

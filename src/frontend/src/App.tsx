@@ -7,6 +7,7 @@ import { LoadingPage } from './pages/LoadingPage';
 import { createAppRouter } from './routes';
 import { useAuthConfig } from './hooks/useFeatures';
 import { getRuntimeConfig } from './config/runtime';
+import { ServerUnavailablePage } from './pages/ServerUnavailablePage';
 import { StandaloneNotFound } from './pages/StandaloneNotFound';
 
 function App() {
@@ -14,7 +15,13 @@ function App() {
     const [language, setLanguage] = useState<Language>(() =>
         supportedLanguages.includes(i18n.language as Language) ? (i18n.language as Language) : 'en',
     );
-    const { data: appConfig, isLoading: isConfigLoading } = useAuthConfig();
+    const {
+        data: appConfig,
+        isLoading: isConfigLoading,
+        isError: isConfigError,
+        isFetching,
+        refetch,
+    } = useAuthConfig();
     const router = useMemo(() => {
         const runtime = getRuntimeConfig();
         const basePath = appConfig?.frontend_base_path ?? runtime.frontendBasePath;
@@ -62,6 +69,10 @@ function App() {
             i18n.off('languageChanged', handleLanguageChange);
         };
     }, [i18n]);
+
+    if (isConfigError && !appConfig) {
+        return <ServerUnavailablePage retry={() => void refetch()} pending={isFetching} />;
+    }
 
     if (isConfigLoading && !appConfig) {
         return <LoadingPage />;

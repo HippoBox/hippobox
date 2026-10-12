@@ -3,920 +3,51 @@
  * Do not make direct changes to the file.
  */
 
+
 export interface paths {
-    '/api/v1/auth/me': {
-        /** Read Users Me */
-        get: operations['read_users_me_api_v1_auth_me_get'];
-        /**
-         * Update Profile
-         * @description Update the current user's profile.
-         */
-        patch: operations['update_profile_api_v1_auth_me_patch'];
-    };
-    '/api/v1/auth/me/guide': {
-        /**
-         * Update Guide Seen
-         * @description Update the guide seen state for the current user.
-         */
-        patch: operations['update_guide_seen_api_v1_auth_me_guide_patch'];
-    };
-    '/api/v1/auth/signup': {
-        /**
-         * Signup
-         * @description Register a new user account.
-         *
-         *     The input should include:
-         *     - email: Valid email address
-         *     - password: Raw password (will be hashed)
-         *     - name: User's display name
-         *
-         *     ### Returns:
-         * `
-         *         user (UserResponse): The successfully created user object (unverified).
-         *
-         *     This endpoint creates a DB entry, hashes the password,
-         *     and triggers an asynchronous email verification process.
-         */
-        post: operations['signup_api_v1_auth_signup_post'];
-    };
-    '/api/v1/auth/login': {
-        /**
-         * Login
-         * @description Authenticate a user and issue a JWT access token.
-         *
-         * ### Args:
-         *
-         *     form (LoginForm): Email and password credentials.
-         *
-         * ### Returns:
-         *
-         *     token (LoginTokenResponse): Access token, refresh token, type, and user info.
-         *
-         * This endpoint:
-         * - Verifies credentials against the database.
-         * - Checks for Redis-based login limits (brute-force protection).
-         * - Updates last login timestamp.
-         */
-        post: operations['login_api_v1_auth_login_post'];
-    };
-    '/api/v1/auth/logout': {
-        /**
-         * Logout
-         * @description Log out the current user by invalidating their refresh token.
-         *
-         * ### Requirements:
-         *
-         *     Authentication header (Bearer Token) is required.
-         *
-         * ### Returns:
-         *
-         *     dict: Success message.
-         *
-         * This removes the refresh token from Redis, effectively preventing
-         * future access token renewals without re-login.
-         */
-        post: operations['logout_api_v1_auth_logout_post'];
-    };
-    '/api/v1/auth/refresh': {
-        /**
-         * Refresh Token
-         * @description Renew access token using a valid refresh token.
-         *
-         * ### Args:
-         *
-         *     refresh_token (str): The refresh token issued during login.
-         *     user_id (int): The ID of the user owning the token.
-         *
-         * ### Returns:
-         *
-         *     token (TokenRefreshResponse): A new pair of Access and Refresh tokens.
-         *
-         * This endpoint implements **Refresh Token Rotation**.
-         * The old refresh token is invalidated, and a completely new pair is issued.
-         */
-        post: operations['refresh_token_api_v1_auth_refresh_post'];
-    };
-    '/api/v1/auth/verify-email/{token}': {
-        /**
-         * Verify Email
-         * @description Verify a user's email address using a UUID token.
-         *
-         * ### Args:
-         *
-         *     token (str): The verification token sent via email.
-         *
-         * ### Returns:
-         *
-         *     user (UserResponse): The updated user object with `is_verified=True`.
-         *
-         * This checks the token existence in Redis. If valid,
-         * it updates the user status in SQL and invalidates the token.
-         */
-        get: operations['verify_email_api_v1_auth_verify_email__token__get'];
-    };
-    '/api/v1/auth/verify-email/resend': {
-        /**
-         * Resend Verification Email
-         * @description Resend a verification email if the user exists and is not verified.
-         */
-        post: operations['resend_verification_email_api_v1_auth_verify_email_resend_post'];
-    };
-    '/api/v1/auth/password-reset/request': {
-        /**
-         * Request Password Reset
-         * @description Initiate the password reset process.
-         *
-         * ### Args:
-         *
-         * email (str): The email address of the account to reset.
-         *
-         * ### Returns:
-         *
-         *     dict: Success message (even if email is not found, for security).
-         *
-         * Generates a password reset token in Redis and simulates sending an email.
-         */
-        post: operations['request_password_reset_api_v1_auth_password_reset_request_post'];
-    };
-    '/api/v1/auth/password-reset/confirm': {
-        /**
-         * Reset Password
-         * @description Complete the password reset process.
-         *
-         * ### Args:
-         *
-         * token (str): The valid reset token.
-         * new_password (str): The new password to set.
-         *
-         * ### Returns:
-         *
-         *     dict: Status message indicating success.
-         *
-         * Verifies the token from Redis, hashes the new password,
-         * updates the database, and deletes the token.
-         */
-        post: operations['reset_password_api_v1_auth_password_reset_confirm_post'];
-    };
-    '/api/v1/api_key': {
-        /**
-         * List Api Keys
-         * @description Get all API keys owned by the current user.
-         * The response includes `total_requests` but EXCLUDES the raw secret key.
-         */
-        get: operations['list_api_keys_api_v1_api_key_get'];
-        /**
-         * Create Api Key
-         * @description Create a new API Key.
-         *
-         * **WARNING**: This is the ONLY time the full `secret_key` (sk-...) is returned.
-         * The client must save it immediately.
-         */
-        post: operations['create_api_key_api_v1_api_key_post'];
-    };
-    '/api/v1/api_key/{key_id}': {
-        /**
-         * Delete Api Key
-         * @description Permanently delete an API Key.
-         */
-        delete: operations['delete_api_key_api_v1_api_key__key_id__delete'];
-        /**
-         * Update Api Key
-         * @description Update API Key name or active status.
-         */
-        patch: operations['update_api_key_api_v1_api_key__key_id__patch'];
-    };
-    '/api/v1/knowledge/search': {
-        /**
-         * Search Knowledge
-         * @description Search stored knowledge entries.
-         *
-         * ### Args:
-         *
-         *     query (str): Semantic search query.
-         *     topic (str | None = None): Optional topic filter.
-         *     tag (str | None = None): Optional tag filter.
-         *     limit (int = 1): Number of search results to return.
-         *
-         * ### Returns:
-         *
-         *     knowledge (KnowledgeResponse): The successfully retrieved knowledge object.
-         *
-         * This endpoint performs vector similarity search on Qdrant
-         * and returns ranked knowledge entries.
-         */
-        get: operations['search_knowledge'];
-    };
-    '/api/v1/knowledge/': {
-        /**
-         * Create Knowledge
-         * @description Create a new knowledge entry.
-         *
-         * The input should include:
-         * - topic: A category or domain of the knowledge
-         * - tags: Keyword list
-         * - title: Short title summarizing the content
-         * - content: The full text or note to be stored
-         *
-         * ### Returns:
-         *
-         *     knowledge (KnowledgeResponse): The successfully created knowledge object.
-         *
-         * This endpoint stores the entry in SQL and generates an embedding
-         * which is then indexed into Qdrant for similarity search.
-         */
-        post: operations['create_knowledge'];
-    };
-    '/api/v1/knowledge/list': {
-        /**
-         * Get Knowledge List
-         * @description Retrieve all stored knowledge entries.
-         *
-         * ### Returns:
-         *
-         *     List of all knowledge entries sorted by creation date.
-         *
-         * Useful for browsing or building UI item lists.
-         */
-        get: operations['get_knowledge_list'];
-    };
-    '/api/v1/knowledge/{knowledge_id}': {
-        /**
-         * Get Knowledge
-         * @description Retrieve a single knowledge entry by its numeric ID.
-         *
-         * ### Returns:
-         *
-         *     knowledge retrieved by own id.
-         *
-         * This endpoint is used for:
-         * - Detailed page views
-         * - Fetching a specific note
-         * - MCP tool consumption by ID
-         */
-        get: operations['get_knowledge_api_v1_knowledge__knowledge_id__get'];
-        /**
-         * Update Knowledge
-         * @description Update an existing knowledge entry.
-         *
-         * Updatable fields:
-         * - title
-         * - content
-         * - topic
-         * - tags
-         *
-         * After updating SQL, the embedding is regenerated
-         * and re-indexed into Qdrant.
-         */
-        put: operations['update_knowledge'];
-        /**
-         * Delete Knowledge
-         * @description Delete a knowledge entry.
-         *
-         * Removes:
-         * - SQL row
-         * - Embedding vector from Qdrant index
-         */
-        delete: operations['delete_knowledge'];
-    };
-    '/api/v1/knowledge/title/{title}': {
-        /**
-         * Get Knowledge By Title
-         * @description Retrieve a knowledge entry by its exact title.
-         *
-         * Useful when:
-         * - Titles are unique identifiers
-         * - MCP invokes tool with natural language title
-         */
-        get: operations['get_knowledge_by_title'];
-    };
-    '/api/v1/knowledge/topic/{topic}': {
-        /**
-         * Get By Topic
-         * @description Retrieve all knowledge entries under a specific topic.
-         * Topics group entries into categories.
-         *
-         * Examples:
-         * - 'docker'
-         * - 'fastapi'
-         * - 'database'
-         */
-        get: operations['get_knowledge_by_topic'];
-    };
-    '/api/v1/knowledge/tag/{tag}': {
-        /**
-         * Get By Tag
-         * @description Retrieve all knowledge entries associated with a given tag.
-         * Tags represent keyword-level grouping, separate from topics.
-         *
-         * Examples:
-         * - 'server'
-         * - 'llm'
-         * - 'react'
-         */
-        get: operations['get_knowledge_by_tag'];
-    };
-    '/api/v1/topic': {
-        /**
-         * List Topics
-         * @description Retrieve all topics for the current user.
-         */
-        get: operations['list_topics_api_v1_topic_get'];
-        /**
-         * Create Topic
-         * @description Create a new topic.
-         */
-        post: operations['create_topic_api_v1_topic_post'];
-    };
-    '/api/v1/topic/{topic_id}': {
-        /**
-         * Delete Topic
-         * @description Delete a topic. Knowledge entries are reassigned to the default topic.
-         */
-        delete: operations['delete_topic_api_v1_topic__topic_id__delete'];
-        /**
-         * Update Topic
-         * @description Update topic name.
-         */
-        patch: operations['update_topic_api_v1_topic__topic_id__patch'];
-    };
-    '/api/v1/admin/users': {
-        /**
-         * List Users
-         * @description Retrieve all users (admin-only).
-         */
-        get: operations['list_users_api_v1_admin_users_get'];
-    };
-    '/api/v1/admin/users/{user_id}': {
-        /**
-         * Delete User
-         * @description Permanently delete a user and related data.
-         */
-        delete: operations['delete_user_api_v1_admin_users__user_id__delete'];
-    };
-    '/ping': {
-        /** Ping */
-        get: operations['ping_tool'];
-    };
-    '/config': {
-        /** App Config */
-        get: operations['app_config_config_get'];
-    };
-}
-
-export type webhooks = Record<string, never>;
-
-export interface components {
-    schemas: {
-        /** APIKeyCreatedResponse */
-        APIKeyCreatedResponse: {
-            /** Id */
-            id: number;
-            /** Name */
-            name: string;
-            /** Access Key */
-            access_key: string;
-            /**
-             * Secret Key
-             * @description RAW SECRET KEY - Shown only once!
-             */
-            secret_key: string;
-            /**
-             * Total Requests
-             * @description Total number of requests made using this key
-             */
-            total_requests: number;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-        };
-        /** APIKeyResponse */
-        APIKeyResponse: {
-            /** Id */
-            id: number;
-            /** User Id */
-            user_id: number;
-            /** Name */
-            name: string;
-            /**
-             * Access Key
-             * @description Prefix of the key
-             */
-            access_key: string;
-            /**
-             * Total Requests
-             * @description Total number of requests made using this key
-             */
-            total_requests: number;
-            /** Is Active */
-            is_active: boolean;
-            /** Last Used At */
-            last_used_at: string | null;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-        };
-        /** APIKeyUpdate */
-        APIKeyUpdate: {
-            /**
-             * Name
-             * @description Updated name
-             */
-            name?: string | null;
-            /**
-             * Is Active
-             * @description Update active status
-             */
-            is_active?: boolean | null;
-        };
-        /** Body_create_api_key_api_v1_api_key_post */
-        Body_create_api_key_api_v1_api_key_post: {
-            /**
-             * Name
-             * @description Name for the new API Key
-             */
-            name: string;
-        };
-        /** Body_refresh_token_api_v1_auth_refresh_post */
-        Body_refresh_token_api_v1_auth_refresh_post: {
-            /** Refresh Token */
-            refresh_token?: string | null;
-            /** User Id */
-            user_id?: number | null;
-        };
-        /** EmailVerificationResend */
-        EmailVerificationResend: {
-            /**
-             * Email
-             * @description Email address used to resend a verification link
-             */
-            email: string;
-        };
-        /** GuideSeenUpdateForm */
-        GuideSeenUpdateForm: {
-            /**
-             * Seen
-             * @description Whether the onboarding guide has been seen
-             * @default true
-             */
-            seen?: boolean;
-        };
-        /** HTTPValidationError */
-        HTTPValidationError: {
-            /** Detail */
-            detail?: components['schemas']['ValidationError'][];
-        };
-        /** KnowledgeForm */
-        KnowledgeForm: {
-            /**
-             * Topic
-             * @description Topic or category under which the knowledge will be stored
-             */
-            topic?: string | null;
-            /**
-             * Tags
-             * @description Keywords for search and categorization
-             */
-            tags?: string[];
-            /**
-             * Title
-             * @description A concise title summarizing the content
-             */
-            title: string;
-            /**
-             * Content
-             * @description The raw text body or content to be stored as knowledge
-             */
-            content: string;
-        };
-        /** KnowledgeResponse */
-        KnowledgeResponse: {
-            /**
-             * Id
-             * @description Unique identifier of the knowledge entry
-             */
-            id: number;
-            /**
-             * User Id
-             * @description Owner's user identifier
-             */
-            user_id: number;
-            /**
-             * Topic
-             * @description Topic or category of this knowledge
-             */
-            topic: string;
-            /**
-             * Tags
-             * @description Keywords associated with this knowledge
-             */
-            tags?: string[];
-            /**
-             * Title
-             * @description Title summarizing the content
-             */
-            title: string;
-            /**
-             * Content
-             * @description Full text content of the knowledge entry
-             */
-            content: string;
-            /**
-             * Created At
-             * Format: date-time
-             * @description Timestamp when the entry was created
-             */
-            created_at: string;
-            /**
-             * Updated At
-             * Format: date-time
-             * @description Timestamp when the entry was last updated
-             */
-            updated_at: string;
-        };
-        /** KnowledgeUpdate */
-        KnowledgeUpdate: {
-            /**
-             * Topic
-             * @description Updated topic, if changed
-             */
-            topic?: string | null;
-            /**
-             * Tags
-             * @description Updated keyword list, if changed
-             */
-            tags?: string[] | null;
-            /**
-             * Title
-             * @description Updated title, if changed
-             */
-            title?: string | null;
-            /**
-             * Content
-             * @description Updated content text, if changed
-             */
-            content?: string | null;
-        };
-        /** LoginForm */
-        LoginForm: {
-            /**
-             * Email
-             * @description Email used for login
-             */
-            email: string;
-            /**
-             * Password
-             * @description Raw password for login (8-64 chars, uppercase+digit+symbol, no spaces)
-             */
-            password: string;
-            /**
-             * Remember Me
-             * @description If true, issue a persistent refresh cookie for login persistence
-             * @default false
-             */
-            remember_me?: boolean;
-        };
-        /** LoginTokenResponse */
-        LoginTokenResponse: {
-            /**
-             * Access Token
-             * @description JWT access token used for authentication
-             */
-            access_token: string;
-            /**
-             * Refresh Token
-             * @description Refresh token used to renew access tokens
-             */
-            refresh_token: string;
-            /**
-             * Token Type
-             * @description Type of the token (e.g., 'bearer')
-             * @default bearer
-             */
-            token_type?: string;
-            /** @description Authenticated user information associated with the token */
-            user: components['schemas']['UserResponse'];
-        };
-        /** PasswordResetConfirm */
-        PasswordResetConfirm: {
-            /**
-             * Token
-             * @description Valid password reset token
-             */
-            token: string;
-            /**
-             * New Password
-             * @description New password to set (8-64 chars, uppercase+digit+symbol, no spaces)
-             */
-            new_password: string;
-        };
-        /** PasswordResetRequest */
-        PasswordResetRequest: {
-            /**
-             * Email
-             * @description Email address used to request a password reset
-             */
-            email: string;
-        };
-        /** ProfileUpdateForm */
-        ProfileUpdateForm: {
-            /**
-             * Name
-             * @description Updated display name for the user
-             */
-            name: string;
-        };
-        /** SignupForm */
-        SignupForm: {
-            /**
-             * Email
-             * @description Email address used to register the new user
-             */
-            email: string;
-            /**
-             * Password
-             * @description Raw password that will be hashed (8-64 chars, uppercase+digit+symbol, no spaces)
-             */
-            password: string;
-            /**
-             * Name
-             * @description Display name assigned to the new user
-             */
-            name: string;
-        };
-        /** TokenRefreshResponse */
-        TokenRefreshResponse: {
-            /**
-             * Access Token
-             * @description JWT access token used for authentication
-             */
-            access_token: string;
-            /**
-             * Refresh Token
-             * @description Refresh token used to renew access tokens
-             */
-            refresh_token: string;
-            /**
-             * Token Type
-             * @description Type of the token (e.g., 'bearer')
-             * @default bearer
-             */
-            token_type?: string;
-        };
-        /** TopicForm */
-        TopicForm: {
-            /**
-             * Name
-             * @description Topic name
-             */
-            name: string;
-        };
-        /** TopicResponse */
-        TopicResponse: {
-            /**
-             * Id
-             * @description Topic identifier
-             */
-            id: number;
-            /**
-             * User Id
-             * @description Owner's user identifier
-             */
-            user_id: number;
-            /**
-             * Name
-             * @description Topic name
-             */
-            name: string;
-            /**
-             * Is Default
-             * @description Whether this is the default topic
-             * @default false
-             */
-            is_default?: boolean;
-            /**
-             * Created At
-             * Format: date-time
-             * @description Timestamp when the topic was created
-             */
-            created_at: string;
-        };
-        /** TopicUpdate */
-        TopicUpdate: {
-            /**
-             * Name
-             * @description Updated topic name
-             */
-            name?: string | null;
-        };
-        /** UserModel */
-        UserModel: {
-            /**
-             * Id
-             * @description Unique identifier of the user entry
-             */
-            id: number;
-            /**
-             * Email
-             * @description User's unique email address, used for authentication and identification
-             */
-            email: string;
-            /**
-             * Name
-             * @description Display name of the user
-             */
-            name: string;
-            /** @description Role assigned to the user */
-            role: components['schemas']['UserRole'];
-            /**
-             * Is Active
-             * @description Indicates whether the user account is active
-             */
-            is_active: boolean;
-            /**
-             * Is Verified
-             * @description Indicates whether the user's email has been verified successfully
-             */
-            is_verified: boolean;
-            /**
-             * Guide Seen
-             * @description Whether the onboarding guide has been seen
-             * @default false
-             */
-            guide_seen?: boolean;
-            /**
-             * Created At
-             * Format: date-time
-             * @description Timestamp indicating when the user account was created
-             */
-            created_at: string;
-            /**
-             * Updated At
-             * Format: date-time
-             * @description Timestamp indicating the most recent update to the user record
-             */
-            updated_at: string;
-        };
-        /** UserResponse */
-        UserResponse: {
-            /**
-             * Id
-             * @description Unique identifier of the user
-             */
-            id: number;
-            /**
-             * Email
-             * @description User's registered email address
-             */
-            email: string;
-            /**
-             * Name
-             * @description Display name of the user
-             */
-            name: string;
-            /** @description Role assigned to the user */
-            role: components['schemas']['UserRole'];
-            /**
-             * Created At
-             * Format: date-time
-             * @description Timestamp when the user account was created
-             */
-            created_at: string;
-            /**
-             * Guide Seen
-             * @description Whether the onboarding guide has been seen
-             * @default false
-             */
-            guide_seen?: boolean;
-        };
-        /**
-         * UserRole
-         * @enum {string}
-         */
-        UserRole: 'admin' | 'user';
-        /** ValidationError */
-        ValidationError: {
-            /** Location */
-            loc: (string | number)[];
-            /** Message */
-            msg: string;
-            /** Error Type */
-            type: string;
-        };
-    };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
-}
-
-export type $defs = Record<string, never>;
-
-export type external = Record<string, never>;
-
-export interface operations {
-    /** Read Users Me */
-    read_users_me_api_v1_auth_me_get: {
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': components['schemas']['UserResponse'];
-                };
-            };
-        };
-    };
+  "/api/v1/admin/users": {
     /**
-     * Update Profile
-     * @description Update the current user's profile.
+     * List Users
+     * @description Retrieve all users (admin-only).
      */
-    update_profile_api_v1_auth_me_patch: {
-        requestBody: {
-            content: {
-                'application/json': components['schemas']['ProfileUpdateForm'];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': components['schemas']['UserResponse'];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                content: {
-                    'application/json': components['schemas']['HTTPValidationError'];
-                };
-            };
-        };
-    };
+    get: operations["list_users_api_v1_admin_users_get"];
+  };
+  "/api/v1/admin/users/{user_id}": {
     /**
-     * Update Guide Seen
-     * @description Update the guide seen state for the current user.
+     * Delete User
+     * @description Permanently delete a user and related data.
      */
-    update_guide_seen_api_v1_auth_me_guide_patch: {
-        requestBody: {
-            content: {
-                'application/json': components['schemas']['GuideSeenUpdateForm'];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': components['schemas']['UserResponse'];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                content: {
-                    'application/json': components['schemas']['HTTPValidationError'];
-                };
-            };
-        };
-    };
+    delete: operations["delete_user_api_v1_admin_users__user_id__delete"];
+  };
+  "/api/v1/api_key": {
     /**
-     * Signup
-     * @description Register a new user account.
-     *
-     *     The input should include:
-     *     - email: Valid email address
-     *     - password: Raw password (will be hashed)
-     *     - name: User's display name
-     *
-     *     ### Returns:
-     * `
-     *         user (UserResponse): The successfully created user object (unverified).
-     *
-     *     This endpoint creates a DB entry, hashes the password,
-     *     and triggers an asynchronous email verification process.
+     * List Api Keys
+     * @description Get all API keys owned by the current user.
+     * The response includes `total_requests` but EXCLUDES the raw secret key.
      */
-    signup_api_v1_auth_signup_post: {
-        requestBody: {
-            content: {
-                'application/json': components['schemas']['SignupForm'];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': components['schemas']['UserResponse'];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                content: {
-                    'application/json': components['schemas']['HTTPValidationError'];
-                };
-            };
-        };
-    };
+    get: operations["list_api_keys_api_v1_api_key_get"];
+    /**
+     * Create Api Key
+     * @description Create a new API Key.
+     *
+     * **WARNING**: This is the ONLY time the full `secret_key` (sk-...) is returned.
+     * The client must save it immediately.
+     */
+    post: operations["create_api_key_api_v1_api_key_post"];
+  };
+  "/api/v1/api_key/{key_id}": {
+    /**
+     * Delete Api Key
+     * @description Permanently delete an API Key.
+     */
+    delete: operations["delete_api_key_api_v1_api_key__key_id__delete"];
+    /**
+     * Update Api Key
+     * @description Update API Key name or active status.
+     */
+    patch: operations["update_api_key_api_v1_api_key__key_id__patch"];
+  };
+  "/api/v1/auth/login": {
     /**
      * Login
      * @description Authenticate a user and issue a JWT access token.
@@ -934,27 +65,9 @@ export interface operations {
      * - Checks for Redis-based login limits (brute-force protection).
      * - Updates last login timestamp.
      */
-    login_api_v1_auth_login_post: {
-        requestBody: {
-            content: {
-                'application/json': components['schemas']['LoginForm'];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': components['schemas']['LoginTokenResponse'];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                content: {
-                    'application/json': components['schemas']['HTTPValidationError'];
-                };
-            };
-        };
-    };
+    post: operations["login_api_v1_auth_login_post"];
+  };
+  "/api/v1/auth/logout": {
     /**
      * Logout
      * @description Log out the current user by invalidating their refresh token.
@@ -970,152 +83,25 @@ export interface operations {
      * This removes the refresh token from Redis, effectively preventing
      * future access token renewals without re-login.
      */
-    logout_api_v1_auth_logout_post: {
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': unknown;
-                };
-            };
-        };
-    };
+    post: operations["logout_api_v1_auth_logout_post"];
+  };
+  "/api/v1/auth/me": {
+    /** Read Users Me */
+    get: operations["read_users_me_api_v1_auth_me_get"];
     /**
-     * Refresh Token
-     * @description Renew access token using a valid refresh token.
-     *
-     * ### Args:
-     *
-     *     refresh_token (str): The refresh token issued during login.
-     *     user_id (int): The ID of the user owning the token.
-     *
-     * ### Returns:
-     *
-     *     token (TokenRefreshResponse): A new pair of Access and Refresh tokens.
-     *
-     * This endpoint implements **Refresh Token Rotation**.
-     * The old refresh token is invalidated, and a completely new pair is issued.
+     * Update Profile
+     * @description Update the current user's profile.
      */
-    refresh_token_api_v1_auth_refresh_post: {
-        requestBody?: {
-            content: {
-                'application/json': components['schemas']['Body_refresh_token_api_v1_auth_refresh_post'];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': components['schemas']['TokenRefreshResponse'];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                content: {
-                    'application/json': components['schemas']['HTTPValidationError'];
-                };
-            };
-        };
-    };
+    patch: operations["update_profile_api_v1_auth_me_patch"];
+  };
+  "/api/v1/auth/me/guide": {
     /**
-     * Verify Email
-     * @description Verify a user's email address using a UUID token.
-     *
-     * ### Args:
-     *
-     *     token (str): The verification token sent via email.
-     *
-     * ### Returns:
-     *
-     *     user (UserResponse): The updated user object with `is_verified=True`.
-     *
-     * This checks the token existence in Redis. If valid,
-     * it updates the user status in SQL and invalidates the token.
+     * Update Guide Seen
+     * @description Update the guide seen state for the current user.
      */
-    verify_email_api_v1_auth_verify_email__token__get: {
-        parameters: {
-            query?: {
-                redirect?: boolean;
-            };
-            path: {
-                token: string;
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': components['schemas']['UserResponse'];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                content: {
-                    'application/json': components['schemas']['HTTPValidationError'];
-                };
-            };
-        };
-    };
-    /**
-     * Resend Verification Email
-     * @description Resend a verification email if the user exists and is not verified.
-     */
-    resend_verification_email_api_v1_auth_verify_email_resend_post: {
-        requestBody: {
-            content: {
-                'application/json': components['schemas']['EmailVerificationResend'];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                content: {
-                    'application/json': components['schemas']['HTTPValidationError'];
-                };
-            };
-        };
-    };
-    /**
-     * Request Password Reset
-     * @description Initiate the password reset process.
-     *
-     * ### Args:
-     *
-     * email (str): The email address of the account to reset.
-     *
-     * ### Returns:
-     *
-     *     dict: Success message (even if email is not found, for security).
-     *
-     * Generates a password reset token in Redis and simulates sending an email.
-     */
-    request_password_reset_api_v1_auth_password_reset_request_post: {
-        requestBody: {
-            content: {
-                'application/json': components['schemas']['PasswordResetRequest'];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                content: {
-                    'application/json': components['schemas']['HTTPValidationError'];
-                };
-            };
-        };
-    };
+    patch: operations["update_guide_seen_api_v1_auth_me_guide_patch"];
+  };
+  "/api/v1/auth/password-reset/confirm": {
     /**
      * Reset Password
      * @description Complete the password reset process.
@@ -1132,127 +118,122 @@ export interface operations {
      * Verifies the token from Redis, hashes the new password,
      * updates the database, and deletes the token.
      */
-    reset_password_api_v1_auth_password_reset_confirm_post: {
-        requestBody: {
-            content: {
-                'application/json': components['schemas']['PasswordResetConfirm'];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                content: {
-                    'application/json': components['schemas']['HTTPValidationError'];
-                };
-            };
-        };
-    };
+    post: operations["reset_password_api_v1_auth_password_reset_confirm_post"];
+  };
+  "/api/v1/auth/password-reset/request": {
     /**
-     * List Api Keys
-     * @description Get all API keys owned by the current user.
-     * The response includes `total_requests` but EXCLUDES the raw secret key.
-     */
-    list_api_keys_api_v1_api_key_get: {
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': components['schemas']['APIKeyResponse'][];
-                };
-            };
-        };
-    };
-    /**
-     * Create Api Key
-     * @description Create a new API Key.
+     * Request Password Reset
+     * @description Initiate the password reset process.
      *
-     * **WARNING**: This is the ONLY time the full `secret_key` (sk-...) is returned.
-     * The client must save it immediately.
+     * ### Args:
+     *
+     * email (str): The email address of the account to reset.
+     *
+     * ### Returns:
+     *
+     *     dict: Success message (even if email is not found, for security).
+     *
+     * Generates a password reset token in Redis and simulates sending an email.
      */
-    create_api_key_api_v1_api_key_post: {
-        requestBody: {
-            content: {
-                'application/json': components['schemas']['Body_create_api_key_api_v1_api_key_post'];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': components['schemas']['APIKeyCreatedResponse'];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                content: {
-                    'application/json': components['schemas']['HTTPValidationError'];
-                };
-            };
-        };
-    };
+    post: operations["request_password_reset_api_v1_auth_password_reset_request_post"];
+  };
+  "/api/v1/auth/refresh": {
     /**
-     * Delete Api Key
-     * @description Permanently delete an API Key.
+     * Refresh Token
+     * @description Renew access token using a valid refresh token.
+     *
+     * ### Args:
+     *
+     *     refresh_token (str): The refresh token issued during login.
+     *     user_id (int): The ID of the user owning the token.
+     *
+     * ### Returns:
+     *
+     *     token (TokenRefreshResponse): A new pair of Access and Refresh tokens.
+     *
+     * This endpoint implements **Refresh Token Rotation**.
+     * The old refresh token is invalidated, and a completely new pair is issued.
      */
-    delete_api_key_api_v1_api_key__key_id__delete: {
-        parameters: {
-            path: {
-                /** @description ID of the API Key to delete */
-                key_id: number;
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                content: {
-                    'application/json': components['schemas']['HTTPValidationError'];
-                };
-            };
-        };
-    };
+    post: operations["refresh_token_api_v1_auth_refresh_post"];
+  };
+  "/api/v1/auth/signup": {
     /**
-     * Update Api Key
-     * @description Update API Key name or active status.
+     * Signup
+     * @description Register a new user account.
+     *
+     *     The input should include:
+     *     - email: Valid email address
+     *     - password: Raw password (will be hashed)
+     *     - name: User's display name
+     *
+     *     ### Returns:
+     * `
+     *         user (UserResponse): The successfully created user object (unverified).
+     *
+     *     This endpoint creates a DB entry, hashes the password,
+     *     and triggers an asynchronous email verification process.
      */
-    update_api_key_api_v1_api_key__key_id__patch: {
-        parameters: {
-            path: {
-                /** @description ID of the API Key to update */
-                key_id: number;
-            };
-        };
-        requestBody: {
-            content: {
-                'application/json': components['schemas']['APIKeyUpdate'];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': components['schemas']['APIKeyResponse'];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                content: {
-                    'application/json': components['schemas']['HTTPValidationError'];
-                };
-            };
-        };
-    };
+    post: operations["signup_api_v1_auth_signup_post"];
+  };
+  "/api/v1/auth/verify-email/resend": {
+    /**
+     * Resend Verification Email
+     * @description Resend a verification email if the user exists and is not verified.
+     */
+    post: operations["resend_verification_email_api_v1_auth_verify_email_resend_post"];
+  };
+  "/api/v1/auth/verify-email/{token}": {
+    /**
+     * Verify Email
+     * @description Verify a user's email address using a UUID token.
+     *
+     * ### Args:
+     *
+     *     token (str): The verification token sent via email.
+     *
+     * ### Returns:
+     *
+     *     user (UserResponse): The updated user object with `is_verified=True`.
+     *
+     * This checks the token existence in Redis. If valid,
+     * it updates the user status in SQL and invalidates the token.
+     */
+    get: operations["verify_email_api_v1_auth_verify_email__token__get"];
+  };
+  "/api/v1/knowledge/": {
+    /**
+     * Create Knowledge
+     * @description Create a new knowledge entry.
+     *
+     * The input should include:
+     * - topic: A category or domain of the knowledge
+     * - tags: Keyword list
+     * - title: Short title summarizing the content
+     * - content: The full text or note to be stored
+     *
+     * ### Returns:
+     *
+     *     knowledge (KnowledgeResponse): The successfully created knowledge object.
+     *
+     * This endpoint stores the entry in SQL and generates an embedding
+     * which is then indexed into Qdrant for similarity search.
+     */
+    post: operations["create_knowledge"];
+  };
+  "/api/v1/knowledge/list": {
+    /**
+     * Get Knowledge List
+     * @description Retrieve all stored knowledge entries.
+     *
+     * ### Returns:
+     *
+     *     List of all knowledge entries sorted by creation date.
+     *
+     * Useful for browsing or building UI item lists.
+     */
+    get: operations["get_knowledge_list"];
+  };
+  "/api/v1/knowledge/search": {
     /**
      * Search Knowledge
      * @description Search stored knowledge entries.
@@ -1271,88 +252,46 @@ export interface operations {
      * This endpoint performs vector similarity search on Qdrant
      * and returns ranked knowledge entries.
      */
-    search_knowledge: {
-        parameters: {
-            query: {
-                query: string;
-                topic?: string | null;
-                tag?: string | null;
-                limit?: number;
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': components['schemas']['KnowledgeResponse'][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                content: {
-                    'application/json': components['schemas']['HTTPValidationError'];
-                };
-            };
-        };
-    };
+    get: operations["search_knowledge"];
+  };
+  "/api/v1/knowledge/tag/{tag}": {
     /**
-     * Create Knowledge
-     * @description Create a new knowledge entry.
+     * Get By Tag
+     * @description Retrieve all knowledge entries associated with a given tag.
+     * Tags represent keyword-level grouping, separate from topics.
      *
-     * The input should include:
-     * - topic: A category or domain of the knowledge
-     * - tags: Keyword list
-     * - title: Short title summarizing the content
-     * - content: The full text or note to be stored
-     *
-     * ### Returns:
-     *
-     *     knowledge (KnowledgeResponse): The successfully created knowledge object.
-     *
-     * This endpoint stores the entry in SQL and generates an embedding
-     * which is then indexed into Qdrant for similarity search.
+     * Examples:
+     * - 'server'
+     * - 'llm'
+     * - 'react'
      */
-    create_knowledge: {
-        requestBody: {
-            content: {
-                'application/json': components['schemas']['KnowledgeForm'];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': components['schemas']['KnowledgeResponse'];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                content: {
-                    'application/json': components['schemas']['HTTPValidationError'];
-                };
-            };
-        };
-    };
+    get: operations["get_knowledge_by_tag"];
+  };
+  "/api/v1/knowledge/title/{title}": {
     /**
-     * Get Knowledge List
-     * @description Retrieve all stored knowledge entries.
+     * Get Knowledge By Title
+     * @description Retrieve a knowledge entry by its exact title.
      *
-     * ### Returns:
-     *
-     *     List of all knowledge entries sorted by creation date.
-     *
-     * Useful for browsing or building UI item lists.
+     * Useful when:
+     * - Titles are unique identifiers
+     * - MCP invokes tool with natural language title
      */
-    get_knowledge_list: {
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': components['schemas']['KnowledgeResponse'][];
-                };
-            };
-        };
-    };
+    get: operations["get_knowledge_by_title"];
+  };
+  "/api/v1/knowledge/topic/{topic}": {
+    /**
+     * Get By Topic
+     * @description Retrieve all knowledge entries under a specific topic.
+     * Topics group entries into categories.
+     *
+     * Examples:
+     * - 'docker'
+     * - 'fastapi'
+     * - 'database'
+     */
+    get: operations["get_knowledge_by_topic"];
+  };
+  "/api/v1/knowledge/{knowledge_id}": {
     /**
      * Get Knowledge
      * @description Retrieve a single knowledge entry by its numeric ID.
@@ -1366,27 +305,7 @@ export interface operations {
      * - Fetching a specific note
      * - MCP tool consumption by ID
      */
-    get_knowledge_api_v1_knowledge__knowledge_id__get: {
-        parameters: {
-            path: {
-                knowledge_id: number;
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': components['schemas']['KnowledgeResponse'];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                content: {
-                    'application/json': components['schemas']['HTTPValidationError'];
-                };
-            };
-        };
-    };
+    get: operations["get_knowledge_api_v1_knowledge__knowledge_id__get"];
     /**
      * Update Knowledge
      * @description Update an existing knowledge entry.
@@ -1400,32 +319,7 @@ export interface operations {
      * After updating SQL, the embedding is regenerated
      * and re-indexed into Qdrant.
      */
-    update_knowledge: {
-        parameters: {
-            path: {
-                knowledge_id: number;
-            };
-        };
-        requestBody: {
-            content: {
-                'application/json': components['schemas']['KnowledgeUpdate'];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': components['schemas']['KnowledgeResponse'];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                content: {
-                    'application/json': components['schemas']['HTTPValidationError'];
-                };
-            };
-        };
-    };
+    put: operations["update_knowledge"];
     /**
      * Delete Knowledge
      * @description Delete a knowledge entry.
@@ -1434,274 +328,1386 @@ export interface operations {
      * - SQL row
      * - Embedding vector from Qdrant index
      */
-    delete_knowledge: {
-        parameters: {
-            path: {
-                knowledge_id: number;
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                content: {
-                    'application/json': components['schemas']['HTTPValidationError'];
-                };
-            };
-        };
-    };
-    /**
-     * Get Knowledge By Title
-     * @description Retrieve a knowledge entry by its exact title.
-     *
-     * Useful when:
-     * - Titles are unique identifiers
-     * - MCP invokes tool with natural language title
-     */
-    get_knowledge_by_title: {
-        parameters: {
-            path: {
-                title: string;
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': components['schemas']['KnowledgeResponse'];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                content: {
-                    'application/json': components['schemas']['HTTPValidationError'];
-                };
-            };
-        };
-    };
-    /**
-     * Get By Topic
-     * @description Retrieve all knowledge entries under a specific topic.
-     * Topics group entries into categories.
-     *
-     * Examples:
-     * - 'docker'
-     * - 'fastapi'
-     * - 'database'
-     */
-    get_knowledge_by_topic: {
-        parameters: {
-            path: {
-                topic: string;
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': components['schemas']['KnowledgeResponse'][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                content: {
-                    'application/json': components['schemas']['HTTPValidationError'];
-                };
-            };
-        };
-    };
-    /**
-     * Get By Tag
-     * @description Retrieve all knowledge entries associated with a given tag.
-     * Tags represent keyword-level grouping, separate from topics.
-     *
-     * Examples:
-     * - 'server'
-     * - 'llm'
-     * - 'react'
-     */
-    get_knowledge_by_tag: {
-        parameters: {
-            path: {
-                tag: string;
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': components['schemas']['KnowledgeResponse'][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                content: {
-                    'application/json': components['schemas']['HTTPValidationError'];
-                };
-            };
-        };
-    };
+    delete: operations["delete_knowledge"];
+  };
+  "/api/v1/topic": {
     /**
      * List Topics
      * @description Retrieve all topics for the current user.
      */
-    list_topics_api_v1_topic_get: {
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': components['schemas']['TopicResponse'][];
-                };
-            };
-        };
-    };
+    get: operations["list_topics_api_v1_topic_get"];
     /**
      * Create Topic
      * @description Create a new topic.
      */
-    create_topic_api_v1_topic_post: {
-        requestBody: {
-            content: {
-                'application/json': components['schemas']['TopicForm'];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': components['schemas']['TopicResponse'];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                content: {
-                    'application/json': components['schemas']['HTTPValidationError'];
-                };
-            };
-        };
-    };
+    post: operations["create_topic_api_v1_topic_post"];
+  };
+  "/api/v1/topic/{topic_id}": {
     /**
      * Delete Topic
      * @description Delete a topic. Knowledge entries are reassigned to the default topic.
      */
-    delete_topic_api_v1_topic__topic_id__delete: {
-        parameters: {
-            path: {
-                /** @description ID of the topic to delete */
-                topic_id: number;
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                content: {
-                    'application/json': components['schemas']['HTTPValidationError'];
-                };
-            };
-        };
-    };
+    delete: operations["delete_topic_api_v1_topic__topic_id__delete"];
     /**
      * Update Topic
      * @description Update topic name.
      */
-    update_topic_api_v1_topic__topic_id__patch: {
-        parameters: {
-            path: {
-                /** @description ID of the topic to update */
-                topic_id: number;
-            };
-        };
-        requestBody: {
-            content: {
-                'application/json': components['schemas']['TopicUpdate'];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': components['schemas']['TopicResponse'];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                content: {
-                    'application/json': components['schemas']['HTTPValidationError'];
-                };
-            };
-        };
-    };
-    /**
-     * List Users
-     * @description Retrieve all users (admin-only).
-     */
-    list_users_api_v1_admin_users_get: {
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': components['schemas']['UserModel'][];
-                };
-            };
-        };
-    };
-    /**
-     * Delete User
-     * @description Permanently delete a user and related data.
-     */
-    delete_user_api_v1_admin_users__user_id__delete: {
-        parameters: {
-            path: {
-                /** @description ID of the user to delete */
-                user_id: number;
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                content: {
-                    'application/json': components['schemas']['HTTPValidationError'];
-                };
-            };
-        };
-    };
-    /** Ping */
-    ping_tool: {
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': unknown;
-                };
-            };
-        };
-    };
+    patch: operations["update_topic_api_v1_topic__topic_id__patch"];
+  };
+  "/config": {
     /** App Config */
-    app_config_config_get: {
-        responses: {
-            /** @description Successful Response */
-            200: {
-                content: {
-                    'application/json': unknown;
-                };
-            };
-        };
+    get: operations["app_config_config_get"];
+  };
+  "/ping": {
+    /** Ping */
+    get: operations["ping_tool"];
+  };
+}
+
+export type webhooks = Record<string, never>;
+
+export interface components {
+  schemas: {
+    /** APIKeyCreatedResponse */
+    APIKeyCreatedResponse: {
+      /** Access Key */
+      access_key: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Id */
+      id: number;
+      /** Name */
+      name: string;
+      /**
+       * Secret Key
+       * @description RAW SECRET KEY - Shown only once!
+       */
+      secret_key: string;
+      /**
+       * Total Requests
+       * @description Total number of requests made using this key
+       */
+      total_requests: number;
     };
+    /** APIKeyResponse */
+    APIKeyResponse: {
+      /**
+       * Access Key
+       * @description Prefix of the key
+       */
+      access_key: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Id */
+      id: number;
+      /** Is Active */
+      is_active: boolean;
+      /** Last Used At */
+      last_used_at: string | null;
+      /** Name */
+      name: string;
+      /**
+       * Total Requests
+       * @description Total number of requests made using this key
+       */
+      total_requests: number;
+      /** User Id */
+      user_id: number;
+    };
+    /** APIKeyUpdate */
+    APIKeyUpdate: {
+      /**
+       * Is Active
+       * @description Update active status
+       */
+      is_active?: boolean | null;
+      /**
+       * Name
+       * @description Updated name
+       */
+      name?: string | null;
+    };
+    /** Body_create_api_key_api_v1_api_key_post */
+    Body_create_api_key_api_v1_api_key_post: {
+      /**
+       * Name
+       * @description Name for the new API Key
+       */
+      name: string;
+    };
+    /** Body_refresh_token_api_v1_auth_refresh_post */
+    Body_refresh_token_api_v1_auth_refresh_post: {
+      /** Refresh Token */
+      refresh_token?: string | null;
+      /** User Id */
+      user_id?: number | null;
+    };
+    /** EmailVerificationResend */
+    EmailVerificationResend: {
+      /**
+       * Email
+       * @description Email address used to resend a verification link
+       */
+      email: string;
+    };
+    /** GuideSeenUpdateForm */
+    GuideSeenUpdateForm: {
+      /**
+       * Seen
+       * @description Whether the onboarding guide has been seen
+       * @default true
+       */
+      seen?: boolean;
+    };
+    /** HTTPValidationError */
+    HTTPValidationError: {
+      /** Detail */
+      detail?: components["schemas"]["ValidationError"][];
+    };
+    /** KnowledgeForm */
+    KnowledgeForm: {
+      /**
+       * Content
+       * @description The raw text body or content to be stored as knowledge
+       */
+      content: string;
+      /**
+       * Tags
+       * @description Keywords for search and categorization
+       */
+      tags?: string[];
+      /**
+       * Title
+       * @description A concise title summarizing the content
+       */
+      title: string;
+      /**
+       * Topic
+       * @description Topic or category under which the knowledge will be stored
+       */
+      topic?: string | null;
+    };
+    /** KnowledgeResponse */
+    KnowledgeResponse: {
+      /**
+       * Content
+       * @description Full text content of the knowledge entry
+       */
+      content: string;
+      /**
+       * Created At
+       * Format: date-time
+       * @description Timestamp when the entry was created
+       */
+      created_at: string;
+      /**
+       * Id
+       * @description Unique identifier of the knowledge entry
+       */
+      id: number;
+      /**
+       * Tags
+       * @description Keywords associated with this knowledge
+       */
+      tags?: string[];
+      /**
+       * Title
+       * @description Title summarizing the content
+       */
+      title: string;
+      /**
+       * Topic
+       * @description Topic or category of this knowledge
+       */
+      topic: string;
+      /**
+       * Updated At
+       * Format: date-time
+       * @description Timestamp when the entry was last updated
+       */
+      updated_at: string;
+      /**
+       * User Id
+       * @description Owner's user identifier
+       */
+      user_id: number;
+    };
+    /** KnowledgeUpdate */
+    KnowledgeUpdate: {
+      /**
+       * Content
+       * @description Updated content text, if changed
+       */
+      content?: string | null;
+      /**
+       * Tags
+       * @description Updated keyword list, if changed
+       */
+      tags?: string[] | null;
+      /**
+       * Title
+       * @description Updated title, if changed
+       */
+      title?: string | null;
+      /**
+       * Topic
+       * @description Updated topic, if changed
+       */
+      topic?: string | null;
+    };
+    /** LoginForm */
+    LoginForm: {
+      /**
+       * Email
+       * @description Email used for login
+       */
+      email: string;
+      /**
+       * Password
+       * @description Raw password for login (8-64 chars, uppercase+digit+symbol, no spaces)
+       */
+      password: string;
+      /**
+       * Remember Me
+       * @description If true, issue a persistent refresh cookie for login persistence
+       * @default false
+       */
+      remember_me?: boolean;
+    };
+    /** LoginTokenResponse */
+    LoginTokenResponse: {
+      /**
+       * Access Token
+       * @description JWT access token used for authentication
+       */
+      access_token: string;
+      /**
+       * Refresh Token
+       * @description Refresh token used to renew access tokens
+       */
+      refresh_token: string;
+      /**
+       * Token Type
+       * @description Type of the token (e.g., 'bearer')
+       * @default bearer
+       */
+      token_type?: string;
+      /** @description Authenticated user information associated with the token */
+      user: components["schemas"]["UserResponse"];
+    };
+    /** PasswordResetConfirm */
+    PasswordResetConfirm: {
+      /**
+       * New Password
+       * @description New password to set (8-64 chars, uppercase+digit+symbol, no spaces)
+       */
+      new_password: string;
+      /**
+       * Token
+       * @description Valid password reset token
+       */
+      token: string;
+    };
+    /** PasswordResetRequest */
+    PasswordResetRequest: {
+      /**
+       * Email
+       * @description Email address used to request a password reset
+       */
+      email: string;
+    };
+    /** ProfileUpdateForm */
+    ProfileUpdateForm: {
+      /**
+       * Name
+       * @description Updated display name for the user
+       */
+      name: string;
+    };
+    /** SignupForm */
+    SignupForm: {
+      /**
+       * Email
+       * @description Email address used to register the new user
+       */
+      email: string;
+      /**
+       * Name
+       * @description Display name assigned to the new user
+       */
+      name: string;
+      /**
+       * Password
+       * @description Raw password that will be hashed (8-64 chars, uppercase+digit+symbol, no spaces)
+       */
+      password: string;
+    };
+    /** TokenRefreshResponse */
+    TokenRefreshResponse: {
+      /**
+       * Access Token
+       * @description JWT access token used for authentication
+       */
+      access_token: string;
+      /**
+       * Refresh Token
+       * @description Refresh token used to renew access tokens
+       */
+      refresh_token: string;
+      /**
+       * Token Type
+       * @description Type of the token (e.g., 'bearer')
+       * @default bearer
+       */
+      token_type?: string;
+    };
+    /** TopicForm */
+    TopicForm: {
+      /**
+       * Name
+       * @description Topic name
+       */
+      name: string;
+    };
+    /** TopicResponse */
+    TopicResponse: {
+      /**
+       * Created At
+       * Format: date-time
+       * @description Timestamp when the topic was created
+       */
+      created_at: string;
+      /**
+       * Id
+       * @description Topic identifier
+       */
+      id: number;
+      /**
+       * Is Default
+       * @description Whether this is the default topic
+       * @default false
+       */
+      is_default?: boolean;
+      /**
+       * Name
+       * @description Topic name
+       */
+      name: string;
+      /**
+       * User Id
+       * @description Owner's user identifier
+       */
+      user_id: number;
+    };
+    /** TopicUpdate */
+    TopicUpdate: {
+      /**
+       * Name
+       * @description Updated topic name
+       */
+      name?: string | null;
+    };
+    /** UserModel */
+    UserModel: {
+      /**
+       * Created At
+       * Format: date-time
+       * @description Timestamp indicating when the user account was created
+       */
+      created_at: string;
+      /**
+       * Email
+       * @description User's unique email address, used for authentication and identification
+       */
+      email: string;
+      /**
+       * Guide Seen
+       * @description Whether the onboarding guide has been seen
+       * @default false
+       */
+      guide_seen?: boolean;
+      /**
+       * Id
+       * @description Unique identifier of the user entry
+       */
+      id: number;
+      /**
+       * Is Active
+       * @description Indicates whether the user account is active
+       */
+      is_active: boolean;
+      /**
+       * Is Verified
+       * @description Indicates whether the user's email has been verified successfully
+       */
+      is_verified: boolean;
+      /**
+       * Name
+       * @description Display name of the user
+       */
+      name: string;
+      /** @description Role assigned to the user */
+      role: components["schemas"]["UserRole"];
+      /**
+       * Updated At
+       * Format: date-time
+       * @description Timestamp indicating the most recent update to the user record
+       */
+      updated_at: string;
+    };
+    /** UserResponse */
+    UserResponse: {
+      /**
+       * Created At
+       * Format: date-time
+       * @description Timestamp when the user account was created
+       */
+      created_at: string;
+      /**
+       * Email
+       * @description User's registered email address
+       */
+      email: string;
+      /**
+       * Guide Seen
+       * @description Whether the onboarding guide has been seen
+       * @default false
+       */
+      guide_seen?: boolean;
+      /**
+       * Id
+       * @description Unique identifier of the user
+       */
+      id: number;
+      /**
+       * Name
+       * @description Display name of the user
+       */
+      name: string;
+      /** @description Role assigned to the user */
+      role: components["schemas"]["UserRole"];
+    };
+    /**
+     * UserRole
+     * @enum {string}
+     */
+    UserRole: "admin" | "user";
+    /** ValidationError */
+    ValidationError: {
+      /** Context */
+      ctx?: Record<string, never>;
+      /** Input */
+      input?: unknown;
+      /** Location */
+      loc: (string | number)[];
+      /** Message */
+      msg: string;
+      /** Error Type */
+      type: string;
+    };
+  };
+  responses: never;
+  parameters: never;
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
+}
+
+export type $defs = Record<string, never>;
+
+export type external = Record<string, never>;
+
+export interface operations {
+
+  /**
+   * List Users
+   * @description Retrieve all users (admin-only).
+   */
+  list_users_api_v1_admin_users_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["UserModel"][];
+        };
+      };
+    };
+  };
+  /**
+   * Delete User
+   * @description Permanently delete a user and related data.
+   */
+  delete_user_api_v1_admin_users__user_id__delete: {
+    parameters: {
+      path: {
+        /** @description ID of the user to delete */
+        user_id: number;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * List Api Keys
+   * @description Get all API keys owned by the current user.
+   * The response includes `total_requests` but EXCLUDES the raw secret key.
+   */
+  list_api_keys_api_v1_api_key_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["APIKeyResponse"][];
+        };
+      };
+    };
+  };
+  /**
+   * Create Api Key
+   * @description Create a new API Key.
+   *
+   * **WARNING**: This is the ONLY time the full `secret_key` (sk-...) is returned.
+   * The client must save it immediately.
+   */
+  create_api_key_api_v1_api_key_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["Body_create_api_key_api_v1_api_key_post"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["APIKeyCreatedResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Delete Api Key
+   * @description Permanently delete an API Key.
+   */
+  delete_api_key_api_v1_api_key__key_id__delete: {
+    parameters: {
+      path: {
+        /** @description ID of the API Key to delete */
+        key_id: number;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Update Api Key
+   * @description Update API Key name or active status.
+   */
+  update_api_key_api_v1_api_key__key_id__patch: {
+    parameters: {
+      path: {
+        /** @description ID of the API Key to update */
+        key_id: number;
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["APIKeyUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["APIKeyResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Login
+   * @description Authenticate a user and issue a JWT access token.
+   *
+   * ### Args:
+   *
+   *     form (LoginForm): Email and password credentials.
+   *
+   * ### Returns:
+   *
+   *     token (LoginTokenResponse): Access token, refresh token, type, and user info.
+   *
+   * This endpoint:
+   * - Verifies credentials against the database.
+   * - Checks for Redis-based login limits (brute-force protection).
+   * - Updates last login timestamp.
+   */
+  login_api_v1_auth_login_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["LoginForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["LoginTokenResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Logout
+   * @description Log out the current user by invalidating their refresh token.
+   *
+   * ### Requirements:
+   *
+   *     Authentication header (Bearer Token) is required.
+   *
+   * ### Returns:
+   *
+   *     dict: Success message.
+   *
+   * This removes the refresh token from Redis, effectively preventing
+   * future access token renewals without re-login.
+   */
+  logout_api_v1_auth_logout_post: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+    };
+  };
+  /** Read Users Me */
+  read_users_me_api_v1_auth_me_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["UserResponse"];
+        };
+      };
+    };
+  };
+  /**
+   * Update Profile
+   * @description Update the current user's profile.
+   */
+  update_profile_api_v1_auth_me_patch: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ProfileUpdateForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["UserResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Update Guide Seen
+   * @description Update the guide seen state for the current user.
+   */
+  update_guide_seen_api_v1_auth_me_guide_patch: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["GuideSeenUpdateForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["UserResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Reset Password
+   * @description Complete the password reset process.
+   *
+   * ### Args:
+   *
+   * token (str): The valid reset token.
+   * new_password (str): The new password to set.
+   *
+   * ### Returns:
+   *
+   *     dict: Status message indicating success.
+   *
+   * Verifies the token from Redis, hashes the new password,
+   * updates the database, and deletes the token.
+   */
+  reset_password_api_v1_auth_password_reset_confirm_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PasswordResetConfirm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Request Password Reset
+   * @description Initiate the password reset process.
+   *
+   * ### Args:
+   *
+   * email (str): The email address of the account to reset.
+   *
+   * ### Returns:
+   *
+   *     dict: Success message (even if email is not found, for security).
+   *
+   * Generates a password reset token in Redis and simulates sending an email.
+   */
+  request_password_reset_api_v1_auth_password_reset_request_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PasswordResetRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Refresh Token
+   * @description Renew access token using a valid refresh token.
+   *
+   * ### Args:
+   *
+   *     refresh_token (str): The refresh token issued during login.
+   *     user_id (int): The ID of the user owning the token.
+   *
+   * ### Returns:
+   *
+   *     token (TokenRefreshResponse): A new pair of Access and Refresh tokens.
+   *
+   * This endpoint implements **Refresh Token Rotation**.
+   * The old refresh token is invalidated, and a completely new pair is issued.
+   */
+  refresh_token_api_v1_auth_refresh_post: {
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["Body_refresh_token_api_v1_auth_refresh_post"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["TokenRefreshResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Signup
+   * @description Register a new user account.
+   *
+   *     The input should include:
+   *     - email: Valid email address
+   *     - password: Raw password (will be hashed)
+   *     - name: User's display name
+   *
+   *     ### Returns:
+   * `
+   *         user (UserResponse): The successfully created user object (unverified).
+   *
+   *     This endpoint creates a DB entry, hashes the password,
+   *     and triggers an asynchronous email verification process.
+   */
+  signup_api_v1_auth_signup_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SignupForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["UserResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Resend Verification Email
+   * @description Resend a verification email if the user exists and is not verified.
+   */
+  resend_verification_email_api_v1_auth_verify_email_resend_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["EmailVerificationResend"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Verify Email
+   * @description Verify a user's email address using a UUID token.
+   *
+   * ### Args:
+   *
+   *     token (str): The verification token sent via email.
+   *
+   * ### Returns:
+   *
+   *     user (UserResponse): The updated user object with `is_verified=True`.
+   *
+   * This checks the token existence in Redis. If valid,
+   * it updates the user status in SQL and invalidates the token.
+   */
+  verify_email_api_v1_auth_verify_email__token__get: {
+    parameters: {
+      query?: {
+        redirect?: boolean;
+      };
+      path: {
+        token: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["UserResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Create Knowledge
+   * @description Create a new knowledge entry.
+   *
+   * The input should include:
+   * - topic: A category or domain of the knowledge
+   * - tags: Keyword list
+   * - title: Short title summarizing the content
+   * - content: The full text or note to be stored
+   *
+   * ### Returns:
+   *
+   *     knowledge (KnowledgeResponse): The successfully created knowledge object.
+   *
+   * This endpoint stores the entry in SQL and generates an embedding
+   * which is then indexed into Qdrant for similarity search.
+   */
+  create_knowledge: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["KnowledgeForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["KnowledgeResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Get Knowledge List
+   * @description Retrieve all stored knowledge entries.
+   *
+   * ### Returns:
+   *
+   *     List of all knowledge entries sorted by creation date.
+   *
+   * Useful for browsing or building UI item lists.
+   */
+  get_knowledge_list: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["KnowledgeResponse"][];
+        };
+      };
+    };
+  };
+  /**
+   * Search Knowledge
+   * @description Search stored knowledge entries.
+   *
+   * ### Args:
+   *
+   *     query (str): Semantic search query.
+   *     topic (str | None = None): Optional topic filter.
+   *     tag (str | None = None): Optional tag filter.
+   *     limit (int = 1): Number of search results to return.
+   *
+   * ### Returns:
+   *
+   *     knowledge (KnowledgeResponse): The successfully retrieved knowledge object.
+   *
+   * This endpoint performs vector similarity search on Qdrant
+   * and returns ranked knowledge entries.
+   */
+  search_knowledge: {
+    parameters: {
+      query: {
+        query: string;
+        topic?: string | null;
+        tag?: string | null;
+        limit?: number;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["KnowledgeResponse"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Get By Tag
+   * @description Retrieve all knowledge entries associated with a given tag.
+   * Tags represent keyword-level grouping, separate from topics.
+   *
+   * Examples:
+   * - 'server'
+   * - 'llm'
+   * - 'react'
+   */
+  get_knowledge_by_tag: {
+    parameters: {
+      path: {
+        tag: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["KnowledgeResponse"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Get Knowledge By Title
+   * @description Retrieve a knowledge entry by its exact title.
+   *
+   * Useful when:
+   * - Titles are unique identifiers
+   * - MCP invokes tool with natural language title
+   */
+  get_knowledge_by_title: {
+    parameters: {
+      path: {
+        title: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["KnowledgeResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Get By Topic
+   * @description Retrieve all knowledge entries under a specific topic.
+   * Topics group entries into categories.
+   *
+   * Examples:
+   * - 'docker'
+   * - 'fastapi'
+   * - 'database'
+   */
+  get_knowledge_by_topic: {
+    parameters: {
+      path: {
+        topic: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["KnowledgeResponse"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Get Knowledge
+   * @description Retrieve a single knowledge entry by its numeric ID.
+   *
+   * ### Returns:
+   *
+   *     knowledge retrieved by own id.
+   *
+   * This endpoint is used for:
+   * - Detailed page views
+   * - Fetching a specific note
+   * - MCP tool consumption by ID
+   */
+  get_knowledge_api_v1_knowledge__knowledge_id__get: {
+    parameters: {
+      path: {
+        knowledge_id: number;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["KnowledgeResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Update Knowledge
+   * @description Update an existing knowledge entry.
+   *
+   * Updatable fields:
+   * - title
+   * - content
+   * - topic
+   * - tags
+   *
+   * After updating SQL, the embedding is regenerated
+   * and re-indexed into Qdrant.
+   */
+  update_knowledge: {
+    parameters: {
+      path: {
+        knowledge_id: number;
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["KnowledgeUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["KnowledgeResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Delete Knowledge
+   * @description Delete a knowledge entry.
+   *
+   * Removes:
+   * - SQL row
+   * - Embedding vector from Qdrant index
+   */
+  delete_knowledge: {
+    parameters: {
+      path: {
+        knowledge_id: number;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * List Topics
+   * @description Retrieve all topics for the current user.
+   */
+  list_topics_api_v1_topic_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["TopicResponse"][];
+        };
+      };
+    };
+  };
+  /**
+   * Create Topic
+   * @description Create a new topic.
+   */
+  create_topic_api_v1_topic_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["TopicForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["TopicResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Delete Topic
+   * @description Delete a topic. Knowledge entries are reassigned to the default topic.
+   */
+  delete_topic_api_v1_topic__topic_id__delete: {
+    parameters: {
+      path: {
+        /** @description ID of the topic to delete */
+        topic_id: number;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Update Topic
+   * @description Update topic name.
+   */
+  update_topic_api_v1_topic__topic_id__patch: {
+    parameters: {
+      path: {
+        /** @description ID of the topic to update */
+        topic_id: number;
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["TopicUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["TopicResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** App Config */
+  app_config_config_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+    };
+  };
+  /** Ping */
+  ping_tool: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+    };
+  };
 }
