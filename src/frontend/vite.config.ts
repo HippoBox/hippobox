@@ -44,9 +44,13 @@ const normalizeBasePath = (value: string): string => {
     return `${withoutTrailing}/`;
 };
 
+const proxyTarget = process.env.BACKEND_PORT
+    ? `http://127.0.0.1:${process.env.BACKEND_PORT}`
+    : PROXY_TARGET;
+
 const proxyTargets = API_ROUTES.reduce<ProxyTargetMap>((proxyObj, route) => {
     proxyObj[route] = {
-        target: PROXY_TARGET,
+        target: proxyTarget,
         changeOrigin: true,
         secure: false,
         ws: true,

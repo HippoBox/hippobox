@@ -1,5 +1,5 @@
 import logging
-from contextlib import asynccontextmanager
+from contextlib import AsyncExitStack, asynccontextmanager
 
 from fastapi import FastAPI, status
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
@@ -28,45 +28,35 @@ async def lifespan(app: FastAPI):
     app.state.SETTINGS = SETTINGS
     log.info(f"SETTINGS Loaded | ROOT_DIR={SETTINGS.ROOT_DIR}")
 
-    await init_db()
-    log.info("Database initialized")
-    await ensure_admin_for_login_disabled()
-    await ensure_default_admin_from_settings()
+    if SETTINGS.VDB_ENABLED and not SETTINGS.OPENAI_API_KEY.strip():
+        raise RuntimeError(
+            "VDB_ENABLED=true requires OPENAI_API_KEY. Configure src/backend/.env, "
+            "or run 'make backend-dev-local' without semantic search."
+        )
 
-    if SETTINGS.VDB_ENABLED:
-        try:
-            qdrant = Qdrant()
-            app.state.QDRANT = qdrant
+    app.state.QDRANT = None
+    app.state.EMBEDDING = None
+    async with AsyncExitStack() as cleanup:
+        cleanup.push_async_callback(RedisManager.close)
+        cleanup.push_async_callback(dispose_db)
+        await init_db()
+        log.info("Database initialized")
+        await ensure_admin_for_login_disabled()
+        await ensure_default_admin_from_settings()
+
+        if SETTINGS.VDB_ENABLED:
+            app.state.QDRANT = Qdrant()
+            cleanup.callback(app.state.QDRANT.client.close)
             log.info("Qdrant client initialized")
-
-        except Exception as e:
-            log.error(f"Qdrant initialization failed: {e}")
-            raise
-
-        try:
-            embedding = Embedding()
-            app.state.EMBEDDING = embedding
+            app.state.EMBEDDING = Embedding()
+            cleanup.callback(app.state.EMBEDDING.client.close)
             log.info("Embedding client initialized")
+        else:
+            log.info("VDB disabled; skipping Qdrant and embedding initialization")
 
-        except Exception as e:
-            log.error(f"Embedding initialization failed: {e}")
-            raise
-    else:
-        app.state.QDRANT = None
-        app.state.EMBEDDING = None
-        log.info("VDB disabled; skipping Qdrant and embedding initialization")
-
-    log.info("HippoBox Server Lifespan Startup")
-    try:
+        log.info("HippoBox Server Lifespan Startup")
         yield
-    finally:
-        if getattr(app.state, "QDRANT", None) is not None:
-            app.state.QDRANT.client.close()
-        if getattr(app.state, "EMBEDDING", None) is not None:
-            app.state.EMBEDDING.client.close()
-        await dispose_db()
-        await RedisManager.close()
-        log.info("HippoBox Server Lifespan Shutdown")
+    log.info("HippoBox Server Lifespan Shutdown")
 
 
 def create_app() -> FastAPI:
