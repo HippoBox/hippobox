@@ -1,45 +1,15 @@
-import { spawn } from 'node:child_process';
+import fs from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import openapiTS from 'openapi-typescript';
 
-const url = process.env.OPENAPI_URL || 'http://localhost:8000/openapi.json';
-const outFile = process.env.OPENAPI_OUT || 'src/api/openapi.ts';
-const timeoutMs = Number(process.env.OPENAPI_TIMEOUT_MS || 3000);
-
-async function canFetch(target) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    try {
-        const res = await fetch(target, { signal: controller.signal });
-        return res.ok;
-    } catch {
-        return false;
-    } finally {
-        clearTimeout(timer);
+const contract = new URL('../../../contracts/openapi.json', import.meta.url);
+const output = new URL('../src/api/openapi.ts', import.meta.url);
+const generated = await openapiTS(fileURLToPath(contract));
+if (process.argv.includes('--check')) {
+    if ((await fs.readFile(output, 'utf8')) !== generated) {
+        console.error('API types have drifted. Run npm run generate:api.');
+        process.exitCode = 1;
     }
-}
-
-if (!(await canFetch(url))) {
-    console.warn(`[openapi] Skipping generation; ${url} not reachable.`);
-    process.exit(0);
-}
-
-const npmExecPath = process.env.npm_execpath;
-let child;
-
-if (npmExecPath) {
-    // Use the same npm that invoked this script for cross-platform reliability.
-    child = spawn(
-        process.execPath,
-        [npmExecPath, 'exec', '--', 'openapi-typescript', url, '-o', outFile],
-        {
-            stdio: 'inherit',
-        },
-    );
 } else {
-    const npxCmd = process.platform === 'win32' ? 'npx' : 'npx';
-    child = spawn(npxCmd, ['openapi-typescript', url, '-o', outFile], {
-        stdio: 'inherit',
-        shell: true,
-    });
+    await fs.writeFile(output, generated);
 }
-
-child.on('exit', (code) => process.exit(code ?? 1));

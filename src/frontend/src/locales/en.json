@@ -400,5 +400,11 @@
         "actionHome": "Go to home",
         "actionBack": "Go back",
         "actionRetry": "Try again"
+    },
+    "serverUnavailable": {
+        "title": "Cannot connect to HippoBox",
+        "message": "Check the server connection and try again.",
+        "retry": "Try again",
+        "pending": "Connecting…"
     }
 }

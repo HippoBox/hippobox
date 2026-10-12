@@ -23,7 +23,18 @@ const fetchConfig = async () => {
     if (!response.ok) {
         throw new Error('Failed to load app config');
     }
-    return (await response.json()) as AppConfigResponse;
+    const value = await response.json();
+    if (
+        !value ||
+        typeof value.login_enabled !== 'boolean' ||
+        typeof value.email_enabled !== 'boolean' ||
+        typeof value.vdb_enabled !== 'boolean' ||
+        typeof value.frontend_base_path !== 'string' ||
+        typeof value.api_base_path !== 'string'
+    ) {
+        throw new Error('Invalid app config');
+    }
+    return value as AppConfigResponse;
 };
 
 export const useAuthConfig = () => {

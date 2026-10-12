@@ -52,7 +52,7 @@ async def get_current_user(
             raise credentials_exception
 
         user = await Users.get(api_key_record.user_id)
-        if user is None:
+        if user is None or not user.is_active:
             raise credentials_exception
 
         background_tasks.add_task(APIKeys.update_usage, api_key_record.id)
@@ -73,7 +73,7 @@ async def get_current_user(
             raise credentials_exception
 
         user = await Users.get(user_id_int)
-        if user is None:
+        if user is None or not user.is_active:
             raise credentials_exception
 
     return UserResponse.model_validate(user.model_dump())

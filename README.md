@@ -136,3 +136,23 @@ args = [
 [mcp_servers.hippobox.env]
 API_ACCESS_TOKEN = "<YOUR_ACCESS_TOKEN>"
 ```
+
+## Development verification
+
+HippoBox keeps its existing UI, API, database and MCP integration while selectively
+adopting Blueprint development patterns. See [migration notes](docs/blueprint-migration.md).
+
+```sh
+make install
+cd src/frontend && npx playwright install chromium && cd ../..
+make verify-plan
+make verify
+```
+
+`make verify` runs isolated backend/browser tests, checks the offline API contract,
+and builds and installs the Python package in a temporary environment. Use
+`make test-migrations-postgres` for the existing PostgreSQL migration history in a
+disposable Docker container. Existing databases are not modified by verification.
+
+API types come from `contracts/openapi.json`, not a running localhost server:
+`make contract-export frontend-api-generate` refreshes the reviewed contract and types.

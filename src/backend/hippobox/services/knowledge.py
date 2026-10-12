@@ -31,8 +31,13 @@ class KnowledgeService:
         if not self.vdb_enabled:
             raise KnowledgeException(KnowledgeErrorCode.VDB_DISABLED)
 
+        # SQL remains authoritative for ownership, including legacy vector payloads.
+        candidates = await Knowledges.get_list(user_id)
+        ids = [item.id for item in candidates if (not topic or item.topic == topic) and (not tag or tag in item.tags)]
+        if not ids:
+            return []
         vector = self.embedding.embed(query)
-        results = self.qdrant.search("knowledge", vector, limit=limit)
+        results = self.qdrant.search("knowledge", vector, limit=limit, allowed_ids=ids)
 
         ids = results.get("ids", [])
         if not ids:

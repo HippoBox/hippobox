@@ -154,12 +154,12 @@ export function LoginPage() {
     };
 
     return (
-        <Container className="flex-col justify-start pt-28">
-            <div className="w-full max-w-md space-y-6">
+        <Container className="flex-col justify-start pt-20 sm:pt-24">
+            <div className="w-full max-w-md space-y-5">
                 <AuthHeader />
-                <Card className="animate-fade-up p-8" variant="strong">
+                <Card className="animate-fade-up p-6 sm:p-7" variant="strong">
                     <div className="space-y-3 text-center">
-                        <h2 className="font-display text-3xl font-semibold">{t('login.title')}</h2>
+                        <h2 className="font-display text-2xl font-semibold">{t('login.title')}</h2>
                         <p className="text-sm text-muted">{t('login.subtitle')}</p>
                     </div>
 

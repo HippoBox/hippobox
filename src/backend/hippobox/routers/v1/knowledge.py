@@ -1,6 +1,6 @@
 from enum import Enum
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 
 from hippobox.core.settings import SETTINGS
 from hippobox.errors.knowledge import KnowledgeException
@@ -37,7 +37,7 @@ async def search_knowledge(
     query: str,
     topic: str | None = None,
     tag: str | None = None,
-    limit: int = 1,
+    limit: int = Query(1, ge=1, le=100),
     current_user: UserResponse = Depends(get_current_user),
     service: KnowledgeService = Depends(get_knowledge_service),
 ):

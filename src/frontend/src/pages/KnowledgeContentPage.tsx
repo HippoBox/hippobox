@@ -117,7 +117,7 @@ export function KnowledgeContentPage() {
             ) : entry ? (
                 <>
                     <Card
-                        className="space-y-6 p-8 bg-transparent backdrop-blur-0 shadow-none border-transparent knowledge-content-card"
+                        className="space-y-5 p-4 sm:p-6 bg-transparent backdrop-blur-0 shadow-none border-transparent knowledge-content-card"
                         variant="strong"
                     >
                         <div className="space-y-2">
@@ -143,7 +143,7 @@ export function KnowledgeContentPage() {
                                         })()}
                                     </p>
                                 </div>
-                                <div className="ml-auto flex shrink-0 items-center gap-2">
+                                <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-2">
                                     <Link
                                         to={`/app/knowledge/${entry.id}/edit`}
                                         className="shrink-0"
@@ -218,7 +218,7 @@ export function KnowledgeContentPage() {
                         </div>
                     </Card>
                     {showToc ? (
-                        <aside className="hidden xl:block">
+                        <aside className="hidden min-[1760px]:block">
                             <div
                                 className="rounded-2xl bg-[color:var(--color-surface)]/70 p-4 xl:fixed xl:top-40 xl:w-64"
                                 style={{

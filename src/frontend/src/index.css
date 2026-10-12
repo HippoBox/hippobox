@@ -51,8 +51,8 @@
 
         --radius-xs: 8px;
         --radius-sm: 12px;
-        --radius-md: 18px;
-        --radius-lg: 26px;
+        --radius-md: 14px;
+        --radius-lg: 22px;
 
         --space-1: 4px;
         --space-2: 8px;
@@ -61,8 +61,8 @@
         --space-6: 24px;
         --space-8: 32px;
 
-        --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.08);
-        --shadow-strong: 0 24px 70px rgba(15, 23, 42, 0.16);
+        --shadow-soft: 0 8px 24px rgba(15, 23, 42, 0.06);
+        --shadow-strong: 0 14px 36px rgba(15, 23, 42, 0.1);
 
         --btn-primary-gradient: linear-gradient(135deg, #111827 0%, #1f2937 55%, #334155 100%);
         --btn-primary-border: rgba(255, 255, 255, 0.06);
@@ -85,8 +85,8 @@
         --color-primary-contrast: #0f172a;
         --color-accent: #94a3b8;
 
-        --shadow-soft: 0 18px 45px rgba(2, 6, 23, 0.4);
-        --shadow-strong: 0 24px 65px rgba(2, 6, 23, 0.6);
+        --shadow-soft: 0 8px 24px rgba(2, 6, 23, 0.3);
+        --shadow-strong: 0 14px 36px rgba(2, 6, 23, 0.45);
 
         --btn-primary-gradient: linear-gradient(135deg, #e2e8f0 0%, #cbd5f5 50%, #94a3b8 100%);
         --btn-primary-border: rgba(15, 23, 42, 0.12);
@@ -105,7 +105,7 @@
     }
 
     .container-page {
-        @apply mx-auto flex min-h-screen w-full max-w-6xl items-center justify-center px-6 py-14 sm:px-10;
+        @apply mx-auto flex min-h-screen w-full max-w-6xl items-center justify-center px-4 py-10 sm:px-8;
     }
 
     .card-surface {
@@ -136,8 +136,9 @@
         border-radius: var(--radius-md);
         border: 1px solid var(--color-border);
         background: var(--color-surface);
-        padding: var(--space-3) var(--space-4);
-        font-size: 0.95rem;
+        padding: 0.625rem 0.875rem;
+        min-height: 42px;
+        font-size: 0.875rem;
         color: var(--color-text);
         box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
         transition:
@@ -268,9 +269,9 @@
 
     .btn-base {
         border-radius: 999px;
-        padding: 0.85rem 1.5rem;
+        padding: 0.625rem 1.125rem;
         font-weight: 600;
-        font-size: 0.9rem;
+        font-size: 0.875rem;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -291,7 +292,7 @@
     }
 
     .btn-primary:hover {
-        transform: translateY(-2px);
+        transform: translateY(-1px);
         box-shadow: 0 18px 36px rgba(15, 23, 42, 0.28);
         filter: brightness(1.03);
     }
@@ -303,14 +304,14 @@
     }
 
     .btn-outline:hover {
-        transform: translateY(-2px);
+        transform: translateY(-1px);
         background: rgba(148, 163, 184, 0.16);
         box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
     }
 
     .badge-chip {
         border-radius: 999px;
-        padding: 0.85rem 1.5rem;
+        padding: 0.625rem 1.125rem;
         font-weight: 600;
         font-size: 0.7rem;
         display: inline-flex;
@@ -752,5 +753,30 @@
         width: max-content;
         max-width: 100%;
         align-self: flex-start;
+    }
+}
+
+/* Compact controls retain keyboard feedback and comfortable touch targets. */
+.btn-base:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+}
+@media (pointer: coarse) {
+    .btn-base,
+    input.input-field {
+        min-height: 44px;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    .btn-base:hover {
+        transform: none;
     }
 }

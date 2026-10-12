@@ -400,5 +400,11 @@
         "actionHome": "홈으로 이동",
         "actionBack": "뒤로 가기",
         "actionRetry": "다시 시도"
+    },
+    "serverUnavailable": {
+        "title": "HippoBox에 연결할 수 없습니다",
+        "message": "서버 연결을 확인한 후 다시 시도해 주세요.",
+        "retry": "다시 시도",
+        "pending": "연결 중…"
     }
 }
