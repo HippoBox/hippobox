@@ -1,6 +1,7 @@
 from enum import Enum
 
 from fastapi import status
+from sqlalchemy.exc import IntegrityError
 
 from hippobox.errors.service import ServiceErrorCode, ServiceException
 
@@ -90,3 +91,15 @@ class AuthException(ServiceException):
             message=message or code.code.default_message,
             details=details,
         )
+
+
+def user_integrity_exception(error: IntegrityError) -> AuthException:
+    """Translate supported database constraints without exposing SQL or parameters."""
+    message = str(error.orig)
+    for field, code in (
+        ("email", AuthErrorCode.EMAIL_ALREADY_EXISTS),
+        ("name", AuthErrorCode.NAME_ALREADY_EXISTS),
+    ):
+        if f'constraint "user_{field}_key"' in message or message == f"UNIQUE constraint failed: user.{field}":
+            return AuthException(code)
+    return AuthException(AuthErrorCode.CREATE_FAILED)

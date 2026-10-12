@@ -23,3 +23,8 @@ supported without reissuing keys.
 `make db-migrate`는 운영자가 명시적으로 실행할 때만 수행합니다.
 기존 Alembic 정규화 이력은 PostgreSQL 전용입니다. SQLite의 현재 스키마는
 서버 초기화로 생성되며, 오래된 SQLite 스키마는 별도의 변환 설계가 필요합니다.
+
+회원가입은 사용자·비밀번호·인증 레코드를 하나의 트랜잭션으로 저장합니다.
+이름과 이메일은 고유해야 하며, SQLite/PostgreSQL에서 중복되면 HTTP 409와
+`NAME_ALREADY_EXISTS` 또는 `EMAIL_ALREADY_EXISTS`를 반환합니다.
+가입 실패 응답에는 SQL 문이나 입력값을 포함하지 않습니다.

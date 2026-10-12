@@ -1,3 +1,4 @@
+import { resolveAuthErrorMessage } from '../api/authError';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -29,33 +30,10 @@ export function ForgotPasswordPage() {
         },
     });
 
-    const apiErrorMessage = useMemo(() => {
-        const error = requestMutation.error;
-        if (!error) return '';
-
-        if (typeof error === 'string') {
-            return error;
-        }
-
-        if (error instanceof Error && error.message) {
-            return error.message;
-        }
-
-        if (typeof error === 'object') {
-            const detail = (error as { detail?: unknown }).detail;
-            if (detail && typeof detail === 'object') {
-                const code = (detail as { error?: unknown }).error;
-                const message = (detail as { message?: unknown }).message;
-                if (code === `USER_NOT_FOUND`) {
-                    setErrorKey('userNotFound');
-                }
-
-                if (typeof message === 'string' && message) return message;
-            }
-        }
-
-        return t('forgot.errorFallback');
-    }, [requestMutation.error, t]);
+    const apiErrorMessage = useMemo(
+        () => resolveAuthErrorMessage(t, requestMutation.error, 'forgot.errorFallback'),
+        [requestMutation.error, t],
+    );
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();

@@ -1,3 +1,4 @@
+import { resolveAuthErrorMessage } from '../api/authError';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -80,28 +81,10 @@ export function ResetPasswordPage() {
         },
     });
 
-    const apiErrorMessage = useMemo(() => {
-        const error = resetMutation.error;
-        if (!error) return '';
-
-        if (typeof error === 'string') {
-            return error;
-        }
-
-        if (error instanceof Error && error.message) {
-            return error.message;
-        }
-
-        if (typeof error === 'object') {
-            const detail = (error as { detail?: unknown }).detail;
-            if (detail && typeof detail === 'object') {
-                const message = (detail as { message?: unknown }).message;
-                if (typeof message === 'string' && message) return message;
-            }
-        }
-
-        return t('resetPassword.errorFallback');
-    }, [resetMutation.error, t]);
+    const apiErrorMessage = useMemo(
+        () => resolveAuthErrorMessage(t, resetMutation.error, 'resetPassword.errorFallback'),
+        [resetMutation.error, t],
+    );
 
     useEffect(() => {
         if (loginEnabled) return;
