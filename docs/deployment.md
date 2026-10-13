@@ -211,3 +211,9 @@ docker compose --env-file .env -f compose.local.yml logs --tail=100 hippobox
 기존 서비스가 8000번을 쓰는 서버에서는 8001번을 사용합니다. 외부 접근은 HTTPS
 프록시를 연결합니다. 일시적으로 IP:포트를 직접 열어 확인하는 경우에만
 `BIND_ADDRESS=0.0.0.0`으로 설정하고 해당 포트의 클라우드 방화벽 접근을 확인합니다.
+
+## 여러 앱의 HTTPS를 한 곳에서 관리
+
+Blueprint 등 다른 앱과 서버를 공유한다면 앱별 Caddy 대신
+[공용 Caddy 구성](../docker/shared-caddy/README.md)을 사용합니다.
+Blueprint 원본을 수정하지 않고 프록시·인증서 볼륨·관리 명령을 별도 경로로 분리합니다.
