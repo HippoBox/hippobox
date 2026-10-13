@@ -143,3 +143,39 @@ docker compose --env-file .env -f compose.release.yml logs --tail=100 hippobox w
 가입 인증 또는 비밀번호 재설정을 수행해 받은 메일의 도메인과 링크를 확인합니다.
 Resend 대시보드에서도 발송 결과를 확인할 수 있습니다. 시작 시 설정 검증 통과는
 실제 메일 전달 성공을 의미하지 않습니다.
+
+## 기존 SQLite + HippoBox 컨테이너만 실행
+
+`compose.release.yml`은 PostgreSQL 전용입니다. `DB_DRIVER`를 `.env`에서 바꾸거나
+`--no-deps`를 사용해도 SQLite로 전환되지 않습니다. 기존 Redis/Qdrant 컨테이너를
+유지하면서 SQLite를 사용하는 경우 [compose.sqlite.yml](../docker/compose.sqlite.yml)을
+단독으로 사용합니다. 이 파일은 DB_PASSWORD를 요구하지 않으며 다른 서비스를 시작하지 않습니다.
+
+```dotenv
+# 실제 SQLite 파일의 부모 디렉터리와 파일명을 지정합니다.
+HIPPOBOX_DATA_DIR=/absolute/path/to/existing-data
+SQLITE_DB_FILENAME=hippobox.db
+# 기존 Redis/Qdrant가 연결된 Docker 네트워크
+HIPPOBOX_NETWORK=hippobox-net
+REDIS_IN_MEMORY=false
+REDIS_HOST=redis
+QDRANT_MODE=docker
+QDRANT_URL=http://qdrant:6333
+```
+
+먼저 기존 SQLite 파일과 네트워크가 실제로 존재하는지 확인하세요. 기존 앱을 중지하고
+백업한 뒤 데이터 디렉터리를 컨테이너 UID/GID 10001이 읽고 쓸 수 있도록 설정합니다.
+디렉터리 쓰기 권한도 SQLite journal/WAL 및 사전 백업에 필요합니다. 기존 DB가 컨테이너
+내부에만 있다면 먼저 꺼내서 영속 디렉터리에 보존해야 합니다. 빈 경로를 지정해 기존
+데이터가 자동 복사된다고 가정하지 마세요. 0.1 DB는 앞의 전환 절차를 따릅니다.
+
+```sh
+docker compose --env-file .env -f compose.sqlite.yml config --quiet
+docker compose --env-file .env -f compose.sqlite.yml up -d --no-deps hippobox
+```
+
+`.env`의 기존 SECRET_KEY, Resend/OpenAI 키, 공개 URL 등은 유지합니다. 기존 Compose와
+동일한 프로젝트 이름을 사용해야 같은 프로젝트의 HippoBox 서비스를 갱신합니다.
+기존 컨테이너에 별도 이름/프로젝트가 있다면 교체 전에 실행 중인 구성을 확인하세요.
+이 구성은 API만 실행하므로 메일 발송용 worker는 기존 worker를 유지하거나 별도로
+실행해야 합니다. 이 파일을 PostgreSQL용 Compose와 병합해서 사용하지 않습니다.
