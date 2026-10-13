@@ -6,6 +6,7 @@ from fastapi import FastAPI, status
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi_mcp import FastApiMCP
+from mcp.types import Tool
 
 from hippobox.core.bootstrap_admin import ensure_admin_for_login_disabled, ensure_default_admin_from_settings
 from hippobox.core.database import dispose_db, init_db
@@ -184,6 +185,24 @@ def create_app() -> FastAPI:
         include_operations=include_operations,
         headers=["authorization", "x-api-key", "x-request-id"],
     )
+    if SETTINGS.MCP_OAUTH_ENABLED:
+        for index, tool in enumerate(mcp.tools):
+            write = tool.name in {"create_knowledge", "update_knowledge", "delete_knowledge"}
+            scopes = ["knowledge:write" if write else "knowledge:read"]
+            schemes = [{"type": "oauth2", "scopes": scopes}]
+            mcp.tools[index] = Tool.model_validate(
+                {
+                    **tool.model_dump(by_alias=True),
+                    "securitySchemes": schemes,
+                    "_meta": {"securitySchemes": schemes},
+                    "annotations": {
+                        "readOnlyHint": not write,
+                        "destructiveHint": tool.name in {"update_knowledge", "delete_knowledge"},
+                        "idempotentHint": not write,
+                        "openWorldHint": False,
+                    },
+                }
+            )
     mcp.mount_http()
     log.info("MCP tools registered.")
     log.debug("Registered %d MCP tools", len(mcp.tools))

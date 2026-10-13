@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
+import { McpOAuthPanel } from '../components/McpOAuthPanel';
 import claudeLogo from '../assets/claude.svg';
 import cursorLogo from '../assets/cursor.svg';
 import openaiLogo from '../assets/openai-codex.svg';
@@ -76,6 +77,7 @@ export function McpGuidePage() {
             </div>
 
             <div className="grid gap-6">
+                <McpOAuthPanel />
                 <Button
                     type="button"
                     variant="outline"

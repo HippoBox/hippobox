@@ -132,6 +132,9 @@ def test_oauth_end_to_end_and_restart(client):
     )
     assert initialized.status_code == 200, initialized.text
     headers["mcp-session-id"] = initialized.headers["mcp-session-id"]
+    listed = client.post("/mcp", headers=headers, json={"jsonrpc": "2.0", "id": 9, "method": "tools/list"})
+    assert "securitySchemes" in listed.text
+    assert "knowledge:write" in listed.text
     result = client.post(
         "/mcp",
         headers=headers,

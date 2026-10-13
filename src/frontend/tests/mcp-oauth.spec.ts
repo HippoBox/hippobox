@@ -63,5 +63,14 @@ test('MCP authorization preserves login context and requires explicit consent', 
         },
     });
     expect(tokens.status()).toBe(200);
-    expect((await tokens.json()).access_token).toMatch(/^hpm_/);
+    const access = (await tokens.json()).access_token;
+    expect(access).toMatch(/^hpm_/);
+    await page.goto('/app/mcp');
+    await expect(page.getByRole('heading', { name: 'Connected MCP clients' })).toBeVisible();
+    await page.getByRole('button', { name: 'Disconnect', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Connected MCP clients' })).toHaveCount(0);
+    const revoked = await page.request.get('/api/v1/knowledge/list', {
+        headers: { Authorization: `Bearer ${access}` },
+    });
+    expect(revoked.status()).toBe(401);
 });

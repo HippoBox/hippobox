@@ -217,3 +217,8 @@ docker compose --env-file .env -f compose.local.yml logs --tail=100 hippobox
 Blueprint 등 다른 앱과 서버를 공유한다면 앱별 Caddy 대신
 [공용 Caddy 구성](../docker/shared-caddy/README.md)을 사용합니다.
 Blueprint 원본을 수정하지 않고 프록시·인증서 볼륨·관리 명령을 별도 경로로 분리합니다.
+
+## ChatGPT MCP OAuth
+
+ChatGPT 연결은 [MCP OAuth 설정 안내](mcp-chatgpt.md)를 참고하세요.
+`MCP_OAUTH_ENABLED`는 소셜 로그인용 `OAUTH_ENABLED`와 독립적이며, 단일 컨테이너에서도 동작합니다.
