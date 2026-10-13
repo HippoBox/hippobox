@@ -16,3 +16,6 @@ src/frontend/dist
 src/frontend/test-results
 src/frontend/playwright-report
 artifacts
+
+**/*.bak
+**/data

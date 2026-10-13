@@ -5,6 +5,10 @@
 HippoBox is a unified FastAPI + FastAPIMcp for managing a personal knowledge base.
 It provides CRUD operations for knowledge entries, semantic search powered by embeddings, and MCP tool integration for use in Claude Desktop or other MCP-compatible clients.
 
+### Deploy with Docker
+
+The release image bundles the frontend and backend. Start with the [deployment guide](docs/deployment.md) for PostgreSQL, Redis, Qdrant, and background workers. Existing installations must follow the 0.2 data upgrade steps before starting.
+
 ### Overview
 
 See the knowledge entry once it is created in HippoBox.

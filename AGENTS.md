@@ -34,6 +34,7 @@
 - `npm run preview` to preview the built bundle
 
 ## Database migrations
+- For the 0.2 platform transition, follow `docs/deployment.md`; do not run the vendored platform Alembic history.
 - `cd src/backend`
 - `uv run alembic upgrade head`
 - `uv run alembic revision --autogenerate -m "your message"`
@@ -51,7 +52,7 @@
 - `make test-migrations-postgres` uses a disposable Docker container to validate the existing PostgreSQL Alembic history.
 - Tests use temporary databases and memory Redis. Never point tests at developer/production storage.
 - Blueprint4Agent is read-only; do not run builds, formatters, hooks or installation there.
-- Preserve HippoBox's existing structure, theme, UI family and icons; adapt useful Blueprint patterns selectively.
+- Preserve HippoBox's existing structure, theme, UI family and icons; use the pinned Blueprint backend in `hippobox/platform` while retaining HippoBox product code.
 
 ## Coding conventions
 - Use async SQLAlchemy sessions from `hippobox.core.database.get_db()`.

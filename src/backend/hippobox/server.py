@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from contextlib import AsyncExitStack, asynccontextmanager
 
@@ -66,6 +67,7 @@ async def lifespan(app: FastAPI):
             app.state.EMBEDDING = Embedding()
             cleanup.callback(app.state.EMBEDDING.client.close)
             log.info("Embedding client initialized")
+            await asyncio.to_thread(app.state.QDRANT.client.get_collections)
         else:
             log.info("VDB disabled; skipping Qdrant and embedding initialization")
 
@@ -77,7 +79,7 @@ async def lifespan(app: FastAPI):
 def create_app() -> FastAPI:
     app = FastAPI(
         title="HippoBox MCP Server",
-        version="0.1.0",
+        version="0.2.0",
         description="Unified FastAPI + MCP server for Knowledge Store & RAG",
         lifespan=lifespan,
         docs_url="/docs" if SETTINGS.SWAGGER_ENABLED else None,
@@ -99,8 +101,15 @@ def create_app() -> FastAPI:
 
     @app.get("/health/ready")
     async def ready():
-        result = await get_readiness()
-        return JSONResponse(status_code=200 if result.status == "ok" else 503, content=result.model_dump())
+        result = (await get_readiness()).model_dump()
+        if SETTINGS.VDB_ENABLED:
+            try:
+                await asyncio.wait_for(asyncio.to_thread(app.state.QDRANT.client.get_collections), timeout=5)
+                result["checks"]["qdrant"] = "ok"
+            except Exception:
+                result["checks"]["qdrant"] = "unavailable"
+                result["status"] = "degraded"
+        return JSONResponse(status_code=200 if result["status"] == "ok" else 503, content=result)
 
     app.include_router(auth_compat.router, prefix="/api/v1/auth", tags=["Auth compatibility"])
     for router, prefix, tag in [
