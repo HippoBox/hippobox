@@ -88,3 +88,58 @@ GHCR의 amd64/arm64 이미지를 게시하고 GitHub 릴리즈에 wheel/sdist/�
 wheel/sdist를 해시 검증하고 PyPI Trusted Publishing으로 게시합니다. 이미 게시된
 GitHub 릴리즈는 `workflow_dispatch`의 `pypi_only=true`로 이미지 재빌드 없이 게시할 수 있습니다.
 실제 서비스 서버 업데이트는 이 워크플로에 포함하지 않습니다.
+
+## hippobox.org / Resend 운영 설정
+
+운영 환경파일은 저장소 사용 시 `docker/.env`, 릴리즈 파일만 사용하는 경우
+Compose 파일 옆의 `.env`에 둡니다. 두 경로 중 하나만 사용하면 됩니다.
+
+```dotenv
+PUBLIC_APP_URL=https://hippobox.org
+PUBLIC_API_URL=https://hippobox.org
+BIND_ADDRESS=127.0.0.1
+PORT=8000
+# 아래 값은 포트가 호스트 루프백에만 공개되고 신뢰하는 프록시가 접근하는 구성용입니다.
+FORWARDED_ALLOW_IPS=*
+EMAIL_ENABLED=true
+RESEND_API_KEY=re_REPLACE_WITH_YOUR_KEY
+EMAIL_FROM='HippoBox <no-reply@hippobox.org>'
+```
+
+Resend에서 도메인 인증을 완료하고 해당 도메인의 발송 권한이 있는 API 키를 사용합니다.
+API 키가 설정되면 SMTP 대신 Resend를 사용하므로 SMTP 항목은 비워 둡니다.
+인증/비밀번호 메일 링크는 `PUBLIC_APP_URL`을 기준으로 생성합니다. Redis와 worker가
+실행되어야 실제 메일이 발송됩니다. 환경파일을 변경한 뒤에는 `restart` 대신
+`docker compose --env-file .env -f compose.release.yml up -d --wait`로 컨테이너를 재생성합니다.
+
+파일 권한은 `chmod 600 .env`로 제한합니다. 새 설치 시 생성한 `SECRET_KEY`와
+`DB_PASSWORD`는 이후 업데이트에서도 유지합니다. 기존 데이터 업그레이드에는 기존
+운영 키와 DB 비밀번호를 사용하며, 새 환경파일의 무작위 값으로 교체하지 않습니다.
+
+호스트에 Nginx와 Certbot이 설치된 Ubuntu/Debian 기준으로 DNS를 서버 IP에 연결하고
+[nginx.conf.example](../docker/nginx.conf.example)을 `/etc/nginx/sites-available/hippobox`
+에 복사한 후 활성화합니다. 기존 동일 도메인의 설정이 있다면 중복으로 추가하지 않고
+그 설정에 프록시 블록을 반영합니다.
+
+```sh
+sudo ln -s /etc/nginx/sites-available/hippobox /etc/nginx/sites-enabled/hippobox
+sudo nginx -t
+sudo systemctl reload nginx
+sudo certbot --nginx -d hippobox.org
+```
+
+서버/클라우드 방화벽에서는 80·443을 허용합니다. 앱의 8000 포트와 DB·Redis·Qdrant는
+외부에 공개할 필요가 없습니다. 이 예제는 Nginx가 Docker 호스트에서 실행되는 구성입니다.
+Nginx 자체가 컨테이너라면 `127.0.0.1` upstream 대신 공유 Docker 네트워크를 구성해야 합니다.
+
+설정 확인:
+
+```sh
+docker compose --env-file .env -f compose.release.yml ps
+curl --fail http://127.0.0.1:8000/health/ready
+docker compose --env-file .env -f compose.release.yml logs --tail=100 hippobox worker
+```
+
+가입 인증 또는 비밀번호 재설정을 수행해 받은 메일의 도메인과 링크를 확인합니다.
+Resend 대시보드에서도 발송 결과를 확인할 수 있습니다. 시작 시 설정 검증 통과는
+실제 메일 전달 성공을 의미하지 않습니다.
