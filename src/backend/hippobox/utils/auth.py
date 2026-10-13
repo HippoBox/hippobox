@@ -35,8 +35,9 @@ async def get_current_user(
         from hippobox.platform.models.user import Users as PlatformUsers
 
         key = await get_current_api_key(api_key)
+        key_owner = await Users.get(key.user_id)
         key_user = await PlatformUsers.get_user_response_by_id(key.user_id)
-        if key_user is None or not key_user.is_active:
+        if key_user is None or key_owner is None or not key_owner.is_active:
             raise HTTPException(status_code=401, detail="Invalid API key")
         if token_auth is None:
             return key_user

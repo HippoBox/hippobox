@@ -317,3 +317,22 @@ def test_oversized_registration_and_disabled_discovery(client, monkeypatch):
     assert client.get("/oauth/authorize").headers["x-frame-options"] == "DENY"
     monkeypatch.setattr(SETTINGS, "MCP_OAUTH_ENABLED", False)
     assert client.get("/.well-known/oauth-authorization-server").status_code == 404
+
+
+def test_api_key_owner_must_be_active_for_mcp(client):
+    from sqlalchemy import update
+
+    from hippobox.core.database import get_db
+    from hippobox.platform.models.user import User
+
+    user = account(client)
+    user_id = client.get("/api/v1/auth/me", headers=user).json()["id"]
+    key = client.post("/api/v1/api-keys", headers=user, json={"name": "mcp-client"}).json()["api_key"]
+
+    async def disable():
+        async with get_db() as db:
+            await db.execute(update(User).where(User.id == user_id).values(is_active=False))
+            await db.commit()
+
+    client.portal.call(disable)
+    assert client.post("/mcp", headers={"X-API-Key": key}, json={}).status_code == 401
