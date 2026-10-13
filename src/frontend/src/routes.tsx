@@ -1,4 +1,5 @@
 import { VerifyEmailPage } from './pages/VerifyEmailPage';
+import { McpConsentPage } from './pages/McpConsentPage';
 import { lazy } from 'react';
 import { createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom';
 
@@ -67,6 +68,7 @@ export const createAppRouter = (basename: string) =>
         createRoutesFromElements(
             <>
                 <Route element={<RootLayout />} errorElement={<ErrorPage />}>
+                    <Route path="connect-mcp" element={<McpConsentPage />} />
                     <Route index element={<LoginPage />} handle={{ titleKey: 'login.title' }} />
                     <Route element={<AppLayout />}>
                         <Route

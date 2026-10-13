@@ -1,6 +1,6 @@
 name: hippobox
 x-app: &app
-  image: ${HIPPOBOX_IMAGE:-ghcr.io/hippobox/hippobox:0.2.0}
+  image: ${HIPPOBOX_IMAGE:-ghcr.io/hippobox/hippobox:0.3.0}
   env_file: ${HIPPOBOX_ENV_FILE:-.env}
   environment: &environment
     APP_MODE: production

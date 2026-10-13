@@ -23,6 +23,9 @@ with TemporaryDirectory(prefix="hippobox-browser-") as directory:
             "DB_NAME": str(Path(directory) / "test.db"),
             "OBJECT_STORAGE_LOCAL_ROOT": str(Path(directory) / "objects"),
             "FRONTEND_BASE_PATH": "",
+            "MCP_OAUTH_ENABLED": "true",
+            "PUBLIC_API_URL": "http://127.0.0.1:8127",
+            "PUBLIC_APP_URL": "http://127.0.0.1:8127",
         }
     )
     uvicorn.run("hippobox.server:app", host="127.0.0.1", port=8127, log_level="warning")

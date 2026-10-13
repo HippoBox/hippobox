@@ -1,0 +1,30 @@
+# SQLite API only; attach to the network of your existing Redis/Qdrant services.
+name: hippobox
+services:
+  hippobox:
+    image: ${HIPPOBOX_IMAGE:-ghcr.io/hippobox/hippobox:0.3.0}
+    env_file: ${HIPPOBOX_ENV_FILE:-.env}
+    environment:
+      APP_MODE: production
+      LOGIN_ENABLED: "true"
+      SWAGGER_ENABLED: "false"
+      SECRET_KEY: ${SECRET_KEY:?Set the existing production SECRET_KEY in .env}
+      DB_DRIVER: sqlite+aiosqlite
+      DB_NAME: /data/${SQLITE_DB_FILENAME:-hippobox.db}
+      OBJECT_STORAGE_LOCAL_ROOT: /data/objects
+      QDRANT_PATH: /data/qdrant_storage
+    volumes:
+      - type: bind
+        source: ${HIPPOBOX_DATA_DIR:?Set the existing SQLite parent directory in .env}
+        target: /data
+        bind:
+          create_host_path: false
+    networks:
+      - existing
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${PORT:-8000}:8000"
+    restart: unless-stopped
+networks:
+  existing:
+    external: true
+    name: ${HIPPOBOX_NETWORK:-hippobox-net}

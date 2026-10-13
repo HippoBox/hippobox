@@ -1,0 +1,22 @@
+{$BLUEPRINT_DOMAIN} {
+    @private path /metrics /metrics/* /docs /docs/* /redoc /redoc/* /openapi.json
+    respond @private 404
+    reverse_proxy 127.0.0.1:8000 {
+        flush_interval -1
+    }
+}
+
+{$HIPPOBOX_DOMAIN} {
+    @private path /metrics /metrics/* /docs /docs/* /redoc /redoc/* /openapi.json
+    respond @private 404
+    reverse_proxy 127.0.0.1:8001 {
+        flush_interval -1
+    }
+}
+
+# Temporary IP preview; remove after the HippoBox DNS/TLS cutover.
+http://{$PREVIEW_HOST} {
+    reverse_proxy 127.0.0.1:8001 {
+        flush_interval -1
+    }
+}

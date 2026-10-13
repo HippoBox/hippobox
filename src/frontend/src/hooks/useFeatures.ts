@@ -6,6 +6,7 @@ import { DEFAULT_EMAIL_ENABLED } from '../config/features';
 import { setRuntimeConfig } from '../config/runtime';
 
 type AppConfigResponse = {
+    mcp_oauth_enabled?: boolean;
     login_enabled?: boolean;
     email_enabled: boolean;
     vdb_enabled?: boolean;

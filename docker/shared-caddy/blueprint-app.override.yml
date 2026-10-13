@@ -1,0 +1,5 @@
+# Use with Blueprint's base compose file, without docker-compose.https.yml.
+services:
+  app:
+    environment:
+      FORWARDED_ALLOW_IPS: "*"

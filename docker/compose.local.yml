@@ -1,0 +1,30 @@
+# One-container deployment: SQLite, local Qdrant and in-memory auth state.
+# Mail requires the separate Redis/worker deployment and is disabled here.
+name: hippobox
+services:
+  hippobox:
+    image: ${HIPPOBOX_IMAGE:-ghcr.io/hippobox/hippobox:0.3.0}
+    env_file: ${HIPPOBOX_ENV_FILE:-.env}
+    environment:
+      APP_MODE: production
+      LOGIN_ENABLED: "true"
+      SWAGGER_ENABLED: "false"
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
+      DB_DRIVER: sqlite+aiosqlite
+      DB_NAME: /data/${SQLITE_DB_FILENAME:-hippobox.db}
+      QDRANT_MODE: local
+      QDRANT_PATH: /data/qdrant_storage
+      OBJECT_STORAGE_LOCAL_ROOT: /data/objects
+      REDIS_IN_MEMORY: "true"
+      EMAIL_ENABLED: "false"
+      OAUTH_ENABLED: "false"
+      STRIPE_ENABLED: "false"
+    volumes:
+      - type: bind
+        source: ${HIPPOBOX_DATA_DIR:?Set the persistent data directory in .env}
+        target: /data
+        bind:
+          create_host_path: false
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${PORT:-8001}:8000"
+    restart: unless-stopped

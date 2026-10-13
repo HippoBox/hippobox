@@ -38,7 +38,7 @@ def test_refresh_cookie_and_logout(client):
 
 
 def test_mcp_transport_lists_tools(client):
-    headers = {"Accept": "application/json, text/event-stream"}
+    headers = {**account(client), "Accept": "application/json, text/event-stream"}
     response = client.post(
         "/mcp",
         headers=headers,
