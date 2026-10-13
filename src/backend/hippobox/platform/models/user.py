@@ -462,9 +462,9 @@ class UserRepository:
                     db,
                     user_id=user.id,
                     kind="welcome",
-                    title="Welcome to B4A",
-                    body="Your account is ready. Welcome to B4A.",
-                    action_path="/home",
+                    title="Welcome to HippoBox",
+                    body="Your account is ready. Welcome to HippoBox.",
+                    action_path="/app",
                 )
                 await db.commit()
                 await db.refresh(user)
@@ -504,9 +504,9 @@ class UserRepository:
                     db,
                     user_id=user.id,
                     kind="welcome",
-                    title="Welcome to B4A",
-                    body="Your account is ready. Welcome to B4A.",
-                    action_path="/home",
+                    title="Welcome to HippoBox",
+                    body="Your account is ready. Welcome to HippoBox.",
+                    action_path="/app",
                 )
                 await db.commit()
                 await db.refresh(user)
