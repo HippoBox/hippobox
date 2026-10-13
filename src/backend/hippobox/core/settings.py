@@ -11,8 +11,10 @@ load_dotenv()
 
 class Settings(PlatformSettings):
     PLATFORM_MIGRATE_LEGACY: bool = os.getenv("PLATFORM_MIGRATE_LEGACY", "false").lower() == "true"
+    EMAIL_BRAND_NAME: str = os.getenv("EMAIL_BRAND_NAME", "HippoBox")
+    OTEL_SERVICE_NAME: str = os.getenv("OTEL_SERVICE_NAME", "hippobox")
     APP_NAME: str = "HippoBox"
-    APP_BASE_URL: str = os.getenv("PUBLIC_APP_URL", "http://localhost:8000")
+    APP_BASE_URL: str = os.getenv("PUBLIC_APP_URL") or os.getenv("APP_BASE_URL") or "http://localhost:8000"
     OAUTH_FRONTEND_SUCCESS_PATH: str = "/app"
     OAUTH_FRONTEND_FAILURE_PATH: str = "/"
 
@@ -111,28 +113,12 @@ class Settings(PlatformSettings):
         if not self.LOGIN_ENABLED:
             object.__setattr__(self, "EMAIL_ENABLED", False)
 
-        if self.DB_DRIVER.startswith("sqlite"):
-            db_file = self.ROOT_DIR / self.DB_NAME
-            object.__setattr__(self, "DATABASE_URL", f"{self.DB_DRIVER}:///{db_file.as_posix()}")
-        else:
-            object.__setattr__(
-                self,
-                "DATABASE_URL",
-                (f"{self.DB_DRIVER}://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"),
-            )
-
         if self.QDRANT_MODE.lower() == "local":
             object.__setattr__(
                 self,
                 "QDRANT_LOCAL_PATH",
                 (self.ROOT_DIR / self.QDRANT_PATH).resolve(),
             )
-
-        if self.REDIS_PASSWORD:
-            redis_url = f"redis://:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
-        else:
-            redis_url = f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
-        object.__setattr__(self, "REDIS_URL", redis_url)
 
 
 SETTINGS = Settings()

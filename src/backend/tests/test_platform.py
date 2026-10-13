@@ -79,3 +79,40 @@ def test_deleted_user_identifier_is_not_reused(client):
     new_id = client.get("/api/v1/auth/me", headers=second).json()["id"]
     assert new_id > old_id
     assert client.get("/api/v1/auth/me", headers=first).status_code == 401
+
+
+def test_resend_provider_preserves_payload_and_raises_on_delivery_failure(monkeypatch):
+    import asyncio
+    from types import SimpleNamespace
+
+    import httpx
+
+    from hippobox.platform.core.mail.service import MailMessage, ResendMailProvider
+
+    observed = []
+    status = 200
+
+    def respond(request):
+        observed.append(request)
+        return httpx.Response(status, json={"id": "test"})
+
+    client_class = httpx.AsyncClient
+    monkeypatch.setattr(
+        httpx, "AsyncClient", lambda **kwargs: client_class(transport=httpx.MockTransport(respond), **kwargs)
+    )
+    provider = ResendMailProvider(
+        SimpleNamespace(
+            RESEND_API_KEY="test-key",
+            RESEND_API_BASE_URL="https://mail.example.test",
+            EMAIL_FROM="hippobox@example.test",
+        )
+    )
+    provider.validate_configuration()
+    message = MailMessage("user@example.test", "HippoBox", "Verification message")
+    asyncio.run(provider.send(message))
+    assert observed[0].url.path == "/emails"
+    assert observed[0].headers["Authorization"] == "Bearer test-key"
+    assert b"Verification message" in observed[0].content
+    status = 429
+    with pytest.raises(httpx.HTTPStatusError):
+        asyncio.run(provider.send(message))

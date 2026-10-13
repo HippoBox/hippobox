@@ -95,5 +95,27 @@ def test_legacy_database_upgrade_preserves_ids_and_keys():
         asyncio.run(data())
         upgrade("head")
         asyncio.run(data(verify=True))
+        # Run the platform bridge against the actual legacy PostgreSQL schema.
+        migrated = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                """
+from fastapi.testclient import TestClient
+from hippobox.server import app
+with TestClient(app) as client:
+    assert client.get('/health/ready').status_code == 200
+    response = client.post('/api/v1/auth/signup', json={
+        'name': 'after-migration', 'email': 'after@example.com', 'password': 'Strong!123456789'})
+    assert response.status_code == 200, response.text
+""",
+            ],
+            cwd=root,
+            env={**env, "PLATFORM_MIGRATE_LEGACY": "true", "VDB_ENABLED": "false", "REDIS_IN_MEMORY": "true"},
+            capture_output=True,
+            text=True,
+        )
+        assert migrated.returncode == 0, migrated.stderr
+
     finally:
         subprocess.run(["docker", "rm", "-f", container], capture_output=True, check=True)

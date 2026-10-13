@@ -354,7 +354,7 @@ class MailService:
             language=language,
             app_name=self._settings.EMAIL_BRAND_NAME,
             link=self._settings.APP_BASE_URL.rstrip("/")
-            + ("/home" if kind == "account_deleted" else "/settings?section=billing"),
+            + ("/" if kind == "account_deleted" else "/app/settings"),
         )
         await self._provider.send(
             MailMessage(
