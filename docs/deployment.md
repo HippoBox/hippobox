@@ -179,3 +179,35 @@ docker compose --env-file .env -f compose.sqlite.yml up -d --no-deps hippobox
 기존 컨테이너에 별도 이름/프로젝트가 있다면 교체 전에 실행 중인 구성을 확인하세요.
 이 구성은 API만 실행하므로 메일 발송용 worker는 기존 worker를 유지하거나 별도로
 실행해야 합니다. 이 파일을 PostgreSQL용 Compose와 병합해서 사용하지 않습니다.
+
+## 단일 컨테이너 / 모든 저장소 로컬
+
+[compose.local.yml](../docker/compose.local.yml)은 HippoBox 하나만 실행합니다.
+SQLite·Qdrant·첨부파일은 `HIPPOBOX_DATA_DIR`에 저장하며, 외부 DB/Redis 컨테이너가
+필요하지 않습니다. 메모리 Redis를 사용하므로 재시작 시 세션 갱신·로그인 제한 등
+일시적인 인증 상태는 초기화됩니다. 사용자와 지식 데이터는 디스크에 유지됩니다.
+메일·OAuth·결제는 이 구성에서 비활성화합니다. Resend 키를 보관해도 메일을 보내지 않습니다.
+
+새 설치의 환경변수 예시:
+
+```dotenv
+HIPPOBOX_DATA_DIR=/home/ubuntu/hippobox-data
+SQLITE_DB_FILENAME=hippobox.db
+PORT=8001
+BIND_ADDRESS=127.0.0.1
+VDB_ENABLED=true
+# 기존 또는 별도로 생성한 운영 키와 OpenAI 키도 설정합니다.
+```
+
+새 데이터 디렉터리는 먼저 만들고 컨테이너 UID/GID 10001에 쓰기 권한을 줍니다.
+기존 데이터라면 백업과 경로 확인을 먼저 수행하며, 임의로 새 빈 디렉터리로 바꾸지 않습니다.
+
+```sh
+docker compose --env-file .env -f compose.local.yml config --quiet
+docker compose --env-file .env -f compose.local.yml up -d --wait
+docker compose --env-file .env -f compose.local.yml logs --tail=100 hippobox
+```
+
+기존 서비스가 8000번을 쓰는 서버에서는 8001번을 사용합니다. 외부 접근은 HTTPS
+프록시를 연결합니다. 일시적으로 IP:포트를 직접 열어 확인하는 경우에만
+`BIND_ADDRESS=0.0.0.0`으로 설정하고 해당 포트의 클라우드 방화벽 접근을 확인합니다.
