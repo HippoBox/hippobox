@@ -86,3 +86,27 @@ responsive actions and configuration recovery. No production data is modified.
 - 프론트엔드 `api/authError.ts`에서 오류 코드와 번역 문구를 연결하며 가입·로그인·재전송·비밀번호 재설정 화면이 공유합니다.
 - 기존 `detail.error` 응답 형식, 이름·이메일 고유 제약, 테이블과 화면 테마는 유지합니다. Blueprint의 OAuth/다중 인증 테이블은 도입하지 않습니다.
 - SQLite/PostgreSQL 제약 오류를 구분하며, 알 수 없는 서버 메시지는 UI에서 원문 대신 화면별 기본 안내로 표시합니다.
+
+## 0.2 기반 전환 (이전 선택적 적용 범위를 대체)
+
+사용자의 전체 기반 전환 요청에 따라 B4FastAPI `b0ac500619d51cb64e4f0f494687b72d549df51e`를
+`hippobox/platform`에 가져왔습니다. 원본은 읽기 전용이며 MIT 고지와 기준 커밋은
+`platform/LICENSE`, `platform/UPSTREAM`에 보존합니다. B4React의 CSS·화면·서브모듈은
+가져오지 않고 기존 HippoBox UI와 Query 상태 계층을 새 백엔드에 연결합니다.
+
+- 가입/로그인/프로필/세션은 Blueprint 서비스와 저장소를 사용합니다.
+- 권한, OAuth, 프로필 사진, 메일 outbox, 알림, 문의, 결제, 운영 API도 같은 기반으로 포함합니다.
+- HippoBox 전용 지식·주제·태그·MCP·Qdrant·임베딩과 기존 정적 파일/CLI 배포는 유지합니다.
+- 공통 Settings·DB·Redis는 단일 인스턴스로 공유합니다.
+- `user`, `credential` 및 모든 지식 테이블·ID를 유지하며 인증 식별자는 `auth_identities`로 옮깁니다.
+- 기존 API 키는 `/api/v1/api_key`와 `Bearer sk-…`로 계속 사용할 수 있습니다.
+  새 플랫폼 API 키는 `/api/v1/api-keys`와 `X-API-Key`를 사용합니다.
+- 사용자 ID 재사용을 막아 삭제 전 JWT가 새 계정에 접근하지 못하게 합니다.
+- 비밀번호 최대 64자와 이름 고유 제약을 유지합니다.
+- 기존 refresh/이메일 인증/재설정 토큰은 새 저장 형식으로 자동 변환하지 않습니다.
+  업그레이드 후 재로그인 또는 메일 재발급이 필요합니다.
+- 기존 DB는 기본적으로 시작을 거절합니다. SQL/Qdrant 백업 후 첫 기동에만
+  `PLATFORM_MIGRATE_LEGACY=true`를 지정합니다. SQLite는 변환 전 `.bak`도 생성합니다.
+- Blueprint 자체 Alembic 이력은 HippoBox DB에 실행하지 않습니다.
+- SMTP 또는 기존 Resend를 사용하며 메일 기능 활성화 시 worker/beat와 실제 Redis가 필요합니다.
+- 외부 OAuth·SMTP·Resend·Stripe 계정 연결은 운영자가 환경변수를 설정해야 합니다.

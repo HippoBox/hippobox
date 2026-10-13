@@ -25,7 +25,7 @@ def test_signup_rolls_back_partial_account(client):
     engine = get_engine().sync_engine
 
     def fail_auth_insert(conn, cursor, statement, parameters, context, executemany):
-        if statement.startswith("INSERT INTO auth "):
+        if statement.startswith("INSERT INTO auth_identities "):
             raise RuntimeError("simulated authentication storage failure")
 
     form = {"name": "retry", "email": "retry@example.com", "password": "Strong!123"}
@@ -33,7 +33,7 @@ def test_signup_rolls_back_partial_account(client):
     try:
         response = client.post("/api/v1/auth/signup", json=form)
         assert response.status_code == 500
-        assert response.json()["detail"] == {"error": "CREATE_FAILED", "message": "Failed to create user"}
+        assert response.json()["detail"] == {"error": "SIGNUP_FAILED", "message": "Failed to create the user account."}
     finally:
         event.remove(engine, "before_cursor_execute", fail_auth_insert)
     assert client.post("/api/v1/auth/signup", json=form).status_code == 200
@@ -64,13 +64,13 @@ def test_integrity_error_mapping(message, code):
     [
         ("UNIQUE constraint failed: user.name", 409, "NAME_ALREADY_EXISTS"),
         ("UNIQUE constraint failed: user.email", 409, "EMAIL_ALREADY_EXISTS"),
-        ("unknown database constraint", 500, "CREATE_FAILED"),
+        ("unknown database constraint", 500, "SIGNUP_FAILED"),
     ],
 )
 def test_signup_service_translates_commit_conflicts(client, monkeypatch, message, status, code):
     from sqlalchemy.exc import IntegrityError
 
-    from hippobox.models.user import Users
+    from hippobox.platform.models.user import Users
 
     async def fail_commit(**kwargs):
         raise IntegrityError("private SQL", {"email": "private@example.com"}, Exception(message))

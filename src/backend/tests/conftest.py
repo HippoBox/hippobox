@@ -28,6 +28,7 @@ from hippobox.server import create_app
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
+    monkeypatch.setattr(SETTINGS, "OBJECT_STORAGE_LOCAL_ROOT", tmp_path / "objects")
     monkeypatch.setattr(SETTINGS, "DATABASE_URL", f"sqlite+aiosqlite:///{tmp_path / 'test.db'}")
     monkeypatch.setattr(database, "_ENGINE", None)
     monkeypatch.setattr(database, "_SESSION_FACTORY", None)

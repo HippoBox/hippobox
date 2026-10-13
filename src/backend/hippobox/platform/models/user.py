@@ -5,6 +5,7 @@ from typing import Annotated
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from sqlalchemy import (
     JSON,
+    event,
     Boolean,
     DateTime,
     ForeignKey,
@@ -82,6 +83,17 @@ class User(Base):
         "AuthIdentity", back_populates="user", cascade="all, delete-orphan"
     )
     api_keys = relationship("hippobox.platform.models.api_key.APIKey", back_populates="user", cascade="all, delete-orphan")
+
+
+@event.listens_for(User, "before_insert")
+def allocate_sqlite_user_id(mapper, connection, user):
+    # Legacy SQLite tables lacked AUTOINCREMENT. Allocate from a persistent
+    # high-water mark so an old JWT can never authenticate a reused user ID.
+    if connection.dialect.name == "sqlite" and user.id is None:
+        user.id = connection.execute(text(
+            'UPDATE hippobox_user_sequence SET value = MAX(value, '
+            '(SELECT COALESCE(MAX(id), 0) FROM "user")) + 1 WHERE id = 1 RETURNING value'
+        )).scalar_one()
 
 
 class Credential(Base):
@@ -522,7 +534,8 @@ class UserRepository:
             return None
 
         return AuthUserDTO(
-            guide_seen=user.guide_seen,            id=user.id,
+            guide_seen=user.guide_seen,
+            id=user.id,
             email=user.email,
             name=user.name,
             role=UserRole(user.role),
@@ -534,7 +547,7 @@ class UserRepository:
             is_active=user.is_active,
             is_verified=user.is_verified,
             created_at=user.created_at,
-            password_hash=user.credential.password_hash if user.credential else None,
+            password_hash=user.credential.password_hash if user.credential and user.credential.is_active else None,
         )
 
     async def has_bootstrap_identity(self, user_id: int) -> bool:
@@ -572,7 +585,8 @@ class UserRepository:
             return None
 
         return AuthUserDTO(
-            guide_seen=user.guide_seen,            id=user.id,
+            guide_seen=user.guide_seen,
+            id=user.id,
             email=user.email,
             name=user.name,
             role=UserRole(user.role),
@@ -584,7 +598,7 @@ class UserRepository:
             is_active=user.is_active,
             is_verified=user.is_verified,
             created_at=user.created_at,
-            password_hash=user.credential.password_hash if user.credential else None,
+            password_hash=user.credential.password_hash if user.credential and user.credential.is_active else None,
         )
 
     async def get_user_response_by_id(self, user_id: int) -> UserResponse | None:
@@ -732,7 +746,7 @@ class UserRepository:
             if db.bind.dialect.name == "sqlite":
                 await db.execute(text("BEGIN IMMEDIATE"))
             elif db.bind.dialect.name == "postgresql":
-                await db.execute(text("LOCK TABLE users IN SHARE ROW EXCLUSIVE MODE"))
+                await db.execute(text('LOCK TABLE "user" IN SHARE ROW EXCLUSIVE MODE'))
             user = await db.scalar(select(User).where(User.id == user_id).with_for_update())
             if user is None or not user.is_active:
                 raise AuthException(code=AuthErrorCode.USER_NOT_FOUND)
@@ -771,7 +785,7 @@ class UserRepository:
             if dialect == "sqlite":
                 await db.execute(text("BEGIN IMMEDIATE"))
             elif dialect == "postgresql":
-                await db.execute(text("LOCK TABLE users IN SHARE ROW EXCLUSIVE MODE"))
+                await db.execute(text('LOCK TABLE "user" IN SHARE ROW EXCLUSIVE MODE'))
             else:
                 raise ValueError("Role management supports SQLite and PostgreSQL only.")
             user = await db.scalar(select(User).where(User.email == email))

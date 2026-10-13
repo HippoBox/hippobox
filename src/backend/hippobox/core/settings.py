@@ -3,12 +3,19 @@ from pathlib import Path
 from typing import Literal
 
 from dotenv import load_dotenv
-from pydantic import BaseModel
+
+from hippobox.platform.core.config.base_settings import Settings as PlatformSettings
 
 load_dotenv()
 
 
-class Settings(BaseModel):
+class Settings(PlatformSettings):
+    PLATFORM_MIGRATE_LEGACY: bool = os.getenv("PLATFORM_MIGRATE_LEGACY", "false").lower() == "true"
+    APP_NAME: str = "HippoBox"
+    APP_BASE_URL: str = os.getenv("PUBLIC_APP_URL", "http://localhost:8000")
+    OAUTH_FRONTEND_SUCCESS_PATH: str = "/app"
+    OAUTH_FRONTEND_FAILURE_PATH: str = "/"
+
     ROOT_DIR: Path = Path(__file__).resolve().parents[1]
 
     # ----------------------------------------

@@ -1,13 +1,11 @@
 import logging
 from datetime import datetime, timezone
-from enum import Enum
 
 from pydantic import BaseModel, Field, field_validator
-from sqlalchemy import DateTime, select
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Mapped, mapped_column
 
-from hippobox.core.database import Base, get_db
+from hippobox.core.database import get_db
 from hippobox.core.validation import (
     EMAIL_REGEX,
     NAME_MAX_LENGTH,
@@ -21,34 +19,9 @@ from hippobox.core.validation import (
 from hippobox.errors.auth import AuthErrorCode, AuthException, user_integrity_exception
 from hippobox.models.auth import Auth
 from hippobox.models.credential import Credential
+from hippobox.platform.models.user import User, UserRole
 
 log = logging.getLogger("user")
-
-
-class UserRole(str, Enum):
-    ADMIN = "admin"
-    USER = "user"
-
-
-class User(Base):
-    __tablename__ = "user"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-
-    email: Mapped[str] = mapped_column(unique=True, nullable=False)
-    name: Mapped[str] = mapped_column(unique=True, nullable=False)
-    role: Mapped[UserRole] = mapped_column(default=UserRole.USER, nullable=False)
-
-    is_active: Mapped[bool] = mapped_column(default=True, nullable=False)
-    is_verified: Mapped[bool] = mapped_column(default=False, nullable=False)
-    guide_seen: Mapped[bool] = mapped_column(default=False, nullable=False)
-
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
-    )
 
 
 class UserModel(BaseModel):

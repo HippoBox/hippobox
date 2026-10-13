@@ -31,6 +31,7 @@ def test_partial_startup_closes_initialized_resources(monkeypatch):
     monkeypatch.setattr(server.SETTINGS, "OPENAI_API_KEY", "test-only-not-a-real-key")
     for name in ("init_db", "ensure_admin_for_login_disabled", "ensure_default_admin_from_settings"):
         monkeypatch.setattr(server, name, AsyncMock())
+    monkeypatch.setattr(server.RedisManager, "verify_startup", AsyncMock())
     close_db, close_redis, close_vector = AsyncMock(), AsyncMock(), Mock()
     monkeypatch.setattr(server, "dispose_db", close_db)
     monkeypatch.setattr(server.RedisManager, "close", close_redis)
