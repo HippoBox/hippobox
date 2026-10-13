@@ -5,6 +5,7 @@ from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
+from hippobox.core.platform_schema import extend_legacy_schema, import_legacy_identities
 from hippobox.core.settings import SETTINGS
 
 log = logging.getLogger("database")
@@ -67,7 +68,9 @@ def get_session_factory():
 
 async def init_db():
     async with get_engine().begin() as conn:
+        await conn.run_sync(extend_legacy_schema)
         await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(import_legacy_identities)
     log.info("Database tables created")
 
 

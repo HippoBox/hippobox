@@ -47,6 +47,31 @@ class NullMailProvider(MailProvider):
         logger.info("Email disabled. Skip sending email to %s.", mask_email(message.to_email))
 
 
+class ResendMailProvider(MailProvider):
+    """Keep HippoBox's existing Resend configuration and the platform mail queue."""
+    def __init__(self, settings: Settings):
+        self._settings = settings
+
+    def validate_configuration(self) -> None:
+        if not self._settings.RESEND_API_KEY or not self._settings.EMAIL_FROM:
+            raise ValueError("RESEND_API_KEY and EMAIL_FROM are required")
+
+    def verify_startup(self) -> None:
+        self.validate_configuration()
+
+    async def send(self, message: MailMessage) -> None:
+        import httpx
+        async with httpx.AsyncClient(timeout=10) as client:
+            response = await client.post(
+                self._settings.RESEND_API_BASE_URL.rstrip("/") + "/emails",
+                headers={"Authorization": f"Bearer {self._settings.RESEND_API_KEY}"},
+                json={"from": self._settings.EMAIL_FROM, "to": [message.to_email],
+                      "subject": message.subject, "text": message.text_body,
+                      "html": message.html_body or message.text_body},
+            )
+            response.raise_for_status()
+
+
 class SMTPMailProvider(MailProvider):
     def __init__(self, settings: Settings):
         self._settings = settings
@@ -102,7 +127,8 @@ class MailService:
     def __init__(self, settings: Settings):
         self._settings = settings
         self._provider: MailProvider = (
-            SMTPMailProvider(settings) if settings.EMAIL_ENABLED else NullMailProvider()
+            (ResendMailProvider(settings) if settings.RESEND_API_KEY else SMTPMailProvider(settings))
+            if settings.EMAIL_ENABLED else NullMailProvider()
         )
 
     async def initialize(self) -> None:
@@ -133,6 +159,9 @@ class MailService:
     async def check_connection(self) -> None:
         """Authenticate without sending mail; keep probe socket waits short."""
         if not self._settings.EMAIL_ENABLED:
+            return
+        if self._settings.RESEND_API_KEY:
+            self._provider.validate_configuration()
             return
         settings = self._settings.model_copy(update={"SMTP_TIMEOUT_SECONDS": 2})
         provider = SMTPMailProvider(settings)

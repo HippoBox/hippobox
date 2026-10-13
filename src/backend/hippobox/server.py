@@ -13,10 +13,21 @@ from hippobox.core.redis import RedisManager
 from hippobox.core.request_context import RequestContextMiddleware
 from hippobox.core.settings import SETTINGS
 from hippobox.errors.service import ServiceException, exceptions_to_http
+from hippobox.platform import deps as platform_deps
+from hippobox.platform.core.error import ServiceException as PlatformException
+from hippobox.platform.core.error import service_exception_to_http
+from hippobox.platform.core.mail.service import MAIL_SERVICE
+from hippobox.platform.core.object_storage import object_storage_lifespan
+from hippobox.platform.core.observability.health import get_readiness
+from hippobox.platform.routers.v1 import admin as platform_admin
+from hippobox.platform.routers.v1 import api_key as platform_api_key
+from hippobox.platform.routers.v1 import auth, billing, billing_webhook, events, inbox, inquiry
+from hippobox.platform.services.billing import BillingService
 from hippobox.rag.embedding import Embedding
 from hippobox.rag.qdrant import Qdrant
-from hippobox.routers.v1 import admin, api_key, auth, knowledge, topic
+from hippobox.routers.v1 import admin, api_key, auth_compat, knowledge, topic
 from hippobox.routers.v1.knowledge import OperationID
+from hippobox.utils.auth import get_current_user
 
 log = logging.getLogger("hippobox")
 
@@ -39,6 +50,10 @@ async def lifespan(app: FastAPI):
     async with AsyncExitStack() as cleanup:
         cleanup.push_async_callback(RedisManager.close)
         cleanup.push_async_callback(dispose_db)
+        await RedisManager.verify_startup()
+        await cleanup.enter_async_context(object_storage_lifespan(app, SETTINGS))
+        await MAIL_SERVICE.initialize()
+        await BillingService().initialize()
         await init_db()
         log.info("Database initialized")
         await ensure_admin_for_login_disabled()
@@ -71,6 +86,33 @@ def create_app() -> FastAPI:
     )
 
     app.add_middleware(RequestContextMiddleware)
+    app.dependency_overrides[platform_deps.get_current_user] = get_current_user
+
+    @app.exception_handler(PlatformException)
+    async def platform_handler(request, exc):
+        error = service_exception_to_http(exc)
+        return JSONResponse(status_code=error.status_code, content={"detail": error.detail})
+
+    @app.get("/health/live")
+    async def live():
+        return {"status": "ok"}
+
+    @app.get("/health/ready")
+    async def ready():
+        result = await get_readiness()
+        return JSONResponse(status_code=200 if result.status == "ok" else 503, content=result.model_dump())
+
+    app.include_router(auth_compat.router, prefix="/api/v1/auth", tags=["Auth compatibility"])
+    for router, prefix, tag in [
+        (platform_api_key.router, "api-keys", "API Keys"),
+        (platform_admin.router, "platform/admin", "Platform Admin"),
+        (inbox.router, "inbox", "Inbox"),
+        (inquiry.router, "inquiries", "Inquiries"),
+        (events.router, "events", "Events"),
+        (billing.router, "billing", "Billing"),
+        (billing_webhook.router, "billing", "Billing"),
+    ]:
+        app.include_router(router, prefix=f"/api/v1/{prefix}", tags=[tag])
 
     @app.exception_handler(ServiceException)
     async def service_handler(request, exc):
@@ -127,7 +169,7 @@ def create_app() -> FastAPI:
     mcp = FastApiMCP(
         app,
         include_operations=include_operations,
-        headers=["authorization", "x-request-id"],
+        headers=["authorization", "x-api-key", "x-request-id"],
     )
     mcp.mount_http()
     log.info("MCP tools registered.")
@@ -152,6 +194,10 @@ def create_app() -> FastAPI:
             "login_enabled": SETTINGS.LOGIN_ENABLED,
             "email_enabled": SETTINGS.EMAIL_ENABLED,
             "vdb_enabled": SETTINGS.VDB_ENABLED,
+            "oauth_enabled": SETTINGS.OAUTH_ENABLED,
+            "oauth_providers": SETTINGS.oauth_provider_list,
+            "billing_enabled": SETTINGS.STRIPE_ENABLED,
+            "platform_enabled": True,
             "frontend_base_path": frontend_base_path,
             "api_base_path": "/api/v1",
         }

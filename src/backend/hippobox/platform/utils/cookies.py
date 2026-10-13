@@ -5,8 +5,8 @@ from fastapi import Request, Response
 
 from hippobox.platform.core.config.settings import SETTINGS
 
-REFRESH_COOKIE_NAME = "template_refresh_token"
-REFRESH_SID_COOKIE_NAME = "template_refresh_sid"
+REFRESH_COOKIE_NAME = "hippobox_refresh_token"
+REFRESH_SID_COOKIE_NAME = "hippobox_refresh_sid"
 
 
 def refresh_cookie_names() -> tuple[str, str]:

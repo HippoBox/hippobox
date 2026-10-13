@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import BackgroundTasks, Depends, HTTPException, status
+from fastapi import BackgroundTasks, Depends, Header, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from pydantic import ValidationError
@@ -14,7 +14,9 @@ security = HTTPBearer(auto_error=False)
 
 
 async def get_current_user(
-    background_tasks: BackgroundTasks, token_auth: Annotated[HTTPAuthorizationCredentials | None, Depends(security)]
+    background_tasks: BackgroundTasks,
+    token_auth: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
+    api_key: Annotated[str | None, Header(alias="X-API-Key")] = None,
 ) -> UserResponse:
     if not SETTINGS.LOGIN_ENABLED:
         admin = await Users.get_admin()
@@ -23,7 +25,20 @@ async def get_current_user(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail={"error": "ADMIN_NOT_FOUND", "message": "Admin user not found"},
             )
-        return UserResponse.model_validate(admin)
+        from hippobox.platform.models.user import Users as PlatformUsers
+
+        return await PlatformUsers.get_user_response_by_id(admin.id)
+
+    if api_key is not None:
+        from hippobox.platform.deps import get_current_api_key
+        from hippobox.platform.models.user import Users as PlatformUsers
+
+        key = await get_current_api_key(api_key)
+        key_user = await PlatformUsers.get_user_response_by_id(key.user_id)
+        if key_user is None:
+            raise HTTPException(status_code=401, detail="Invalid API key")
+        if token_auth is None:
+            return key_user
 
     if token_auth is None:
         raise HTTPException(
@@ -57,7 +72,11 @@ async def get_current_user(
 
         background_tasks.add_task(APIKeys.update_usage, api_key_record.id)
 
-        return UserResponse.model_validate(user.model_dump())
+        if api_key is not None and key_user.id != user.id:
+            raise HTTPException(status_code=401, detail="Conflicting credentials")
+        from hippobox.platform.models.user import Users as PlatformUsers
+
+        return await PlatformUsers.get_user_response_by_id(user.id)
 
     # ---------------------------
     # JWT Authentication
@@ -76,7 +95,11 @@ async def get_current_user(
         if user is None or not user.is_active:
             raise credentials_exception
 
-    return UserResponse.model_validate(user.model_dump())
+    if api_key is not None and key_user.id != user.id:
+        raise HTTPException(status_code=401, detail="Conflicting credentials")
+    from hippobox.platform.models.user import Users as PlatformUsers
+
+    return await PlatformUsers.get_user_response_by_id(user.id)
 
 
 async def require_admin(current_user: UserResponse = Depends(get_current_user)) -> UserResponse:

@@ -19,6 +19,20 @@ export interface paths {
      */
     delete: operations["delete_user_api_v1_admin_users__user_id__delete"];
   };
+  "/api/v1/api-keys": {
+    /** List Api Keys */
+    get: operations["list_api_keys_api_v1_api_keys_get"];
+    /** Create Api Key */
+    post: operations["create_api_key_api_v1_api_keys_post"];
+  };
+  "/api/v1/api-keys/{api_key_id}": {
+    /** Delete Api Key */
+    delete: operations["delete_api_key_api_v1_api_keys__api_key_id__delete"];
+  };
+  "/api/v1/api-keys/{api_key_id}/status": {
+    /** Update Api Key Status */
+    patch: operations["update_api_key_status_api_v1_api_keys__api_key_id__status_patch"];
+  };
   "/api/v1/api_key": {
     /**
      * List Api Keys
@@ -47,158 +61,246 @@ export interface paths {
      */
     patch: operations["update_api_key_api_v1_api_key__key_id__patch"];
   };
+  "/api/v1/auth/admin/user-role-stats": {
+    /** Admin User Role Stats */
+    get: operations["admin_user_role_stats_api_v1_auth_admin_user_role_stats_get"];
+  };
+  "/api/v1/auth/admin/users": {
+    /** Admin Users */
+    get: operations["admin_users_api_v1_auth_admin_users_get"];
+  };
+  "/api/v1/auth/forgot-password": {
+    /** Forgot Password */
+    post: operations["forgot_password_api_v1_auth_forgot_password_post"];
+  };
   "/api/v1/auth/login": {
-    /**
-     * Login
-     * @description Authenticate a user and issue a JWT access token.
-     *
-     * ### Args:
-     *
-     *     form (LoginForm): Email and password credentials.
-     *
-     * ### Returns:
-     *
-     *     token (LoginTokenResponse): Access token, refresh token, type, and user info.
-     *
-     * This endpoint:
-     * - Verifies credentials against the database.
-     * - Checks for Redis-based login limits (brute-force protection).
-     * - Updates last login timestamp.
-     */
+    /** Login */
     post: operations["login_api_v1_auth_login_post"];
   };
   "/api/v1/auth/logout": {
     /**
      * Logout
-     * @description Log out the current user by invalidating their refresh token.
-     *
-     * ### Requirements:
-     *
-     *     Authentication header (Bearer Token) is required.
-     *
-     * ### Returns:
-     *
-     *     dict: Success message.
-     *
-     * This removes the refresh token from Redis, effectively preventing
-     * future access token renewals without re-login.
+     * @description Invalidates all refresh sessions for the authenticated user and expires both refresh cookies. Already-issued access tokens remain valid until their expiry.
      */
     post: operations["logout_api_v1_auth_logout_post"];
   };
   "/api/v1/auth/me": {
-    /** Read Users Me */
-    get: operations["read_users_me_api_v1_auth_me_get"];
+    /** Me */
+    get: operations["me_api_v1_auth_me_get"];
     /**
-     * Update Profile
-     * @description Update the current user's profile.
+     * Delete Me
+     * @description Permanently deletes the current account, credentials, OAuth identities and API keys. Requires bearer authentication, matching email confirmation and a single-use emailed code. Clears refresh cookies; all sessions stop authenticating.
      */
-    patch: operations["update_profile_api_v1_auth_me_patch"];
+    delete: operations["delete_me_api_v1_auth_me_delete"];
+    /** Update Me */
+    patch: operations["update_me_api_v1_auth_me_patch"];
+  };
+  "/api/v1/auth/me/deletion-code": {
+    /** Request Deletion Code */
+    post: operations["request_deletion_code_api_v1_auth_me_deletion_code_post"];
+  };
+  "/api/v1/auth/me/deletion-code/verify": {
+    /** Verify Deletion Code */
+    post: operations["verify_deletion_code_api_v1_auth_me_deletion_code_verify_post"];
   };
   "/api/v1/auth/me/guide": {
-    /**
-     * Update Guide Seen
-     * @description Update the guide seen state for the current user.
-     */
-    patch: operations["update_guide_seen_api_v1_auth_me_guide_patch"];
+    /** Update Guide */
+    patch: operations["update_guide_api_v1_auth_me_guide_patch"];
+  };
+  "/api/v1/auth/me/password": {
+    /** Change Password */
+    post: operations["change_password_api_v1_auth_me_password_post"];
+  };
+  "/api/v1/auth/me/password/code": {
+    /** Request Password Change Code */
+    post: operations["request_password_change_code_api_v1_auth_me_password_code_post"];
+  };
+  "/api/v1/auth/me/password/code/verify": {
+    /** Verify Password Change Code */
+    post: operations["verify_password_change_code_api_v1_auth_me_password_code_verify_post"];
+  };
+  "/api/v1/auth/me/photo": {
+    /** Read Profile Photo */
+    get: operations["read_profile_photo_api_v1_auth_me_photo_get"];
+    /** Upload Profile Photo */
+    put: operations["upload_profile_photo_api_v1_auth_me_photo_put"];
+    /** Delete Profile Photo */
+    delete: operations["delete_profile_photo_api_v1_auth_me_photo_delete"];
+  };
+  "/api/v1/auth/oauth/providers": {
+    /** Oauth Providers */
+    get: operations["oauth_providers_api_v1_auth_oauth_providers_get"];
+  };
+  "/api/v1/auth/oauth/{provider}/callback": {
+    /** Oauth Callback */
+    get: operations["oauth_callback_api_v1_auth_oauth__provider__callback_get"];
+  };
+  "/api/v1/auth/oauth/{provider}/start": {
+    /** Oauth Start */
+    get: operations["oauth_start_api_v1_auth_oauth__provider__start_get"];
   };
   "/api/v1/auth/password-reset/confirm": {
-    /**
-     * Reset Password
-     * @description Complete the password reset process.
-     *
-     * ### Args:
-     *
-     * token (str): The valid reset token.
-     * new_password (str): The new password to set.
-     *
-     * ### Returns:
-     *
-     *     dict: Status message indicating success.
-     *
-     * Verifies the token from Redis, hashes the new password,
-     * updates the database, and deletes the token.
-     */
-    post: operations["reset_password_api_v1_auth_password_reset_confirm_post"];
+    /** Confirm Reset */
+    post: operations["confirm_reset_api_v1_auth_password_reset_confirm_post"];
   };
   "/api/v1/auth/password-reset/request": {
-    /**
-     * Request Password Reset
-     * @description Initiate the password reset process.
-     *
-     * ### Args:
-     *
-     * email (str): The email address of the account to reset.
-     *
-     * ### Returns:
-     *
-     *     dict: Success message (even if email is not found, for security).
-     *
-     * Generates a password reset token in Redis and simulates sending an email.
-     */
-    post: operations["request_password_reset_api_v1_auth_password_reset_request_post"];
+    /** Request Reset */
+    post: operations["request_reset_api_v1_auth_password_reset_request_post"];
   };
   "/api/v1/auth/refresh": {
     /**
      * Refresh Token
-     * @description Renew access token using a valid refresh token.
-     *
-     * ### Args:
-     *
-     *     refresh_token (str): The refresh token issued during login.
-     *     user_id (int): The ID of the user owning the token.
-     *
-     * ### Returns:
-     *
-     *     token (TokenRefreshResponse): A new pair of Access and Refresh tokens.
-     *
-     * This endpoint implements **Refresh Token Rotation**.
-     * The old refresh token is invalidated, and a completely new pair is issued.
+     * @description Refreshes the access token and extends the existing refresh session TTL. The refresh token value is retained. Non-empty JSON fields take precedence over cookies; user_id can be resolved from the session. Browser clients may send an empty JSON object.
      */
     post: operations["refresh_token_api_v1_auth_refresh_post"];
   };
+  "/api/v1/auth/resend-verification": {
+    /** Resend Verification Email */
+    post: operations["resend_verification_email_api_v1_auth_resend_verification_post"];
+  };
+  "/api/v1/auth/reset-password": {
+    /** Reset Password */
+    post: operations["reset_password_api_v1_auth_reset_password_post"];
+  };
   "/api/v1/auth/signup": {
-    /**
-     * Signup
-     * @description Register a new user account.
-     *
-     *     The input should include:
-     *     - email: Valid email address
-     *     - password: Raw password (will be hashed)
-     *     - name: User's display name
-     *
-     *     ### Returns:
-     * `
-     *         user (UserResponse): The successfully created user object (unverified).
-     *
-     *     This endpoint creates a DB entry, hashes the password,
-     *     and triggers an asynchronous email verification process.
-     */
+    /** Signup */
     post: operations["signup_api_v1_auth_signup_post"];
   };
+  "/api/v1/auth/token": {
+    /** Oauth Token Login */
+    post: operations["oauth_token_login_api_v1_auth_token_post"];
+  };
+  "/api/v1/auth/verify-email": {
+    /** Verify Email */
+    post: operations["verify_email_api_v1_auth_verify_email_post"];
+  };
   "/api/v1/auth/verify-email/resend": {
-    /**
-     * Resend Verification Email
-     * @description Resend a verification email if the user exists and is not verified.
-     */
-    post: operations["resend_verification_email_api_v1_auth_verify_email_resend_post"];
+    /** Resend Verification */
+    post: operations["resend_verification_api_v1_auth_verify_email_resend_post"];
   };
   "/api/v1/auth/verify-email/{token}": {
-    /**
-     * Verify Email
-     * @description Verify a user's email address using a UUID token.
-     *
-     * ### Args:
-     *
-     *     token (str): The verification token sent via email.
-     *
-     * ### Returns:
-     *
-     *     user (UserResponse): The updated user object with `is_verified=True`.
-     *
-     * This checks the token existence in Redis. If valid,
-     * it updates the user status in SQL and invalidates the token.
-     */
+    /** Verify Email */
     get: operations["verify_email_api_v1_auth_verify_email__token__get"];
+  };
+  "/api/v1/billing/card-setups": {
+    /** Create Card Setup */
+    post: operations["create_card_setup_api_v1_billing_card_setups_post"];
+  };
+  "/api/v1/billing/card-setups/{intent_id}": {
+    /** Card Setup Status */
+    get: operations["card_setup_status_api_v1_billing_card_setups__intent_id__get"];
+  };
+  "/api/v1/billing/checkout-sessions": {
+    /** Create Checkout */
+    post: operations["create_checkout_api_v1_billing_checkout_sessions_post"];
+  };
+  "/api/v1/billing/checkout-sessions/{session_id}": {
+    /** Checkout Status */
+    get: operations["checkout_status_api_v1_billing_checkout_sessions__session_id__get"];
+  };
+  "/api/v1/billing/config": {
+    /** Billing Config */
+    get: operations["billing_config_api_v1_billing_config_get"];
+  };
+  "/api/v1/billing/invoices": {
+    /** Billing Invoices */
+    get: operations["billing_invoices_api_v1_billing_invoices_get"];
+  };
+  "/api/v1/billing/invoices/{invoice_id}": {
+    /** Invoice Detail */
+    get: operations["invoice_detail_api_v1_billing_invoices__invoice_id__get"];
+  };
+  "/api/v1/billing/payment-methods": {
+    /** List Payment Methods */
+    get: operations["list_payment_methods_api_v1_billing_payment_methods_get"];
+  };
+  "/api/v1/billing/payment-methods/{method_id}": {
+    /** Manage Billing Method */
+    post: operations["manage_billing_method_api_v1_billing_payment_methods__method_id__post"];
+  };
+  "/api/v1/billing/plans": {
+    /** Plans */
+    get: operations["plans_api_v1_billing_plans_get"];
+  };
+  "/api/v1/billing/portal-sessions": {
+    /** Billing Portal */
+    post: operations["billing_portal_api_v1_billing_portal_sessions_post"];
+  };
+  "/api/v1/billing/profile": {
+    /** Billing Profile */
+    get: operations["billing_profile_api_v1_billing_profile_get"];
+    /** Update Billing Profile */
+    put: operations["update_billing_profile_api_v1_billing_profile_put"];
+  };
+  "/api/v1/billing/setup-sessions": {
+    /** Create Setup */
+    post: operations["create_setup_api_v1_billing_setup_sessions_post"];
+  };
+  "/api/v1/billing/setup-sessions/{session_id}": {
+    /** Setup Status */
+    get: operations["setup_status_api_v1_billing_setup_sessions__session_id__get"];
+  };
+  "/api/v1/billing/subscription": {
+    /** Subscription */
+    get: operations["subscription_api_v1_billing_subscription_get"];
+  };
+  "/api/v1/billing/subscription/change": {
+    /** Change Subscription */
+    post: operations["change_subscription_api_v1_billing_subscription_change_post"];
+  };
+  "/api/v1/billing/webhook": {
+    /** Billing Webhook */
+    post: operations["billing_webhook_api_v1_billing_webhook_post"];
+  };
+  "/api/v1/events/stream": {
+    /** Stream Events */
+    get: operations["stream_events_api_v1_events_stream_get"];
+  };
+  "/api/v1/inbox": {
+    /** List Notifications */
+    get: operations["list_notifications_api_v1_inbox_get"];
+  };
+  "/api/v1/inbox/read-all": {
+    /** Read All */
+    post: operations["read_all_api_v1_inbox_read_all_post"];
+  };
+  "/api/v1/inbox/read-selected": {
+    /** Read Selected */
+    post: operations["read_selected_api_v1_inbox_read_selected_post"];
+  };
+  "/api/v1/inbox/selected": {
+    /** Delete Selected */
+    delete: operations["delete_selected_api_v1_inbox_selected_delete"];
+  };
+  "/api/v1/inbox/summary": {
+    /** Summary */
+    get: operations["summary_api_v1_inbox_summary_get"];
+  };
+  "/api/v1/inbox/{notification_id}/read": {
+    /** Read */
+    post: operations["read_api_v1_inbox__notification_id__read_post"];
+  };
+  "/api/v1/inquiries": {
+    /** List Own */
+    get: operations["list_own_api_v1_inquiries_get"];
+    /** Create */
+    post: operations["create_api_v1_inquiries_post"];
+  };
+  "/api/v1/inquiries/admin": {
+    /** List All */
+    get: operations["list_all_api_v1_inquiries_admin_get"];
+  };
+  "/api/v1/inquiries/{inquiry_id}": {
+    /** Detail */
+    get: operations["detail_api_v1_inquiries__inquiry_id__get"];
+  };
+  "/api/v1/inquiries/{inquiry_id}/messages": {
+    /** Reply */
+    post: operations["reply_api_v1_inquiries__inquiry_id__messages_post"];
+  };
+  "/api/v1/inquiries/{inquiry_id}/status": {
+    /** Change Status */
+    patch: operations["change_status_api_v1_inquiries__inquiry_id__status_patch"];
   };
   "/api/v1/knowledge/": {
     /**
@@ -330,6 +432,18 @@ export interface paths {
      */
     delete: operations["delete_knowledge"];
   };
+  "/api/v1/platform/admin/demo/status": {
+    /** Demo Status */
+    get: operations["demo_status_api_v1_platform_admin_demo_status_get"];
+  };
+  "/api/v1/platform/admin/demo/users": {
+    /** Demo Users */
+    get: operations["demo_users_api_v1_platform_admin_demo_users_get"];
+  };
+  "/api/v1/platform/admin/status": {
+    /** Status */
+    get: operations["status_api_v1_platform_admin_status_get"];
+  };
   "/api/v1/topic": {
     /**
      * List Topics
@@ -358,6 +472,14 @@ export interface paths {
     /** App Config */
     get: operations["app_config_config_get"];
   };
+  "/health/live": {
+    /** Live */
+    get: operations["live_health_live_get"];
+  };
+  "/health/ready": {
+    /** Ready */
+    get: operations["ready_health_ready_get"];
+  };
   "/ping": {
     /** Ping */
     get: operations["ping_tool"];
@@ -368,6 +490,19 @@ export type webhooks = Record<string, never>;
 
 export interface components {
   schemas: {
+    /** APIKeyCreateForm */
+    APIKeyCreateForm: {
+      /** Expires At */
+      expires_at?: string | null;
+      /** Name */
+      name: string;
+    };
+    /** APIKeyCreateResponse */
+    APIKeyCreateResponse: {
+      /** Api Key */
+      api_key: string;
+      key: components["schemas"]["hippobox__platform__models__api_key__APIKeyResponse"];
+    };
     /** APIKeyCreatedResponse */
     APIKeyCreatedResponse: {
       /** Access Key */
@@ -392,33 +527,29 @@ export interface components {
        */
       total_requests: number;
     };
-    /** APIKeyResponse */
-    APIKeyResponse: {
+    /** APIKeyErrorDetail */
+    APIKeyErrorDetail: {
+      /** Details */
+      details?: {
+        [key: string]: unknown;
+      } | null;
       /**
-       * Access Key
-       * @description Prefix of the key
+       * Error
+       * @example API_KEY_NOT_FOUND
+       * @enum {string}
        */
-      access_key: string;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at: string;
-      /** Id */
-      id: number;
-      /** Is Active */
-      is_active: boolean;
-      /** Last Used At */
-      last_used_at: string | null;
-      /** Name */
-      name: string;
-      /**
-       * Total Requests
-       * @description Total number of requests made using this key
-       */
-      total_requests: number;
-      /** User Id */
-      user_id: number;
+      error: "API_KEY_INVALID" | "API_KEY_USER_MISMATCH" | "API_KEY_CREATE_FAILED" | "API_KEY_NAME_ALREADY_EXISTS" | "API_KEY_NOT_FOUND" | "API_KEY_UPDATE_FAILED";
+      /** Message */
+      message: string;
+    };
+    /** APIKeyErrorResponse */
+    APIKeyErrorResponse: {
+      detail: components["schemas"]["APIKeyErrorDetail"];
+    };
+    /** APIKeyStatusUpdateForm */
+    APIKeyStatusUpdateForm: {
+      /** Enabled */
+      enabled: boolean;
     };
     /** APIKeyUpdate */
     APIKeyUpdate: {
@@ -433,6 +564,565 @@ export interface components {
        */
       name?: string | null;
     };
+    /** APIKeysResponse */
+    APIKeysResponse: {
+      /** Items */
+      items: components["schemas"]["hippobox__platform__models__api_key__APIKeyResponse"][];
+    };
+    /** AdminConnection */
+    AdminConnection: {
+      /** Checked At */
+      checked_at?: string | null;
+      /** Host */
+      host?: string | null;
+      /**
+       * Id
+       * @enum {string}
+       */
+      id: "server" | "database" | "cache" | "object_storage";
+      /** Latency Ms */
+      latency_ms?: number | null;
+      /** Port */
+      port?: number | null;
+      /** Probe */
+      probe?: ("local_io" | "bucket_access") | null;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "ok" | "failed" | "timeout";
+      /**
+       * Technology
+       * @enum {string}
+       */
+      technology: "fastapi" | "sqlite" | "postgresql" | "mysql" | "mariadb" | "database" | "redis" | "memory" | "local" | "s3" | "r2" | "supabase";
+      /** Transport */
+      transport?: ("filesystem" | "https" | "http") | null;
+    };
+    /** AdminEnvironment */
+    AdminEnvironment: {
+      /**
+       * Admin Access
+       * @default admin_only
+       * @constant
+       */
+      admin_access?: "admin_only";
+      /**
+       * App Mode
+       * @enum {string}
+       */
+      app_mode: "development" | "production";
+      /** Billing Configured */
+      billing_configured: boolean;
+      /** Billing Enabled */
+      billing_enabled: boolean;
+      /**
+       * Billing Mode
+       * @enum {string}
+       */
+      billing_mode: "disabled" | "test" | "live";
+      /** Developer Enabled */
+      developer_enabled: boolean;
+      /** Email Enabled */
+      email_enabled: boolean;
+      /** Login Enabled */
+      login_enabled: boolean;
+      /** Oauth Enabled */
+      oauth_enabled: boolean;
+      /** Oauth Providers */
+      oauth_providers: string[];
+      /** Redis In Memory */
+      redis_in_memory: boolean;
+    };
+    /** AdminEnvironmentValues */
+    AdminEnvironmentValues: {
+      /**
+       * App Mode
+       * @enum {string}
+       */
+      APP_MODE: "development" | "production";
+      /** Email Enabled */
+      EMAIL_ENABLED: boolean;
+      /** Login Enabled */
+      LOGIN_ENABLED: boolean;
+      /** Oauth Enabled */
+      OAUTH_ENABLED: boolean;
+      /** Redis In Memory */
+      REDIS_IN_MEMORY: boolean;
+      /** Stripe Enabled */
+      STRIPE_ENABLED: boolean;
+    };
+    /** AdminErrorDetail */
+    AdminErrorDetail: {
+      /** Details */
+      details?: {
+        [key: string]: unknown;
+      } | null;
+      /**
+       * Error
+       * @example ADMIN_STATUS_FAILED
+       * @enum {string}
+       */
+      error: "ADMIN_DEMO_DISABLED" | "ADMIN_DEMO_FAILED" | "ADMIN_STATUS_FAILED";
+      /** Message */
+      message: string;
+    };
+    /** AdminErrorResponse */
+    AdminErrorResponse: {
+      detail: components["schemas"]["AdminErrorDetail"];
+    };
+    /** AdminStatusResponse */
+    AdminStatusResponse: {
+      /**
+       * Checked At
+       * Format: date-time
+       */
+      checked_at: string;
+      /** Connections */
+      connections: components["schemas"]["AdminConnection"][];
+      environment: components["schemas"]["AdminEnvironment"];
+      environment_values: components["schemas"]["AdminEnvironmentValues"];
+      /** Integration Checks */
+      integration_checks: {
+        [key: string]: components["schemas"]["IntegrationCheck"];
+      };
+      /** Startup Checks */
+      startup_checks: {
+        [key: string]: components["schemas"]["StartupCheck"];
+      };
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "ok" | "degraded";
+    };
+    /** AdminUserListResponse */
+    AdminUserListResponse: {
+      /** Items */
+      items: components["schemas"]["AdminUserResponse"][];
+      /** Page */
+      page: number;
+      /** Page Size */
+      page_size: number;
+      summary: components["schemas"]["UserRoleStatsResponse"];
+      /** Total */
+      total: number;
+    };
+    /** AdminUserResponse */
+    AdminUserResponse: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Email */
+      email: string;
+      /** Id */
+      id: number;
+      /** Is Active */
+      is_active: boolean;
+      /** Is Verified */
+      is_verified: boolean;
+      /** Last Login At */
+      last_login_at: string | null;
+      /** Login Providers */
+      login_providers: string[];
+      /** Name */
+      name: string;
+      role: components["schemas"]["UserRole"];
+    };
+    /** AuthErrorDetail */
+    AuthErrorDetail: {
+      /** Details */
+      details?: {
+        [key: string]: unknown;
+      } | null;
+      /**
+       * Error
+       * @example INVALID_TOKEN
+       * @enum {string}
+       */
+      error: "NAME_ALREADY_EXISTS" | "PASSWORD_CHANGE_CODE_INVALID" | "PASSWORD_CHANGE_CODE_THROTTLED" | "PASSWORD_CHANGE_CODE_SEND_FAILED" | "PASSWORD_CHANGE_FAILED" | "ACCOUNT_BILLING_REVIEW_REQUIRED" | "ACCOUNT_DELETE_CODE_INVALID" | "ACCOUNT_DELETE_CODE_THROTTLED" | "ACCOUNT_DELETE_CODE_SEND_FAILED" | "ACCOUNT_DELETE_FAILED" | "ACCOUNT_DELETE_CONFIRMATION_REQUIRED" | "LAST_ADMIN_REQUIRED" | "ADMIN_USERS_FAILED" | "SIGNUP_FAILED" | "EMAIL_ALREADY_EXISTS" | "INVALID_CREDENTIALS" | "ACCOUNT_LOCKED" | "EMAIL_NOT_VERIFIED" | "LOGIN_DISABLED" | "EMAIL_DISABLED" | "INVALID_TOKEN" | "INSUFFICIENT_ROLE" | "USER_NOT_FOUND" | "PROFILE_PHOTO_INVALID" | "PROFILE_PHOTO_TOO_LARGE" | "PROFILE_PHOTO_UNAVAILABLE" | "PROFILE_PHOTO_NOT_FOUND" | "PROFILE_PHOTO_CONFLICT" | "PROFILE_UPDATE_FAILED" | "OAUTH_PROVIDER_NOT_ENABLED" | "OAUTH_PROVIDER_CONFIG_INVALID" | "OAUTH_IDENTITY_CONFLICT" | "OAUTH_SIGNUP_FAILED" | "OAUTH_PROVIDER_REQUEST_FAILED";
+      /** Message */
+      message: string;
+    };
+    /** AuthErrorResponse */
+    AuthErrorResponse: {
+      detail: components["schemas"]["AuthErrorDetail"];
+    };
+    /** BillingAddress */
+    BillingAddress: {
+      /**
+       * City
+       * @default
+       */
+      city?: string;
+      /**
+       * Country
+       * @default
+       */
+      country?: string;
+      /**
+       * Line1
+       * @default
+       */
+      line1?: string;
+      /**
+       * Line2
+       * @default
+       */
+      line2?: string;
+      /**
+       * Postal Code
+       * @default
+       */
+      postal_code?: string;
+      /**
+       * State
+       * @default
+       */
+      state?: string;
+    };
+    /** BillingCardSetupResponse */
+    BillingCardSetupResponse: {
+      /** Client Secret */
+      client_secret: string;
+      /** Id */
+      id: string;
+    };
+    /** BillingCardSetupStatus */
+    BillingCardSetupStatus: {
+      /** Registered */
+      registered: boolean;
+    };
+    /** BillingChangeForm */
+    BillingChangeForm: {
+      /** Expected Version */
+      expected_version: string;
+      /**
+       * Plan
+       * @enum {string}
+       */
+      plan: "free" | "monthly" | "annual" | "pro_monthly" | "pro_annual" | "keep";
+      /**
+       * Request Id
+       * Format: uuid
+       * @description Reuse this UUID when retrying the same setup request.
+       */
+      request_id: string;
+    };
+    /** BillingCheckoutForm */
+    BillingCheckoutForm: {
+      /**
+       * Currency
+       * @enum {string}
+       */
+      currency: "krw" | "usd";
+      /**
+       * Plan
+       * @enum {string}
+       */
+      plan: "monthly" | "annual" | "pro_monthly" | "pro_annual";
+      /**
+       * Request Id
+       * Format: uuid
+       * @description Reuse this UUID when retrying the same setup request.
+       */
+      request_id: string;
+    };
+    /** BillingCheckoutStatusResponse */
+    BillingCheckoutStatusResponse: {
+      /** Id */
+      id: string;
+      /** Paid */
+      paid: boolean;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "open" | "complete" | "expired";
+    };
+    /** BillingConfigResponse */
+    BillingConfigResponse: {
+      /** Enabled */
+      enabled: boolean;
+      /** Livemode */
+      livemode: boolean;
+      /** Publishable Key */
+      publishable_key?: string | null;
+    };
+    /** BillingErrorDetail */
+    BillingErrorDetail: {
+      /** Details */
+      details?: {
+        [key: string]: unknown;
+      } | null;
+      /**
+       * Error
+       * @example BILLING_DISABLED
+       * @enum {string}
+       */
+      error: "BILLING_WEBHOOK_INVALID" | "BILLING_WEBHOOK_UNAVAILABLE" | "BILLING_DISABLED" | "BILLING_UNAVAILABLE" | "BILLING_PLAN_UNAVAILABLE" | "BILLING_CHECKOUT_CONFLICT" | "BILLING_CHANGE_CONFLICT" | "BILLING_METHOD_REQUIRED" | "BILLING_NOT_FOUND" | "BILLING_RECONCILIATION_REQUIRED";
+      /** Message */
+      message: string;
+    };
+    /** BillingErrorResponse */
+    BillingErrorResponse: {
+      detail: components["schemas"]["BillingErrorDetail"];
+    };
+    /** BillingInvoiceDetail */
+    BillingInvoiceDetail: {
+      /** Amount */
+      amount: number;
+      /** Amount Due */
+      amount_due: number;
+      /** Amount Paid */
+      amount_paid: number;
+      /** Created */
+      created: number;
+      /** Currency */
+      currency: string;
+      /** Id */
+      id: string;
+      /** Lines */
+      lines: components["schemas"]["BillingInvoiceLine"][];
+      /**
+       * Lines Has More
+       * @default false
+       */
+      lines_has_more?: boolean;
+      /** Number */
+      number?: string | null;
+      /** Pdf Url */
+      pdf_url?: string | null;
+      /** Status */
+      status: string;
+      /** Subtotal */
+      subtotal: number;
+      /** Total */
+      total: number;
+      /** Url */
+      url?: string | null;
+    };
+    /** BillingInvoiceLine */
+    BillingInvoiceLine: {
+      /** Amount */
+      amount: number;
+      /** Description */
+      description: string;
+      /** Quantity */
+      quantity?: number | null;
+    };
+    /** BillingInvoiceResponse */
+    BillingInvoiceResponse: {
+      /** Amount */
+      amount: number;
+      /** Created */
+      created: number;
+      /** Currency */
+      currency: string;
+      /** Id */
+      id: string;
+      /** Number */
+      number?: string | null;
+      /** Status */
+      status: string;
+      /** Url */
+      url?: string | null;
+    };
+    /** BillingInvoicesResponse */
+    BillingInvoicesResponse: {
+      /** Has More */
+      has_more: boolean;
+      /** Items */
+      items: components["schemas"]["BillingInvoiceResponse"][];
+      /** Next Cursor */
+      next_cursor?: string | null;
+    };
+    /** BillingMethodForm */
+    BillingMethodForm: {
+      /**
+       * Action
+       * @enum {string}
+       */
+      action: "default" | "remove";
+      /**
+       * Request Id
+       * Format: uuid
+       * @description Reuse this UUID when retrying the same setup request.
+       */
+      request_id: string;
+    };
+    /** BillingPaymentMethodResponse */
+    BillingPaymentMethodResponse: {
+      /** Brand */
+      brand?: string | null;
+      /** Exp Month */
+      exp_month?: number | null;
+      /** Exp Year */
+      exp_year?: number | null;
+      /** Id */
+      id: string;
+      /** Last4 */
+      last4?: string | null;
+      /**
+       * Type
+       * @enum {string}
+       */
+      type: "card" | "link";
+    };
+    /** BillingPaymentMethodsResponse */
+    BillingPaymentMethodsResponse: {
+      /** Has More */
+      has_more: boolean;
+      /** Items */
+      items: components["schemas"]["BillingPaymentMethodResponse"][];
+      /** Next Cursor */
+      next_cursor?: string | null;
+    };
+    /** BillingPlansResponse */
+    BillingPlansResponse: {
+      /** Enabled */
+      enabled: boolean;
+      /** Livemode */
+      livemode: boolean;
+      /** Prices */
+      prices: components["schemas"]["BillingPriceResponse"][];
+    };
+    /** BillingPortalForm */
+    BillingPortalForm: {
+      /**
+       * Flow
+       * @default overview
+       * @enum {string}
+       */
+      flow?: "overview" | "payment_method_update" | "customer_update";
+      /**
+       * Request Id
+       * Format: uuid
+       * @description Reuse this UUID when retrying the same setup request.
+       */
+      request_id: string;
+    };
+    /** BillingPriceResponse */
+    BillingPriceResponse: {
+      /**
+       * Amount
+       * @description Minor currency units; KRW has no decimal places.
+       */
+      amount: number;
+      /**
+       * Currency
+       * @enum {string}
+       */
+      currency: "krw" | "usd";
+      /**
+       * Plan
+       * @enum {string}
+       */
+      plan: "monthly" | "annual" | "pro_monthly" | "pro_annual";
+    };
+    /** BillingProfileForm */
+    BillingProfileForm: {
+      address: components["schemas"]["BillingAddress"];
+      /** Email */
+      email: string;
+      /** Name */
+      name: string;
+      /**
+       * Request Id
+       * Format: uuid
+       * @description Reuse this UUID when retrying the same setup request.
+       */
+      request_id: string;
+    };
+    /** BillingProfileResponse */
+    BillingProfileResponse: {
+      /** Address */
+      address?: string[];
+      address_fields?: components["schemas"]["BillingAddress"];
+      /** Default Payment Method */
+      default_payment_method?: string | null;
+      /** Email */
+      email?: string | null;
+      /** Name */
+      name?: string | null;
+      /**
+       * Portal Enabled
+       * @default false
+       */
+      portal_enabled?: boolean;
+    };
+    /** BillingSetupForm */
+    BillingSetupForm: {
+      /**
+       * Request Id
+       * Format: uuid
+       * @description Reuse this UUID when retrying the same setup request.
+       */
+      request_id: string;
+    };
+    /** BillingSetupResponse */
+    BillingSetupResponse: {
+      /** Id */
+      id: string;
+      /** Url */
+      url: string;
+    };
+    /** BillingSetupStatusResponse */
+    BillingSetupStatusResponse: {
+      /** Id */
+      id: string;
+      /** Registered */
+      registered: boolean;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "open" | "complete" | "expired";
+    };
+    /** BillingSubscriptionResponse */
+    BillingSubscriptionResponse: {
+      /**
+       * Can Manage
+       * @default false
+       */
+      can_manage?: boolean;
+      /**
+       * Cancel At Period End
+       * @default false
+       */
+      cancel_at_period_end?: boolean;
+      /** Change Version */
+      change_version?: string | null;
+      /** Currency */
+      currency?: string | null;
+      /** Current Period End */
+      current_period_end?: number | null;
+      /**
+       * Has Subscription
+       * @default false
+       */
+      has_subscription?: boolean;
+      /**
+       * Payment Required
+       * @default false
+       */
+      payment_required?: boolean;
+      /** Payment Url */
+      payment_url?: string | null;
+      /** Pending Effective At */
+      pending_effective_at?: number | null;
+      /** Pending Plan */
+      pending_plan?: ("free" | "monthly" | "annual" | "pro_monthly" | "pro_annual") | null;
+      /**
+       * Plan
+       * @enum {string}
+       */
+      plan: "free" | "monthly" | "annual" | "pro_monthly" | "pro_annual" | "unknown";
+      /** Status */
+      status: string;
+    };
     /** Body_create_api_key_api_v1_api_key_post */
     Body_create_api_key_api_v1_api_key_post: {
       /**
@@ -441,20 +1131,69 @@ export interface components {
        */
       name: string;
     };
+    /** Body_oauth_token_login_api_v1_auth_token_post */
+    Body_oauth_token_login_api_v1_auth_token_post: {
+      /** Client Id */
+      client_id?: string | null;
+      /**
+       * Client Secret
+       * Format: password
+       */
+      client_secret?: string | null;
+      /** Grant Type */
+      grant_type?: string | null;
+      /**
+       * Password
+       * Format: password
+       */
+      password: string;
+      /**
+       * Scope
+       * @default
+       */
+      scope?: string;
+      /** Username */
+      username: string;
+    };
     /** Body_refresh_token_api_v1_auth_refresh_post */
     Body_refresh_token_api_v1_auth_refresh_post: {
       /** Refresh Token */
       refresh_token?: string | null;
+      /** Session Id */
+      session_id?: string | null;
       /** User Id */
       user_id?: number | null;
     };
-    /** EmailVerificationResend */
-    EmailVerificationResend: {
-      /**
-       * Email
-       * @description Email address used to resend a verification link
-       */
+    /** ChangePasswordForm */
+    ChangePasswordForm: {
+      /** Code */
+      code: string;
+      /** Password */
+      password: string;
+    };
+    /** DeleteAccountCodeResponse */
+    DeleteAccountCodeResponse: {
+      /** Expires In */
+      expires_in: number;
+      /** Retry After */
+      retry_after: number;
+    };
+    /** DeleteAccountForm */
+    DeleteAccountForm: {
+      /** Code */
+      code: string;
+      /** Email */
       email: string;
+    };
+    /** ForgotPasswordForm */
+    ForgotPasswordForm: {
+      /** Email */
+      email: string;
+    };
+    /** ForgotPasswordResponse */
+    ForgotPasswordResponse: {
+      /** Message */
+      message: string;
     };
     /** GuideSeenUpdateForm */
     GuideSeenUpdateForm: {
@@ -469,6 +1208,219 @@ export interface components {
     HTTPValidationError: {
       /** Detail */
       detail?: components["schemas"]["ValidationError"][];
+    };
+    /** InboxErrorDetail */
+    InboxErrorDetail: {
+      /** Details */
+      details?: {
+        [key: string]: unknown;
+      } | null;
+      /**
+       * Error
+       * @example INBOX_NOT_FOUND
+       * @enum {string}
+       */
+      error: "INBOX_NOT_FOUND";
+      /** Message */
+      message: string;
+    };
+    /** InboxErrorResponse */
+    InboxErrorResponse: {
+      detail: components["schemas"]["InboxErrorDetail"];
+    };
+    /** InboxItem */
+    InboxItem: {
+      /** Action Path */
+      action_path: string | null;
+      /** Body */
+      body: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Id */
+      id: number;
+      /** Kind */
+      kind: string;
+      /** Read At */
+      read_at: string | null;
+      /** Title */
+      title: string;
+    };
+    /** InboxPage */
+    InboxPage: {
+      /** Items */
+      items: components["schemas"]["InboxItem"][];
+      /** Page */
+      page: number;
+      /** Page Size */
+      page_size: number;
+      summary: components["schemas"]["InboxSummary"];
+      /** Total */
+      total: number;
+    };
+    /** InboxReadAllForm */
+    InboxReadAllForm: {
+      /** Through Id */
+      through_id: number;
+    };
+    /** InboxSelectionForm */
+    InboxSelectionForm: {
+      /** Notification Ids */
+      notification_ids: number[];
+    };
+    /** InboxSummary */
+    InboxSummary: {
+      /** Latest Id */
+      latest_id: number;
+      /** Unread Count */
+      unread_count: number;
+    };
+    /** InquiryCreate */
+    InquiryCreate: {
+      /** Body */
+      body: string;
+      /**
+       * Request Id
+       * Format: uuid
+       */
+      request_id: string;
+      /** Subject */
+      subject: string;
+    };
+    /** InquiryDetail */
+    InquiryDetail: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Id */
+      id: number;
+      /** Messages */
+      messages: components["schemas"]["InquiryMessageItem"][];
+      /** Requester Email */
+      requester_email: string;
+      /** Requester Name */
+      requester_name: string;
+      status: components["schemas"]["InquiryStatus"];
+      /** Subject */
+      subject: string;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at: string;
+    };
+    /** InquiryErrorDetail */
+    InquiryErrorDetail: {
+      /** Details */
+      details?: {
+        [key: string]: unknown;
+      } | null;
+      /**
+       * Error
+       * @example INQUIRY_NOT_FOUND
+       * @enum {string}
+       */
+      error: "INQUIRY_NOT_FOUND" | "INQUIRY_CLOSED" | "INQUIRY_THREAD_FULL";
+      /** Message */
+      message: string;
+    };
+    /** InquiryErrorResponse */
+    InquiryErrorResponse: {
+      detail: components["schemas"]["InquiryErrorDetail"];
+    };
+    /** InquiryItem */
+    InquiryItem: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Id */
+      id: number;
+      /** Requester Email */
+      requester_email: string;
+      /** Requester Name */
+      requester_name: string;
+      status: components["schemas"]["InquiryStatus"];
+      /** Subject */
+      subject: string;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at: string;
+    };
+    /** InquiryMessageItem */
+    InquiryMessageItem: {
+      /** Author Role */
+      author_role: string;
+      /** Body */
+      body: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Id */
+      id: number;
+    };
+    /** InquiryPage */
+    InquiryPage: {
+      /** Items */
+      items: components["schemas"]["InquiryItem"][];
+      /** Page */
+      page: number;
+      /** Page Size */
+      page_size: number;
+      /** Total */
+      total: number;
+    };
+    /** InquiryReply */
+    InquiryReply: {
+      /** Body */
+      body: string;
+      /**
+       * Request Id
+       * Format: uuid
+       */
+      request_id: string;
+    };
+    /**
+     * InquiryStatus
+     * @enum {string}
+     */
+    InquiryStatus: "open" | "in_progress" | "closed";
+    /** InquiryStatusForm */
+    InquiryStatusForm: {
+      status: components["schemas"]["InquiryStatus"];
+    };
+    /** IntegrationCheck */
+    IntegrationCheck: {
+      /**
+       * Checked At
+       * Format: date-time
+       */
+      checked_at: string;
+      /** Latency Ms */
+      latency_ms?: number | null;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "ok" | "failed" | "timeout" | "disabled";
+    };
+    /** KeyboardShortcuts */
+    KeyboardShortcuts: {
+      /** Openprofile */
+      openProfile?: string[] | null;
+      /** Opensettings */
+      openSettings: string[];
+      /** Togglesidebar */
+      toggleSidebar: string[];
     };
     /** KnowledgeForm */
     KnowledgeForm: {
@@ -563,43 +1515,47 @@ export interface components {
     };
     /** LoginForm */
     LoginForm: {
-      /**
-       * Email
-       * @description Email used for login
-       */
+      /** Email */
       email: string;
-      /**
-       * Password
-       * @description Raw password for login (8-64 chars, uppercase+digit+symbol, no spaces)
-       */
+      /** Password */
       password: string;
       /**
        * Remember Me
-       * @description If true, issue a persistent refresh cookie for login persistence
        * @default false
        */
       remember_me?: boolean;
     };
-    /** LoginTokenResponse */
-    LoginTokenResponse: {
-      /**
-       * Access Token
-       * @description JWT access token used for authentication
-       */
+    /** LoginResponse */
+    LoginResponse: {
+      /** Access Token */
       access_token: string;
-      /**
-       * Refresh Token
-       * @description Refresh token used to renew access tokens
-       */
+      /** Refresh Token */
       refresh_token: string;
       /**
        * Token Type
-       * @description Type of the token (e.g., 'bearer')
        * @default bearer
        */
       token_type?: string;
-      /** @description Authenticated user information associated with the token */
       user: components["schemas"]["UserResponse"];
+    };
+    /**
+     * OAuthProvider
+     * @enum {string}
+     */
+    OAuthProvider: "google" | "github";
+    /** OAuthProviderPublicConfig */
+    OAuthProviderPublicConfig: {
+      provider: components["schemas"]["OAuthProvider"];
+      /**
+       * Start Path
+       * @description Backend endpoint path to start OAuth login.
+       */
+      start_path: string;
+    };
+    /** OAuthProvidersResponse */
+    OAuthProvidersResponse: {
+      /** Providers */
+      providers: components["schemas"]["OAuthProviderPublicConfig"][];
     };
     /** PasswordResetConfirm */
     PasswordResetConfirm: {
@@ -622,50 +1578,58 @@ export interface components {
        */
       email: string;
     };
-    /** ProfileUpdateForm */
-    ProfileUpdateForm: {
-      /**
-       * Name
-       * @description Updated display name for the user
-       */
-      name: string;
-    };
-    /** SignupForm */
-    SignupForm: {
-      /**
-       * Email
-       * @description Email address used to register the new user
-       */
-      email: string;
-      /**
-       * Name
-       * @description Display name assigned to the new user
-       */
-      name: string;
-      /**
-       * Password
-       * @description Raw password that will be hashed (8-64 chars, uppercase+digit+symbol, no spaces)
-       */
-      password: string;
-    };
-    /** TokenRefreshResponse */
-    TokenRefreshResponse: {
-      /**
-       * Access Token
-       * @description JWT access token used for authentication
-       */
+    /** RefreshResponse */
+    RefreshResponse: {
+      /** Access Token */
       access_token: string;
-      /**
-       * Refresh Token
-       * @description Refresh token used to renew access tokens
-       */
+      /** Refresh Token */
       refresh_token: string;
       /**
        * Token Type
-       * @description Type of the token (e.g., 'bearer')
        * @default bearer
        */
       token_type?: string;
+    };
+    /** ResendVerificationForm */
+    ResendVerificationForm: {
+      /** Email */
+      email: string;
+    };
+    /** ResendVerificationResponse */
+    ResendVerificationResponse: {
+      /** Message */
+      message: string;
+    };
+    /** ResetPasswordForm */
+    ResetPasswordForm: {
+      /** Password */
+      password: string;
+      /** Token */
+      token: string;
+    };
+    /** ResetPasswordResponse */
+    ResetPasswordResponse: {
+      /** Message */
+      message: string;
+    };
+    /** SignupForm */
+    SignupForm: {
+      /** Email */
+      email: string;
+      /** Name */
+      name: string;
+      /** Password */
+      password: string;
+    };
+    /** StartupCheck */
+    StartupCheck: {
+      /** Checked At */
+      checked_at?: string | null;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "ok" | "configured" | "disabled" | "unverified";
     };
     /** TopicForm */
     TopicForm: {
@@ -712,6 +1676,25 @@ export interface components {
        * @description Updated topic name
        */
       name?: string | null;
+    };
+    /** UpdateProfileForm */
+    UpdateProfileForm: {
+      /** Bio */
+      bio?: string | null;
+      keyboard_shortcuts?: components["schemas"]["KeyboardShortcuts"] | null;
+      /**
+       * Location
+       * @description Pinned country:region ID selected from the location catalog, or null.
+       */
+      location?: string | null;
+      /** Name */
+      name?: string | null;
+      /**
+       * Profile Image Url
+       * @deprecated
+       * @description Use PUT/DELETE /auth/me/photo; legacy PATCH photo writes are rejected.
+       */
+      profile_image_url?: string | null;
     };
     /** UserModel */
     UserModel: {
@@ -763,41 +1746,59 @@ export interface components {
     };
     /** UserResponse */
     UserResponse: {
+      /** Bio */
+      bio?: string | null;
       /**
        * Created At
        * Format: date-time
-       * @description Timestamp when the user account was created
        */
       created_at: string;
-      /**
-       * Email
-       * @description User's registered email address
-       */
+      /** Email */
       email: string;
       /**
        * Guide Seen
-       * @description Whether the onboarding guide has been seen
        * @default false
        */
       guide_seen?: boolean;
       /**
-       * Id
-       * @description Unique identifier of the user
+       * Has Password
+       * @default false
        */
+      has_password?: boolean;
+      /** Id */
       id: number;
-      /**
-       * Name
-       * @description Display name of the user
-       */
+      /** Is Verified */
+      is_verified: boolean;
+      keyboard_shortcuts?: components["schemas"]["KeyboardShortcuts"] | null;
+      /** Location */
+      location?: string | null;
+      /** Name */
       name: string;
-      /** @description Role assigned to the user */
+      /** Oauth Providers */
+      oauth_providers?: string[];
+      /** Profile Image Url */
+      profile_image_url?: string | null;
       role: components["schemas"]["UserRole"];
     };
     /**
      * UserRole
      * @enum {string}
      */
-    UserRole: "admin" | "user";
+    UserRole: "user" | "admin" | "manager";
+    /** UserRoleStatsResponse */
+    UserRoleStatsResponse: {
+      /** Active Users */
+      active_users: number;
+      /** Admin Users */
+      admin_users: number;
+      /**
+       * Manager Users
+       * @default 0
+       */
+      manager_users?: number;
+      /** Total Users */
+      total_users: number;
+    };
     /** ValidationError */
     ValidationError: {
       /** Context */
@@ -810,6 +1811,72 @@ export interface components {
       msg: string;
       /** Error Type */
       type: string;
+    };
+    /** VerifyAccountCodeForm */
+    VerifyAccountCodeForm: {
+      /** Code */
+      code: string;
+    };
+    /** VerifyEmailForm */
+    VerifyEmailForm: {
+      /** Token */
+      token: string;
+    };
+    /** VerifyEmailResponse */
+    VerifyEmailResponse: {
+      /** Message */
+      message: string;
+      user: components["schemas"]["UserResponse"];
+    };
+    /** APIKeyResponse */
+    hippobox__models__api_key__APIKeyResponse: {
+      /**
+       * Access Key
+       * @description Prefix of the key
+       */
+      access_key: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Id */
+      id: number;
+      /** Is Active */
+      is_active: boolean;
+      /** Last Used At */
+      last_used_at: string | null;
+      /** Name */
+      name: string;
+      /**
+       * Total Requests
+       * @description Total number of requests made using this key
+       */
+      total_requests: number;
+      /** User Id */
+      user_id: number;
+    };
+    /** APIKeyResponse */
+    hippobox__platform__models__api_key__APIKeyResponse: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Expires At */
+      expires_at?: string | null;
+      /** Id */
+      id: number;
+      /** Key Prefix */
+      key_prefix: string;
+      /** Last Used At */
+      last_used_at?: string | null;
+      /** Name */
+      name: string;
+      /** Request Count */
+      request_count: number;
+      /** Revoked At */
+      revoked_at?: string | null;
     };
   };
   responses: never;
@@ -830,11 +1897,22 @@ export interface operations {
    * @description Retrieve all users (admin-only).
    */
   list_users_api_v1_admin_users_get: {
+    parameters: {
+      header?: {
+        "X-API-Key"?: string | null;
+      };
+    };
     responses: {
       /** @description Successful Response */
       200: {
         content: {
           "application/json": components["schemas"]["UserModel"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
       };
     };
@@ -845,6 +1923,9 @@ export interface operations {
    */
   delete_user_api_v1_admin_users__user_id__delete: {
     parameters: {
+      header?: {
+        "X-API-Key"?: string | null;
+      };
       path: {
         /** @description ID of the user to delete */
         user_id: number;
@@ -865,17 +1946,200 @@ export interface operations {
       };
     };
   };
+  /** List Api Keys */
+  list_api_keys_api_v1_api_keys_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["APIKeysResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Create Api Key */
+  create_api_key_api_v1_api_keys_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["APIKeyCreateForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["APIKeyCreateResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Internal Server Error */
+      500: {
+        content: {
+          "application/json": components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Delete Api Key */
+  delete_api_key_api_v1_api_keys__api_key_id__delete: {
+    parameters: {
+      path: {
+        api_key_id: number;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["hippobox__platform__models__api_key__APIKeyResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Update Api Key Status */
+  update_api_key_status_api_v1_api_keys__api_key_id__status_patch: {
+    parameters: {
+      path: {
+        api_key_id: number;
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["APIKeyStatusUpdateForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["hippobox__platform__models__api_key__APIKeyResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Internal Server Error */
+      500: {
+        content: {
+          "application/json": components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+    };
+  };
   /**
    * List Api Keys
    * @description Get all API keys owned by the current user.
    * The response includes `total_requests` but EXCLUDES the raw secret key.
    */
   list_api_keys_api_v1_api_key_get: {
+    parameters: {
+      header?: {
+        "X-API-Key"?: string | null;
+      };
+    };
     responses: {
       /** @description Successful Response */
       200: {
         content: {
-          "application/json": components["schemas"]["APIKeyResponse"][];
+          "application/json": components["schemas"]["hippobox__models__api_key__APIKeyResponse"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
       };
     };
@@ -888,6 +2152,11 @@ export interface operations {
    * The client must save it immediately.
    */
   create_api_key_api_v1_api_key_post: {
+    parameters: {
+      header?: {
+        "X-API-Key"?: string | null;
+      };
+    };
     requestBody: {
       content: {
         "application/json": components["schemas"]["Body_create_api_key_api_v1_api_key_post"];
@@ -914,6 +2183,9 @@ export interface operations {
    */
   delete_api_key_api_v1_api_key__key_id__delete: {
     parameters: {
+      header?: {
+        "X-API-Key"?: string | null;
+      };
       path: {
         /** @description ID of the API Key to delete */
         key_id: number;
@@ -940,6 +2212,9 @@ export interface operations {
    */
   update_api_key_api_v1_api_key__key_id__patch: {
     parameters: {
+      header?: {
+        "X-API-Key"?: string | null;
+      };
       path: {
         /** @description ID of the API Key to update */
         key_id: number;
@@ -954,7 +2229,7 @@ export interface operations {
       /** @description Successful Response */
       200: {
         content: {
-          "application/json": components["schemas"]["APIKeyResponse"];
+          "application/json": components["schemas"]["hippobox__models__api_key__APIKeyResponse"];
         };
       };
       /** @description Validation Error */
@@ -965,23 +2240,114 @@ export interface operations {
       };
     };
   };
-  /**
-   * Login
-   * @description Authenticate a user and issue a JWT access token.
-   *
-   * ### Args:
-   *
-   *     form (LoginForm): Email and password credentials.
-   *
-   * ### Returns:
-   *
-   *     token (LoginTokenResponse): Access token, refresh token, type, and user info.
-   *
-   * This endpoint:
-   * - Verifies credentials against the database.
-   * - Checks for Redis-based login limits (brute-force protection).
-   * - Updates last login timestamp.
-   */
+  /** Admin User Role Stats */
+  admin_user_role_stats_api_v1_auth_admin_user_role_stats_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["UserRoleStatsResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Admin Users */
+  admin_users_api_v1_auth_admin_users_get: {
+    parameters: {
+      query?: {
+        page?: number;
+        page_size?: number;
+        search?: string;
+        role?: components["schemas"]["UserRole"] | null;
+        is_active?: boolean | null;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["AdminUserListResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Internal Server Error */
+      500: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Forgot Password */
+  forgot_password_api_v1_auth_forgot_password_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ForgotPasswordForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["ForgotPasswordResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Login */
   login_api_v1_auth_login_post: {
     requestBody: {
       content: {
@@ -991,69 +2357,150 @@ export interface operations {
     responses: {
       /** @description Successful Response */
       200: {
+        headers: {
+          /** @description Two separate Set-Cookie headers: hippobox_refresh_token and hippobox_refresh_sid; HttpOnly, Path=/; HTTPS uses Secure and SameSite=None, HTTP uses SameSite=Lax. Persistent expiry is set only with remember_me=true. */
+          "Set-Cookie"?: string;
+        };
         content: {
-          "application/json": components["schemas"]["LoginTokenResponse"];
+          "application/json": components["schemas"]["LoginResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
         };
       };
       /** @description Validation Error */
       422: {
         content: {
           "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Locked */
+      423: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
         };
       };
     };
   };
   /**
    * Logout
-   * @description Log out the current user by invalidating their refresh token.
-   *
-   * ### Requirements:
-   *
-   *     Authentication header (Bearer Token) is required.
-   *
-   * ### Returns:
-   *
-   *     dict: Success message.
-   *
-   * This removes the refresh token from Redis, effectively preventing
-   * future access token renewals without re-login.
+   * @description Invalidates all refresh sessions for the authenticated user and expires both refresh cookies. Already-issued access tokens remain valid until their expiry.
    */
   logout_api_v1_auth_logout_post: {
     responses: {
       /** @description Successful Response */
       200: {
+        headers: {
+          /** @description Separate expiry headers for hippobox_refresh_token and hippobox_refresh_sid at Path=/. */
+          "Set-Cookie"?: string;
+        };
         content: {
-          "application/json": unknown;
+          "application/json": {
+            [key: string]: string;
+          };
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
         };
       };
     };
   };
-  /** Read Users Me */
-  read_users_me_api_v1_auth_me_get: {
+  /** Me */
+  me_api_v1_auth_me_get: {
     responses: {
       /** @description Successful Response */
       200: {
         content: {
           "application/json": components["schemas"]["UserResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
         };
       };
     };
   };
   /**
-   * Update Profile
-   * @description Update the current user's profile.
+   * Delete Me
+   * @description Permanently deletes the current account, credentials, OAuth identities and API keys. Requires bearer authentication, matching email confirmation and a single-use emailed code. Clears refresh cookies; all sessions stop authenticating.
    */
-  update_profile_api_v1_auth_me_patch: {
+  delete_me_api_v1_auth_me_delete: {
     requestBody: {
       content: {
-        "application/json": components["schemas"]["ProfileUpdateForm"];
+        "application/json": components["schemas"]["DeleteAccountForm"];
       };
     };
     responses: {
       /** @description Successful Response */
-      200: {
+      204: {
+        content: never;
+      };
+      /** @description Bad Request */
+      400: {
         content: {
-          "application/json": components["schemas"]["UserResponse"];
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
         };
       };
       /** @description Validation Error */
@@ -1062,13 +2509,160 @@ export interface operations {
           "application/json": components["schemas"]["HTTPValidationError"];
         };
       };
+      /** @description Internal Server Error */
+      500: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
     };
   };
-  /**
-   * Update Guide Seen
-   * @description Update the guide seen state for the current user.
-   */
-  update_guide_seen_api_v1_auth_me_guide_patch: {
+  /** Update Me */
+  update_me_api_v1_auth_me_patch: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateProfileForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["UserResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Internal Server Error */
+      500: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Request Deletion Code */
+  request_deletion_code_api_v1_auth_me_deletion_code_post: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["DeleteAccountCodeResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Verify Deletion Code */
+  verify_deletion_code_api_v1_auth_me_deletion_code_verify_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["VerifyAccountCodeForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["ResetPasswordResponse"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Internal Server Error */
+      500: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Update Guide */
+  update_guide_api_v1_auth_me_guide_patch: {
+    parameters: {
+      header?: {
+        "X-API-Key"?: string | null;
+      };
+    };
     requestBody: {
       content: {
         "application/json": components["schemas"]["GuideSeenUpdateForm"];
@@ -1089,23 +2683,460 @@ export interface operations {
       };
     };
   };
-  /**
-   * Reset Password
-   * @description Complete the password reset process.
-   *
-   * ### Args:
-   *
-   * token (str): The valid reset token.
-   * new_password (str): The new password to set.
-   *
-   * ### Returns:
-   *
-   *     dict: Status message indicating success.
-   *
-   * Verifies the token from Redis, hashes the new password,
-   * updates the database, and deletes the token.
-   */
-  reset_password_api_v1_auth_password_reset_confirm_post: {
+  /** Change Password */
+  change_password_api_v1_auth_me_password_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ChangePasswordForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["ResetPasswordResponse"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Request Password Change Code */
+  request_password_change_code_api_v1_auth_me_password_code_post: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["DeleteAccountCodeResponse"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Verify Password Change Code */
+  verify_password_change_code_api_v1_auth_me_password_code_verify_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["VerifyAccountCodeForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["ResetPasswordResponse"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Read Profile Photo */
+  read_profile_photo_api_v1_auth_me_photo_get: {
+    parameters: {
+      query?: {
+        version?: string | null;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "image/webp": string;
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Content Too Large */
+      413: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Internal Server Error */
+      500: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Upload Profile Photo */
+  upload_profile_photo_api_v1_auth_me_photo_put: {
+    requestBody: {
+      content: {
+        "application/octet-stream": string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["UserResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Content Too Large */
+      413: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Internal Server Error */
+      500: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Delete Profile Photo */
+  delete_profile_photo_api_v1_auth_me_photo_delete: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["UserResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Content Too Large */
+      413: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Internal Server Error */
+      500: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Oauth Providers */
+  oauth_providers_api_v1_auth_oauth_providers_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["OAuthProvidersResponse"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Internal Server Error */
+      500: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Oauth Callback */
+  oauth_callback_api_v1_auth_oauth__provider__callback_get: {
+    parameters: {
+      query?: {
+        code?: string | null;
+        state?: string | null;
+        error?: string | null;
+      };
+      path: {
+        provider: components["schemas"]["OAuthProvider"];
+      };
+    };
+    responses: {
+      /** @description Success redirects to the frontend and sets refresh cookies. Provider/domain failures redirect to the frontend failure path with error query parameters. */
+      307: {
+        headers: {
+          /** @description Redirect destination */
+          Location?: string;
+          /** @description Two separate Set-Cookie headers: hippobox_refresh_token and hippobox_refresh_sid; HttpOnly, Path=/; HTTPS uses Secure and SameSite=None, HTTP uses SameSite=Lax. Persistent expiry is set only with remember_me=true. */
+          "Set-Cookie"?: string;
+        };
+        content: never;
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Oauth Start */
+  oauth_start_api_v1_auth_oauth__provider__start_get: {
+    parameters: {
+      path: {
+        provider: components["schemas"]["OAuthProvider"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      307: {
+        headers: {
+          /** @description Redirect destination */
+          Location?: string;
+        };
+        content: never;
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Internal Server Error */
+      500: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Confirm Reset */
+  confirm_reset_api_v1_auth_password_reset_confirm_post: {
     requestBody: {
       content: {
         "application/json": components["schemas"]["PasswordResetConfirm"];
@@ -1126,21 +3157,8 @@ export interface operations {
       };
     };
   };
-  /**
-   * Request Password Reset
-   * @description Initiate the password reset process.
-   *
-   * ### Args:
-   *
-   * email (str): The email address of the account to reset.
-   *
-   * ### Returns:
-   *
-   *     dict: Success message (even if email is not found, for security).
-   *
-   * Generates a password reset token in Redis and simulates sending an email.
-   */
-  request_password_reset_api_v1_auth_password_reset_request_post: {
+  /** Request Reset */
+  request_reset_api_v1_auth_password_reset_request_post: {
     requestBody: {
       content: {
         "application/json": components["schemas"]["PasswordResetRequest"];
@@ -1163,21 +3181,15 @@ export interface operations {
   };
   /**
    * Refresh Token
-   * @description Renew access token using a valid refresh token.
-   *
-   * ### Args:
-   *
-   *     refresh_token (str): The refresh token issued during login.
-   *     user_id (int): The ID of the user owning the token.
-   *
-   * ### Returns:
-   *
-   *     token (TokenRefreshResponse): A new pair of Access and Refresh tokens.
-   *
-   * This endpoint implements **Refresh Token Rotation**.
-   * The old refresh token is invalidated, and a completely new pair is issued.
+   * @description Refreshes the access token and extends the existing refresh session TTL. The refresh token value is retained. Non-empty JSON fields take precedence over cookies; user_id can be resolved from the session. Browser clients may send an empty JSON object.
    */
   refresh_token_api_v1_auth_refresh_post: {
+    parameters: {
+      cookie?: {
+        hippobox_refresh_token?: string;
+        hippobox_refresh_sid?: string;
+      };
+    };
     requestBody?: {
       content: {
         "application/json": components["schemas"]["Body_refresh_token_api_v1_auth_refresh_post"];
@@ -1186,8 +3198,30 @@ export interface operations {
     responses: {
       /** @description Successful Response */
       200: {
+        headers: {
+          /** @description Two separate Set-Cookie headers: hippobox_refresh_token and hippobox_refresh_sid; HttpOnly, Path=/; HTTPS uses Secure and SameSite=None, HTTP uses SameSite=Lax. Persistent expiry is set only with remember_me=true. */
+          "Set-Cookie"?: string;
+        };
         content: {
-          "application/json": components["schemas"]["TokenRefreshResponse"];
+          "application/json": components["schemas"]["RefreshResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
         };
       };
       /** @description Validation Error */
@@ -1198,22 +3232,75 @@ export interface operations {
       };
     };
   };
-  /**
-   * Signup
-   * @description Register a new user account.
-   *
-   *     The input should include:
-   *     - email: Valid email address
-   *     - password: Raw password (will be hashed)
-   *     - name: User's display name
-   *
-   *     ### Returns:
-   * `
-   *         user (UserResponse): The successfully created user object (unverified).
-   *
-   *     This endpoint creates a DB entry, hashes the password,
-   *     and triggers an asynchronous email verification process.
-   */
+  /** Resend Verification Email */
+  resend_verification_email_api_v1_auth_resend_verification_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ResendVerificationForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["ResendVerificationResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Reset Password */
+  reset_password_api_v1_auth_reset_password_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ResetPasswordForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["ResetPasswordResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Signup */
   signup_api_v1_auth_signup_post: {
     requestBody: {
       content: {
@@ -1227,6 +3314,104 @@ export interface operations {
           "application/json": components["schemas"]["UserResponse"];
         };
       };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Internal Server Error */
+      500: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Oauth Token Login */
+  oauth_token_login_api_v1_auth_token_post: {
+    requestBody: {
+      content: {
+        "application/x-www-form-urlencoded": components["schemas"]["Body_oauth_token_login_api_v1_auth_token_post"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["LoginResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Locked */
+      423: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Verify Email */
+  verify_email_api_v1_auth_verify_email_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["VerifyEmailForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["VerifyEmailResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
       /** @description Validation Error */
       422: {
         content: {
@@ -1235,14 +3420,11 @@ export interface operations {
       };
     };
   };
-  /**
-   * Resend Verification Email
-   * @description Resend a verification email if the user exists and is not verified.
-   */
-  resend_verification_email_api_v1_auth_verify_email_resend_post: {
+  /** Resend Verification */
+  resend_verification_api_v1_auth_verify_email_resend_post: {
     requestBody: {
       content: {
-        "application/json": components["schemas"]["EmailVerificationResend"];
+        "application/json": components["schemas"]["PasswordResetRequest"];
       };
     };
     responses: {
@@ -1260,26 +3442,9 @@ export interface operations {
       };
     };
   };
-  /**
-   * Verify Email
-   * @description Verify a user's email address using a UUID token.
-   *
-   * ### Args:
-   *
-   *     token (str): The verification token sent via email.
-   *
-   * ### Returns:
-   *
-   *     user (UserResponse): The updated user object with `is_verified=True`.
-   *
-   * This checks the token existence in Redis. If valid,
-   * it updates the user status in SQL and invalidates the token.
-   */
+  /** Verify Email */
   verify_email_api_v1_auth_verify_email__token__get: {
     parameters: {
-      query?: {
-        redirect?: boolean;
-      };
       path: {
         token: string;
       };
@@ -1289,6 +3454,1651 @@ export interface operations {
       200: {
         content: {
           "application/json": components["schemas"]["UserResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Create Card Setup */
+  create_card_setup_api_v1_billing_card_setups_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["BillingSetupForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        content: {
+          "application/json": components["schemas"]["BillingCardSetupResponse"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Bad Gateway */
+      502: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Card Setup Status */
+  card_setup_status_api_v1_billing_card_setups__intent_id__get: {
+    parameters: {
+      path: {
+        intent_id: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["BillingCardSetupStatus"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Bad Gateway */
+      502: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Create Checkout */
+  create_checkout_api_v1_billing_checkout_sessions_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["BillingCheckoutForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        content: {
+          "application/json": components["schemas"]["BillingSetupResponse"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Bad Gateway */
+      502: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Checkout Status */
+  checkout_status_api_v1_billing_checkout_sessions__session_id__get: {
+    parameters: {
+      path: {
+        session_id: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["BillingCheckoutStatusResponse"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Bad Gateway */
+      502: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Billing Config */
+  billing_config_api_v1_billing_config_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["BillingConfigResponse"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Bad Gateway */
+      502: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Billing Invoices */
+  billing_invoices_api_v1_billing_invoices_get: {
+    parameters: {
+      query?: {
+        limit?: number;
+        starting_after?: string | null;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["BillingInvoicesResponse"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Bad Gateway */
+      502: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Invoice Detail */
+  invoice_detail_api_v1_billing_invoices__invoice_id__get: {
+    parameters: {
+      path: {
+        invoice_id: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["BillingInvoiceDetail"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Bad Gateway */
+      502: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+    };
+  };
+  /** List Payment Methods */
+  list_payment_methods_api_v1_billing_payment_methods_get: {
+    parameters: {
+      query?: {
+        method_type?: "card" | "link";
+        limit?: number;
+        starting_after?: string | null;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["BillingPaymentMethodsResponse"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Bad Gateway */
+      502: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Manage Billing Method */
+  manage_billing_method_api_v1_billing_payment_methods__method_id__post: {
+    parameters: {
+      path: {
+        method_id: string;
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["BillingMethodForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["BillingProfileResponse"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Bad Gateway */
+      502: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Plans */
+  plans_api_v1_billing_plans_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["BillingPlansResponse"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Bad Gateway */
+      502: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Billing Portal */
+  billing_portal_api_v1_billing_portal_sessions_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["BillingPortalForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        content: {
+          "application/json": components["schemas"]["BillingSetupResponse"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Bad Gateway */
+      502: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Billing Profile */
+  billing_profile_api_v1_billing_profile_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["BillingProfileResponse"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Bad Gateway */
+      502: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Update Billing Profile */
+  update_billing_profile_api_v1_billing_profile_put: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["BillingProfileForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["BillingProfileResponse"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Bad Gateway */
+      502: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Create Setup */
+  create_setup_api_v1_billing_setup_sessions_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["BillingSetupForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        content: {
+          "application/json": components["schemas"]["BillingSetupResponse"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Bad Gateway */
+      502: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Setup Status */
+  setup_status_api_v1_billing_setup_sessions__session_id__get: {
+    parameters: {
+      path: {
+        session_id: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["BillingSetupStatusResponse"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Bad Gateway */
+      502: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Subscription */
+  subscription_api_v1_billing_subscription_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["BillingSubscriptionResponse"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Bad Gateway */
+      502: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Change Subscription */
+  change_subscription_api_v1_billing_subscription_change_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["BillingChangeForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["BillingSubscriptionResponse"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Bad Gateway */
+      502: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Billing Webhook */
+  billing_webhook_api_v1_billing_webhook_post: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": {
+            [key: string]: string;
+          };
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Bad Gateway */
+      502: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["BillingErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Stream Events */
+  stream_events_api_v1_events_stream_get: {
+    parameters: {
+      header?: {
+        /** @description Accepted for diagnostics only; events are not replayed. */
+        "last-event-id"?: string | null;
+      };
+    };
+    responses: {
+      /** @description SSE frames; each data field contains a RealtimeStreamEvent JSON value. No replay is provided; re-fetch affected resources after reconnecting. */
+      200: {
+        content: {
+          "text/event-stream": string;
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** List Notifications */
+  list_notifications_api_v1_inbox_get: {
+    parameters: {
+      query?: {
+        page?: number;
+        page_size?: number;
+        unread_only?: boolean;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["InboxPage"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Read All */
+  read_all_api_v1_inbox_read_all_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["InboxReadAllForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["InboxSummary"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Read Selected */
+  read_selected_api_v1_inbox_read_selected_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["InboxSelectionForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["InboxSummary"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Delete Selected */
+  delete_selected_api_v1_inbox_selected_delete: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["InboxSelectionForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["InboxSummary"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Summary */
+  summary_api_v1_inbox_summary_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["InboxSummary"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Read */
+  read_api_v1_inbox__notification_id__read_post: {
+    parameters: {
+      path: {
+        notification_id: number;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["InboxItem"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["InboxErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** List Own */
+  list_own_api_v1_inquiries_get: {
+    parameters: {
+      query?: {
+        page?: number;
+        page_size?: number;
+        status?: components["schemas"]["InquiryStatus"] | null;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["InquiryPage"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Create */
+  create_api_v1_inquiries_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["InquiryCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["InquiryDetail"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["InquiryErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["InquiryErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** List All */
+  list_all_api_v1_inquiries_admin_get: {
+    parameters: {
+      query?: {
+        page?: number;
+        page_size?: number;
+        status?: components["schemas"]["InquiryStatus"] | null;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["InquiryPage"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Detail */
+  detail_api_v1_inquiries__inquiry_id__get: {
+    parameters: {
+      path: {
+        inquiry_id: number;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["InquiryDetail"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["InquiryErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["InquiryErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Reply */
+  reply_api_v1_inquiries__inquiry_id__messages_post: {
+    parameters: {
+      path: {
+        inquiry_id: number;
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["InquiryReply"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["InquiryDetail"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["InquiryErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["InquiryErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Change Status */
+  change_status_api_v1_inquiries__inquiry_id__status_patch: {
+    parameters: {
+      path: {
+        inquiry_id: number;
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["InquiryStatusForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["InquiryDetail"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["InquiryErrorResponse"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        content: {
+          "application/json": components["schemas"]["InquiryErrorResponse"];
         };
       };
       /** @description Validation Error */
@@ -1317,6 +5127,11 @@ export interface operations {
    * which is then indexed into Qdrant for similarity search.
    */
   create_knowledge: {
+    parameters: {
+      header?: {
+        "X-API-Key"?: string | null;
+      };
+    };
     requestBody: {
       content: {
         "application/json": components["schemas"]["KnowledgeForm"];
@@ -1348,11 +5163,22 @@ export interface operations {
    * Useful for browsing or building UI item lists.
    */
   get_knowledge_list: {
+    parameters: {
+      header?: {
+        "X-API-Key"?: string | null;
+      };
+    };
     responses: {
       /** @description Successful Response */
       200: {
         content: {
           "application/json": components["schemas"]["KnowledgeResponse"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
       };
     };
@@ -1383,6 +5209,9 @@ export interface operations {
         tag?: string | null;
         limit?: number;
       };
+      header?: {
+        "X-API-Key"?: string | null;
+      };
     };
     responses: {
       /** @description Successful Response */
@@ -1411,6 +5240,9 @@ export interface operations {
    */
   get_knowledge_by_tag: {
     parameters: {
+      header?: {
+        "X-API-Key"?: string | null;
+      };
       path: {
         tag: string;
       };
@@ -1440,6 +5272,9 @@ export interface operations {
    */
   get_knowledge_by_title: {
     parameters: {
+      header?: {
+        "X-API-Key"?: string | null;
+      };
       path: {
         title: string;
       };
@@ -1471,6 +5306,9 @@ export interface operations {
    */
   get_knowledge_by_topic: {
     parameters: {
+      header?: {
+        "X-API-Key"?: string | null;
+      };
       path: {
         topic: string;
       };
@@ -1505,6 +5343,9 @@ export interface operations {
    */
   get_knowledge_api_v1_knowledge__knowledge_id__get: {
     parameters: {
+      header?: {
+        "X-API-Key"?: string | null;
+      };
       path: {
         knowledge_id: number;
       };
@@ -1539,6 +5380,9 @@ export interface operations {
    */
   update_knowledge: {
     parameters: {
+      header?: {
+        "X-API-Key"?: string | null;
+      };
       path: {
         knowledge_id: number;
       };
@@ -1573,6 +5417,9 @@ export interface operations {
    */
   delete_knowledge: {
     parameters: {
+      header?: {
+        "X-API-Key"?: string | null;
+      };
       path: {
         knowledge_id: number;
       };
@@ -1592,16 +5439,123 @@ export interface operations {
       };
     };
   };
+  /** Demo Status */
+  demo_status_api_v1_platform_admin_demo_status_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["AdminStatusResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AdminErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["AdminErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Demo Users */
+  demo_users_api_v1_platform_admin_demo_users_get: {
+    parameters: {
+      query?: {
+        page?: number;
+        page_size?: number;
+        search?: string;
+        role?: components["schemas"]["UserRole"] | null;
+        is_active?: boolean | null;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["AdminUserListResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AdminErrorResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["AdminErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Status */
+  status_api_v1_platform_admin_status_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["AdminStatusResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"] | components["schemas"]["APIKeyErrorResponse"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          "application/json": components["schemas"]["AuthErrorResponse"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        content: {
+          "application/json": components["schemas"]["AdminErrorResponse"];
+        };
+      };
+    };
+  };
   /**
    * List Topics
    * @description Retrieve all topics for the current user.
    */
   list_topics_api_v1_topic_get: {
+    parameters: {
+      header?: {
+        "X-API-Key"?: string | null;
+      };
+    };
     responses: {
       /** @description Successful Response */
       200: {
         content: {
           "application/json": components["schemas"]["TopicResponse"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
       };
     };
@@ -1611,6 +5565,11 @@ export interface operations {
    * @description Create a new topic.
    */
   create_topic_api_v1_topic_post: {
+    parameters: {
+      header?: {
+        "X-API-Key"?: string | null;
+      };
+    };
     requestBody: {
       content: {
         "application/json": components["schemas"]["TopicForm"];
@@ -1637,6 +5596,9 @@ export interface operations {
    */
   delete_topic_api_v1_topic__topic_id__delete: {
     parameters: {
+      header?: {
+        "X-API-Key"?: string | null;
+      };
       path: {
         /** @description ID of the topic to delete */
         topic_id: number;
@@ -1663,6 +5625,9 @@ export interface operations {
    */
   update_topic_api_v1_topic__topic_id__patch: {
     parameters: {
+      header?: {
+        "X-API-Key"?: string | null;
+      };
       path: {
         /** @description ID of the topic to update */
         topic_id: number;
@@ -1690,6 +5655,28 @@ export interface operations {
   };
   /** App Config */
   app_config_config_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+    };
+  };
+  /** Live */
+  live_health_live_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+    };
+  };
+  /** Ready */
+  ready_health_ready_get: {
     responses: {
       /** @description Successful Response */
       200: {

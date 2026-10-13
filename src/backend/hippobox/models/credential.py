@@ -2,35 +2,12 @@ import logging
 from datetime import datetime, timezone
 
 from pydantic import BaseModel, Field
-from sqlalchemy import DateTime, ForeignKey, select
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import select
 
-from hippobox.core.database import Base, get_db
+from hippobox.core.database import get_db
+from hippobox.platform.models.user import Credential as Credential
 
 log = logging.getLogger("credential")
-
-
-class Credential(Base):
-    __tablename__ = "credential"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("user.id", ondelete="CASCADE"),
-        nullable=False,
-        unique=True,
-        index=True,
-    )
-    password_hash: Mapped[str] = mapped_column(nullable=False)
-    is_active: Mapped[bool] = mapped_column(default=True, nullable=False)
-    password_changed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
-    )
 
 
 class CredentialModel(BaseModel):

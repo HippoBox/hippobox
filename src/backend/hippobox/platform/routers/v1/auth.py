@@ -44,8 +44,8 @@ logger = get_logger("hippobox.platform.router.auth")
 
 REFRESH_COOKIE_HEADERS = {
     "Set-Cookie": {
-        "description": "Two separate Set-Cookie headers: template_refresh_token and "
-        "template_refresh_sid; HttpOnly, Path=/; HTTPS uses Secure and SameSite=None, "
+        "description": "Two separate Set-Cookie headers: hippobox_refresh_token and "
+        "hippobox_refresh_sid; HttpOnly, Path=/; HTTPS uses Secure and SameSite=None, "
         "HTTP uses SameSite=Lax. Persistent expiry is set only with remember_me=true.",
         "schema": {"type": "string"},
     }
@@ -539,8 +539,8 @@ async def delete_me(
         status.HTTP_200_OK: {
             "headers": {
                 "Set-Cookie": {
-                    "description": "Separate expiry headers for template_refresh_token and "
-                    "template_refresh_sid at Path=/.",
+                    "description": "Separate expiry headers for hippobox_refresh_token and "
+                    "hippobox_refresh_sid at Path=/.",
                     "schema": {"type": "string"},
                 }
             },
@@ -566,13 +566,13 @@ async def logout(
     openapi_extra={
         "parameters": [
             {
-                "name": "template_refresh_token",
+                "name": "hippobox_refresh_token",
                 "in": "cookie",
                 "required": False,
                 "schema": {"type": "string"},
             },
             {
-                "name": "template_refresh_sid",
+                "name": "hippobox_refresh_sid",
                 "in": "cookie",
                 "required": False,
                 "schema": {"type": "string"},
