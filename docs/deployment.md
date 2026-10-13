@@ -1,4 +1,4 @@
-# HippoBox 0.2 배포
+# HippoBox 배포
 
 프론트엔드는 이미지 빌드 시 포함되고 FastAPI가 SPA와 API를 함께 제공합니다.
 별도 프론트엔드 서버는 필요하지 않습니다. 이 구성은 PostgreSQL, Redis, Qdrant,
@@ -82,7 +82,7 @@ make release-up
 ## 릴리즈 만들기
 
 패키지와 프론트엔드 버전, 배포 기본 태그 및 `docs/release-notes.md`를 갱신하고 커밋합니다.
-`v0.2.0` 같은 버전 태그를 푸시하면 GitHub Actions가 `make verify`를 실행한 뒤
+`v0.3.0` 같은 버전 태그를 푸시하면 GitHub Actions가 `make verify`를 실행한 뒤
 GHCR의 amd64/arm64 이미지를 게시하고 GitHub 릴리즈에 wheel/sdist/배포 파일을 첨부합니다.
 검증이나 이미지 빌드가 실패하면 릴리즈 생성은 진행하지 않습니다. 릴리즈 후 같은
 wheel/sdist를 해시 검증하고 PyPI Trusted Publishing으로 게시합니다. 이미 게시된

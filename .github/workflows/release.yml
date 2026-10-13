@@ -107,7 +107,7 @@ jobs:
             fi
           fi
           cp docker/.env.release.example dist/default.env.release.example
-          gh release upload "$TAG" dist/* docker/compose.release.yml --clobber
+          gh release upload "$TAG" dist/* docker/compose.release.yml docker/compose.local.yml docker/compose.sqlite.yml docker/nginx.conf.example src/frontend/public/hippobox-mcp-icon.png --clobber
 
   pypi:
     needs: [release]

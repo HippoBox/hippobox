@@ -82,7 +82,7 @@ async def lifespan(app: FastAPI):
 def create_app() -> FastAPI:
     app = FastAPI(
         title="HippoBox MCP Server",
-        version="0.2.0",
+        version="0.3.0",
         description="Unified FastAPI + MCP server for Knowledge Store & RAG",
         lifespan=lifespan,
         docs_url="/docs" if SETTINGS.SWAGGER_ENABLED else None,
