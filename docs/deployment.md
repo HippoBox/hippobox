@@ -19,10 +19,10 @@ make release-up
 make release-status
 ```
 
-소스 없이 GitHub 릴리즈의 `compose.release.yml`, `.env.release.example`만 받은 경우:
+소스 없이 GitHub 릴리즈의 `compose.release.yml`, `default.env.release.example`만 받은 경우:
 
 ```sh
-cp .env.release.example .env
+cp default.env.release.example .env
 # 위 필수 값을 설정한 뒤 실행합니다.
 docker compose --env-file .env -f compose.release.yml pull
 docker compose --env-file .env -f compose.release.yml up -d --wait
