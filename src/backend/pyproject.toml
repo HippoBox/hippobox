@@ -1,6 +1,6 @@
 [project]
 name = "hippobox"
-version = "0.1.2"
+version = "0.2.0"
 description = "HippoBox MCP + Knowledge Store Server"
 readme = "README.md"
 requires-python = ">=3.13"

@@ -10,7 +10,7 @@ from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
 dist = root / "src/backend/dist"
-wheel = next(dist.glob("hippobox-*.whl"))
+wheel = max(dist.glob("hippobox-*.whl"), key=lambda path: path.stat().st_mtime)
 with zipfile.ZipFile(wheel) as archive:
     names = archive.namelist()
     for required in [
@@ -24,7 +24,7 @@ with zipfile.ZipFile(wheel) as archive:
         raise SystemExit("Package contains local configuration or database")
 with tempfile.TemporaryDirectory(prefix="hippobox-package-") as directory:
     folder = Path(directory)
-    with tarfile.open(next(dist.glob("hippobox-*.tar.gz"))) as archive:
+    with tarfile.open(max(dist.glob("hippobox-*.tar.gz"), key=lambda path: path.stat().st_mtime)) as archive:
         archive.extractall(folder, filter="data")
     source = next(folder.glob("hippobox-*"))
     subprocess.run(
@@ -44,6 +44,7 @@ with tempfile.TemporaryDirectory(prefix="hippobox-package-") as directory:
         "APP_MODE": "development",
         "VDB_ENABLED": "false",
         "DB_NAME": str(folder / "smoke.db"),
+        "OBJECT_STORAGE_LOCAL_ROOT": str(folder / "objects"),
         "REDIS_IN_MEMORY": "true",
         "ADMIN_BOOTSTRAP": "false",
     }

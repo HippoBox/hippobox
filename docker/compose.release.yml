@@ -1,0 +1,85 @@
+name: hippobox
+x-app: &app
+  image: ${HIPPOBOX_IMAGE:-ghcr.io/hippobox/hippobox:0.2.0}
+  env_file: ${HIPPOBOX_ENV_FILE:-.env}
+  environment: &environment
+    APP_MODE: production
+    DB_DRIVER: postgresql+asyncpg
+    DB_HOST: postgres
+    DB_PORT: 5432
+    DB_NAME: hippobox
+    DB_USER: hippobox
+    DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in docker/.env}
+    SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in docker/.env}
+    REDIS_IN_MEMORY: "false"
+    REDIS_HOST: redis
+    QDRANT_MODE: docker
+    QDRANT_URL: http://qdrant:6333
+    OBJECT_STORAGE_LOCAL_ROOT: /data/objects
+    SWAGGER_ENABLED: "false"
+    LOGIN_ENABLED: "true"
+  volumes:
+    - objects:/data/objects
+  restart: unless-stopped
+services:
+  hippobox:
+    <<: *app
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${PORT:-8000}:8000"
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      qdrant: {condition: service_started}
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+  worker:
+    <<: *app
+    healthcheck: {disable: true}
+    command: [celery, -A, "hippobox.platform.core.celery.app:celery_app", worker, --loglevel=INFO, --concurrency=2]
+    depends_on:
+      hippobox: {condition: service_healthy}
+  beat:
+    <<: *app
+    healthcheck: {disable: true}
+    command: [celery, -A, "hippobox.platform.core.celery.app:celery_app", beat, --loglevel=INFO, --schedule=/tmp/celerybeat-schedule]
+    depends_on:
+      hippobox: {condition: service_healthy}
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: hippobox
+      POSTGRES_USER: hippobox
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in docker/.env}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U hippobox -d hippobox"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+  redis:
+    image: redis:7-alpine
+    command: [redis-server, --appendonly, "yes"]
+    volumes:
+      - redis:/data
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+  qdrant:
+    image: qdrant/qdrant:v1.17.0
+    volumes:
+      - qdrant:/qdrant/storage
+    restart: unless-stopped
+volumes:
+  postgres:
+  redis:
+  qdrant:
+  objects:

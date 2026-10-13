@@ -62,3 +62,17 @@ backend-dev:
 	cd $(BACKEND_DIR) && $(PYTHON) -m uvicorn hippobox.server:app --reload --host 127.0.0.1 --port "$(BACKEND_PORT)"
 frontend-dev:
 	cd $(FRONTEND_DIR) && BACKEND_PORT="$(BACKEND_PORT)" npm run dev:vite -- --host 127.0.0.1 --port "$(FRONTEND_PORT)" --strictPort
+
+# Release operations use docker/.env; config output deliberately omits secrets.
+RELEASE_COMPOSE := docker compose --env-file docker/.env -f docker/compose.release.yml
+.PHONY: release-config release-pull release-up release-status release-logs
+release-config:
+	$(RELEASE_COMPOSE) config --quiet
+release-pull:
+	$(RELEASE_COMPOSE) pull
+release-up:
+	$(RELEASE_COMPOSE) up -d --wait
+release-status:
+	$(RELEASE_COMPOSE) ps
+release-logs:
+	$(RELEASE_COMPOSE) logs --tail=100
