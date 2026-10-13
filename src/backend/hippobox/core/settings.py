@@ -31,6 +31,8 @@ class Settings(PlatformSettings):
     FRONTEND_BASE_PATH: str = os.getenv("FRONTEND_BASE_PATH", "")
     PUBLIC_APP_URL: str = os.getenv("PUBLIC_APP_URL", "")
     PUBLIC_API_URL: str = os.getenv("PUBLIC_API_URL", "")
+    MCP_OAUTH_ENABLED: bool = os.getenv("MCP_OAUTH_ENABLED", "false").lower() == "true"
+    MCP_OAUTH_REDIRECT_URIS: str = os.getenv("MCP_OAUTH_REDIRECT_URIS", "")
 
     # ----------------------------------------
     # Email (Resend)
@@ -101,6 +103,25 @@ class Settings(PlatformSettings):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+        if self.MCP_OAUTH_ENABLED:
+            from urllib.parse import urlparse
+
+            public = urlparse(self.PUBLIC_API_URL or self.APP_BASE_URL)
+            if (
+                not self.LOGIN_ENABLED
+                or not public.netloc
+                or public.path not in {"", "/"}
+                or public.query
+                or public.fragment
+            ):
+                raise ValueError("MCP OAuth requires login and an absolute PUBLIC_API_URL origin")
+            if public.scheme != "https" and not (
+                self.APP_MODE == "development"
+                and public.scheme == "http"
+                and public.hostname in {"localhost", "127.0.0.1"}
+            ):
+                raise ValueError("MCP OAuth requires an HTTPS PUBLIC_API_URL (localhost is allowed in development)")
 
         if self.APP_MODE == "production":
             if not self.LOGIN_ENABLED:

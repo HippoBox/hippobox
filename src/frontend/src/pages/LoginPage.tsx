@@ -26,6 +26,10 @@ export function LoginPage() {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const mcpRequest = searchParams.get('mcp_request') ?? '';
+    const destination = /^[A-Za-z0-9_-]{43}$/.test(mcpRequest)
+        ? `/connect-mcp?request=${mcpRequest}`
+        : '/app';
     const token = useAccessToken();
     const [email, setEmail] = useState(() => searchParams.get('email') ?? '');
     const [password, setPassword] = useState('');
@@ -43,7 +47,7 @@ export function LoginPage() {
 
     const loginMutation = useLoginMutation({
         onSuccess: () => {
-            navigate('/app');
+            navigate(destination);
         },
     });
 
@@ -71,17 +75,17 @@ export function LoginPage() {
 
     useEffect(() => {
         if (!loginEnabled) {
-            navigate('/app', { replace: true });
+            navigate(destination, { replace: true });
             return;
         }
         if (token) {
-            navigate('/app', { replace: true });
+            navigate(destination, { replace: true });
             return;
         }
         if (isRefreshIdle) {
             refreshSession();
         }
-    }, [isRefreshIdle, loginEnabled, navigate, refreshSession, token]);
+    }, [destination, isRefreshIdle, loginEnabled, navigate, refreshSession, token]);
 
     if (!loginEnabled) {
         return null;

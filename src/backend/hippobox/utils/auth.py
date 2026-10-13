@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import BackgroundTasks, Depends, Header, HTTPException, status
+from fastapi import BackgroundTasks, Depends, Header, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from pydantic import ValidationError
@@ -16,6 +16,7 @@ security = HTTPBearer(auto_error=False)
 async def get_current_user(
     background_tasks: BackgroundTasks,
     token_auth: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
+    request: Request,
     api_key: Annotated[str | None, Header(alias="X-API-Key")] = None,
 ) -> UserResponse:
     if not SETTINGS.LOGIN_ENABLED:
@@ -35,7 +36,7 @@ async def get_current_user(
 
         key = await get_current_api_key(api_key)
         key_user = await PlatformUsers.get_user_response_by_id(key.user_id)
-        if key_user is None:
+        if key_user is None or not key_user.is_active:
             raise HTTPException(status_code=401, detail="Invalid API key")
         if token_auth is None:
             return key_user
@@ -48,6 +49,25 @@ async def get_current_user(
         )
 
     token = token_auth.credentials
+
+    if token.startswith("hpm_"):
+        from hippobox.platform.models.user import Users as PlatformUsers
+        from hippobox.services.mcp_oauth import provider
+
+        grant = await provider.load_access_token(token) if SETTINGS.MCP_OAUTH_ENABLED else None
+        if not grant:
+            raise HTTPException(401, "Invalid MCP access token")
+        path = request.url.path
+        if path.rstrip("/") != "/mcp":
+            if not path.startswith("/api/v1/knowledge/"):
+                raise HTTPException(403, "MCP token cannot access account APIs")
+            required = "knowledge:read" if request.method in {"GET", "HEAD"} else "knowledge:write"
+            if required not in grant.scopes:
+                raise HTTPException(403, "Insufficient MCP scope")
+        user = await PlatformUsers.get_user_response_by_id(int(grant.subject))
+        if api_key is not None and key_user.id != user.id:
+            raise HTTPException(401, "Conflicting credentials")
+        return user
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -88,7 +108,7 @@ async def get_current_user(
             if user_id is None:
                 raise credentials_exception
             user_id_int = int(user_id)
-        except (JWTError, ValidationError, ValueError):
+        except (JWTError, ValidationError, ValueError, TypeError):
             raise credentials_exception
 
         user = await Users.get(user_id_int)

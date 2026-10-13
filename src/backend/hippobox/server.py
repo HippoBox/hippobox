@@ -10,6 +10,7 @@ from fastapi_mcp import FastApiMCP
 from hippobox.core.bootstrap_admin import ensure_admin_for_login_disabled, ensure_default_admin_from_settings
 from hippobox.core.database import dispose_db, init_db
 from hippobox.core.logging_config import setup_logger
+from hippobox.core.mcp_auth import MCPAuthMiddleware
 from hippobox.core.redis import RedisManager
 from hippobox.core.request_context import RequestContextMiddleware
 from hippobox.core.settings import SETTINGS
@@ -26,6 +27,7 @@ from hippobox.platform.routers.v1 import auth, billing, billing_webhook, events,
 from hippobox.platform.services.billing import BillingService
 from hippobox.rag.embedding import Embedding
 from hippobox.rag.qdrant import Qdrant
+from hippobox.routers import mcp_oauth
 from hippobox.routers.v1 import admin, api_key, auth_compat, knowledge, topic
 from hippobox.routers.v1.knowledge import OperationID
 from hippobox.utils.auth import get_current_user
@@ -88,6 +90,8 @@ def create_app() -> FastAPI:
     )
 
     app.add_middleware(RequestContextMiddleware)
+    app.add_middleware(MCPAuthMiddleware)
+    app.include_router(mcp_oauth.router)
     app.dependency_overrides[platform_deps.get_current_user] = get_current_user
 
     @app.exception_handler(PlatformException)
@@ -204,6 +208,7 @@ def create_app() -> FastAPI:
             "email_enabled": SETTINGS.EMAIL_ENABLED,
             "vdb_enabled": SETTINGS.VDB_ENABLED,
             "oauth_enabled": SETTINGS.OAUTH_ENABLED,
+            "mcp_oauth_enabled": SETTINGS.MCP_OAUTH_ENABLED,
             "oauth_providers": SETTINGS.oauth_provider_list,
             "billing_enabled": SETTINGS.STRIPE_ENABLED,
             "platform_enabled": True,
@@ -231,7 +236,9 @@ def create_app() -> FastAPI:
                 request.url.path == frontend_base_path or request.url.path.startswith(frontend_base_path + "/")
             )
 
-            reserved = request.url.path == "/api" or request.url.path.startswith(("/api/", "/mcp", "/assets/"))
+            reserved = request.url.path == "/api" or request.url.path.startswith(
+                ("/api/", "/mcp", "/assets/", "/.well-known/", "/oauth/")
+            )
             if request.method in {"GET", "HEAD"} and accepts_html and is_frontend_path and not reserved:
                 index_path = static_files_dist / "index.html"
                 if index_path.exists():
