@@ -28,6 +28,22 @@ dependencies = [
     "bcrypt>=5.0.0",
     "argon2-cffi>=25.1.0",
     "httpx>=0.27.0",
+    "python-multipart>=0.0.26",
+    "greenlet>=3.0.0",
+    "prometheus-fastapi-instrumentator>=7.1.0",
+    "opentelemetry-api>=1.41.1",
+    "opentelemetry-sdk>=1.41.1",
+    "opentelemetry-exporter-otlp>=1.41.1",
+    "opentelemetry-instrumentation-fastapi>=0.62b1",
+    "opentelemetry-instrumentation-sqlalchemy>=0.62b1",
+    "opentelemetry-instrumentation-redis>=0.62b1",
+    "opentelemetry-instrumentation-logging>=0.62b1",
+    "celery[redis]>=5.6,<6",
+    "stripe[async]>=15,<16",
+    "cryptography>=46.0.5",
+    "boto3>=1.40,<2",
+    "pillow>=12.1.1,<13",
+    "rich>=14,<15",
 ]
 
 [project.optional-dependencies]
@@ -67,6 +83,7 @@ pythonpath = ["."]
 addopts = "-q"
 
 [tool.ruff]
+extend-exclude = ["hippobox/platform"]
 line-length = 120
 target-version = "py313"
 
@@ -75,3 +92,6 @@ select = ["E4", "E7", "E9", "F", "I"]
 
 [tool.hatch.build.targets.sdist]
 include = ["hippobox", "README.md", "pyproject.toml", "hatch_build.py", "alembic.ini", "uv.lock"]
+
+[tool.ruff.lint.per-file-ignores]
+"hippobox/platform/**" = ["ALL"]
