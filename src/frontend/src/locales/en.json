@@ -406,5 +406,24 @@
         "message": "Check the server connection and try again.",
         "retry": "Try again",
         "pending": "Connecting…"
+    },
+    "platform": {
+        "bio": "About me",
+        "saveBio": "Save introduction",
+        "saved": "Saved.",
+        "failed": "Unable to complete the request. Please try again.",
+        "security": "Account security",
+        "sendCode": "Send verification code",
+        "codeSent": "A verification code has been sent to your email.",
+        "code": "Verification code",
+        "newPassword": "New password",
+        "changePassword": "Change password",
+        "passwordChanged": "Password changed.",
+        "emailRequired": "Email verification must be enabled to change your password.",
+        "inbox": "Notifications",
+        "empty": "No notifications yet.",
+        "loading": "Loading…",
+        "markRead": "Mark as read",
+        "members": "Members"
     }
 }

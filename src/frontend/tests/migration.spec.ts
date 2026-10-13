@@ -124,3 +124,34 @@ test('auth errors use shared localized messages without server internals', async
     await expect(page.getByText('Login failed. Please try again.')).toBeVisible();
     await expect(page.getByText('private SQL')).toHaveCount(0);
 });
+
+test('platform profile uses the existing HippoBox settings shell', async ({ page }, testInfo) => {
+    const identity = {
+        name: `profile-${testInfo.project.name}`,
+        email: `profile-${testInfo.project.name}@example.com`,
+        password: 'Strong!123456789',
+    };
+    expect((await page.request.post('/api/v1/auth/signup', { data: identity })).ok()).toBeTruthy();
+    const login = await page.request.post('/api/v1/auth/login', { data: identity });
+    const token = (await login.json()).access_token;
+    await page.request.patch('/api/v1/auth/me/guide', {
+        headers: { Authorization: `Bearer ${token}` },
+        data: { seen: true },
+    });
+    await page.addInitScript((accessToken) => {
+        sessionStorage.setItem('hippobox_access_token', accessToken);
+        localStorage.setItem('lang', 'en');
+    }, token);
+    await page.goto('/app/settings#profile');
+    await expect(page.locator('nav').first()).toBeVisible();
+    await page.locator('#profile-bio').fill('My personal knowledge hub');
+    await page.getByRole('button', { name: 'Save introduction' }).click();
+    await expect(page.getByText('Saved.', { exact: true })).toBeVisible();
+    await page.reload();
+    await expect(page.locator('#profile-bio')).toHaveValue('My personal knowledge hub');
+    await expect(page.getByText('Welcome to HippoBox', {exact: true})).toBeVisible();
+    await page.getByRole('button', {name: 'Mark as read'}).click();
+    await expect(page.getByRole('button', {name: 'Mark as read'})).toHaveCount(0);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.screenshot({ path: testInfo.outputPath('platform-settings.png'), fullPage: true });
+});

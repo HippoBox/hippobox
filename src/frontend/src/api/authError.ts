@@ -23,6 +23,10 @@ export function extractAuthError(error: unknown): AuthErrorDetail | null {
     if (!detail || typeof detail !== 'object') return null;
     const value = detail as Record<string, unknown>;
     const code = value.error;
+    const details =
+        value.details && typeof value.details === 'object'
+            ? (value.details as Record<string, unknown>)
+            : value;
     const number = (input: unknown) =>
         typeof input === 'number' && Number.isFinite(input) && input >= 0 ? input : undefined;
     return {
@@ -30,8 +34,8 @@ export function extractAuthError(error: unknown): AuthErrorDetail | null {
             typeof code === 'string' && Object.hasOwn(AUTH_ERROR_KEYS, code)
                 ? (code as AuthErrorCode)
                 : undefined,
-        limit_count: number(value.limit_count),
-        remaining_seconds: number(value.remaining_seconds),
+        limit_count: number(value.limit_count ?? details.remaining_attempts),
+        remaining_seconds: number(value.remaining_seconds ?? details.remaining_seconds),
     };
 }
 

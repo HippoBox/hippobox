@@ -1,3 +1,4 @@
+import { VerifyEmailPage } from './pages/VerifyEmailPage';
 import { lazy } from 'react';
 import { createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom';
 
@@ -119,6 +120,7 @@ export const createAppRouter = (basename: string) =>
                         element={<ForgotPasswordPage />}
                         handle={{ titleKey: 'forgot.title' }}
                     />
+                    <Route path="verify-email" element={<VerifyEmailPage />} />
                     <Route
                         path="verify-email/success"
                         element={<VerifyEmailSuccessPage />}

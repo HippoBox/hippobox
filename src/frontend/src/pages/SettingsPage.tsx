@@ -1,3 +1,4 @@
+import { PlatformAccountPanel } from '../components/PlatformAccountPanel';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -367,6 +368,7 @@ export function SettingsPage() {
                                     )}
                                 </div>
                             </div>
+                            <PlatformAccountPanel />
                         </div>
                     ) : null}
                     {activeTab === 'general' ? (

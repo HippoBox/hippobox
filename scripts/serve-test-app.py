@@ -21,6 +21,7 @@ with TemporaryDirectory(prefix="hippobox-browser-") as directory:
             "REDIS_IN_MEMORY": "true",
             "DB_DRIVER": "sqlite+aiosqlite",
             "DB_NAME": str(Path(directory) / "test.db"),
+            "OBJECT_STORAGE_LOCAL_ROOT": str(Path(directory) / "objects"),
             "FRONTEND_BASE_PATH": "",
         }
     )
