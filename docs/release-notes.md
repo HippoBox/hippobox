@@ -18,6 +18,8 @@ Blueprint B4FastAPI 기반을 HippoBox 내부에 고정 버전으로 통합했�
 복사합니다. SECRET_KEY, DB_PASSWORD, 공개 URL 및 필요한 API 키를 설정한 뒤:
 
 ```sh
+cp default.env.release.example .env
+# .env의 필수 설정을 입력한 뒤 실행합니다.
 docker compose --env-file .env -f compose.release.yml up -d --wait
 ```
 

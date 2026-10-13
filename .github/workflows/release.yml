@@ -101,4 +101,5 @@ jobs:
               gh release create "$TAG" --title "HippoBox $TAG" --notes-file docs/release-notes.md
             fi
           fi
-          gh release upload "$TAG" dist/* docker/compose.release.yml docker/.env.release.example --clobber
+          cp docker/.env.release.example dist/default.env.release.example
+          gh release upload "$TAG" dist/* docker/compose.release.yml --clobber
