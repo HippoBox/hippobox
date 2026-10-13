@@ -84,5 +84,7 @@ make release-up
 패키지와 프론트엔드 버전, 배포 기본 태그 및 `docs/release-notes.md`를 갱신하고 커밋합니다.
 `v0.2.0` 같은 버전 태그를 푸시하면 GitHub Actions가 `make verify`를 실행한 뒤
 GHCR의 amd64/arm64 이미지를 게시하고 GitHub 릴리즈에 wheel/sdist/배포 파일을 첨부합니다.
-검증이나 이미지 빌드가 실패하면 릴리즈 생성은 진행하지 않습니다. PyPI 게시와 실제
-서비스 서버 업데이트는 이 워크플로에 포함하지 않습니다.
+검증이나 이미지 빌드가 실패하면 릴리즈 생성은 진행하지 않습니다. 릴리즈 후 같은
+wheel/sdist를 해시 검증하고 PyPI Trusted Publishing으로 게시합니다. 이미 게시된
+GitHub 릴리즈는 `workflow_dispatch`의 `pypi_only=true`로 이미지 재빌드 없이 게시할 수 있습니다.
+실제 서비스 서버 업데이트는 이 워크플로에 포함하지 않습니다.

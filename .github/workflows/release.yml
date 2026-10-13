@@ -8,6 +8,10 @@ on:
         description: 'Version tag to verify and publish (vX.Y.Z or vX.Y.Z-rc.N)'
         required: true
         type: string
+      pypi_only:
+        description: Publish an already verified GitHub release to PyPI without rebuilding
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -15,6 +19,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   verify:
+    if: ${{ !inputs.pypi_only }}
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
@@ -103,3 +108,47 @@ jobs:
           fi
           cp docker/.env.release.example dist/default.env.release.example
           gh release upload "$TAG" dist/* docker/compose.release.yml --clobber
+
+  pypi:
+    needs: [release]
+    if: ${{ always() && !cancelled() && (needs.release.result == 'success' || (github.event_name == 'workflow_dispatch' && inputs.pypi_only)) }}
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/hippobox/
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.13'}
+      - name: Download and validate published distributions
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.ref || github.ref_name }}
+        run: |
+          python scripts/check-release.py
+          mkdir -p pypi-dist
+          gh release download "$TAG" --pattern '*.whl' --pattern '*.tar.gz' --dir pypi-dist
+          python - <<'PYTHON'
+          import hashlib, json, os, subprocess, tomllib
+          from pathlib import Path
+          version = tomllib.loads(Path("src/backend/pyproject.toml").read_text())["project"]["version"]
+          release = json.loads(subprocess.check_output(["gh", "release", "view", os.environ["TAG"], "--json", "isDraft,assets"]))
+          assert not release["isDraft"], "Only published release distributions may be uploaded"
+          expected = {f"hippobox-{version}-py3-none-any.whl", f"hippobox-{version}.tar.gz"}
+          files = list(Path("pypi-dist").iterdir())
+          assert {path.name for path in files} == expected, "Unexpected release distributions"
+          digests = {asset["name"]: asset["digest"] for asset in release["assets"]}
+          for path in files:
+              assert digests[path.name] == "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest(), "Release digest mismatch"
+          print("Published wheel and sdist digests verified")
+          PYTHON
+      - name: Publish verified artifacts with PyPI Trusted Publishing
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: pypi-dist/
+          skip-existing: true

@@ -29,6 +29,6 @@ SQLite→PostgreSQL 데이터 이동은 자동 수행하지 않습니다.
 
 외부 OAuth·메일·Stripe는 기본 비활성이며 별도 공급자 설정이 필요합니다.
 기존 HippoBox 화면을 유지하며 모든 Blueprint 화면을 복제하지는 않습니다.
-PyPI 게시나 실제 운영 서버 배포는 포함하지 않습니다.
+PyPI에도 동일한 wheel/sdist를 제공합니다. 실제 운영 서버 배포는 포함하지 않습니다.
 
 자세한 절차: [배포 안내](https://github.com/HippoBox/hippobox/blob/v0.2.0/docs/deployment.md)
